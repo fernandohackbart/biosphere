@@ -18,6 +18,7 @@ import java.security.Provider;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -30,10 +31,12 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.Set;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
+import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.tissue.TissueManager;
 
 import org.bouncycastle.asn1.pkcs.CertificationRequest;
@@ -87,21 +90,35 @@ public class KeystoreManager
     return "CN="+subjectName+TissueManager.OUDN;
   }
   
-  public void dumpKeystore(KeyStore ks,String password)
+  public String dumpKeystore(KeyStore ks,String password)
   {
     logger.debug("KeystoreGenerator.dumpKeystore()","Dumping in memory keystore:");
+    StringBuffer output = new StringBuffer();
     try
     {    
       Enumeration<String> e = ks.aliases();
       while(e.hasMoreElements())
       {
         String alias = e.nextElement();
-        logger.debug("KeystoreGenerator.dumpKeystore()","Alias:"+alias);
-        
-       // KeyStore.Entry entry = ks.getEntry(alias,null);
-       // entry.getAttributes();
-        
-          
+        output.append("Alias: "+alias+"\n");    
+        try
+        {
+          KeyStore.ProtectionParameter protParam=null;
+          if (ks.isKeyEntry(alias))
+          {
+            protParam = new KeyStore.PasswordProtection(password.toCharArray());
+          }
+          KeyStore.Entry entry = ks.getEntry(alias, protParam);
+          Set<KeyStore.Entry.Attribute> attrs = entry.getAttributes();
+          for (KeyStore.Entry.Attribute attr: attrs)
+          {
+            output.append("  Attribute: "+attr.getName()+"="+attr.getValue()+"\n");
+          }              
+        }
+        catch (UnrecoverableEntryException f)
+        {
+          logger.debug("KeystoreGenerator.dumpKeystore()","UnrecoverableEntryException:"+f.getLocalizedMessage());
+        }
         Key key = ks.getKey(alias,password.toCharArray());
         String b64 = new String(Base64.encode(key.getEncoded()));
         logger.debug("KeystoreGenerator.dumpKeystore()","-----BEGIN PRIVATE KEY-----\n"+b64+"-----END PRIVATE KEY-----\n");
@@ -109,8 +126,9 @@ public class KeystoreManager
     }
     catch (NoSuchAlgorithmException | UnrecoverableKeyException | KeyStoreException e)
     {
-      e.printStackTrace();
+      TissueExceptionHandler.handleGenericException(e,"KeystoreManager.dumpKeystore()","Error dumping the keystore: "+e.getLocalizedMessage());
     }
+    return output.toString();
   }
   
   private void showAlgorithm()

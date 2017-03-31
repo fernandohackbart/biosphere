@@ -46,11 +46,6 @@ public class ChainGetFlatChainHandler implements CellHTTPHandlerInterface
       OutputStream os = t.getResponseBody();
       os.write(response.getBytes(), 0, response.getBytes().length);
       os.close();
-      //logger.debug("ChainGetFlatChain.handle()", "\n"+response);
-      logger.debug("Chain.toFlat()", "############################## DUMP OF THE CHAIN #######################################################");
-      logger.debug("Chain.toFlat()", "\n"+cell.getChain().dumpChain());
-      logger.debug("Chain.toFlat()", "############################## DUMP OF THE CHAIN #######################################################");
-
     }
     catch (IOException e)
     {

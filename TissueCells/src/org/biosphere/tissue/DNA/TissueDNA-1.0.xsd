@@ -6,8 +6,8 @@ xmlns:biosphereService="http://www.biosphere.org/tissue/1.0/service"
                  xmlns="http://www.biosphere.org/tissue/1.0/DNA" 
   attributeFormDefault="qualified">
  
-  <xsd:import namespace="http://www.biosphere.org/tissue/1.0/cell" schemaLocation="http://localhost:1040/org/biosphere/tissue/DNA/TissueCell-1.0.xsd"/>
-  <xsd:import namespace="http://www.biosphere.org/tissue/1.0/service" schemaLocation="http://localhost:1040/org/biosphere/tissue/DNA/TissueService-1.0.xsd"/>
+  <xsd:import namespace="http://www.biosphere.org/tissue/1.0/cell" schemaLocation="TissueCell-1.0.xsd"/>
+  <xsd:import namespace="http://www.biosphere.org/tissue/1.0/service" schemaLocation="TissueService-1.0.xsd"/>
   <xsd:element name="tissue">
     <xsd:complexType>
       <xsd:sequence>

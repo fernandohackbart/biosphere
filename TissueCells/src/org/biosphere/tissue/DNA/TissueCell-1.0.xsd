@@ -4,7 +4,7 @@
             xmlns:biosphereCellInterface="http://www.biosphere.org/tissue/1.0/cell/interface"
             targetNamespace="http://www.biosphere.org/tissue/1.0/cell" 
             elementFormDefault="qualified">
-  <xsd:import namespace="http://www.biosphere.org/tissue/1.0/cell/interface" schemaLocation="http://localhost:1040/org/biosphere/tissue/DNA/TissueCellInterface-1.0.xsd"/>
+  <xsd:import namespace="http://www.biosphere.org/tissue/1.0/cell/interface" schemaLocation="TissueCellInterface-1.0.xsd"/>
   <xsd:complexType name="celltype">
     <xsd:sequence>
       <xsd:element name="cellname" minOccurs="1" maxOccurs="1" type="xsd:string"/>

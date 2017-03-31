@@ -114,7 +114,7 @@ public class Chain
    */
   public final String getNextBlockID()
   {
-    int tissueSize = cell.getCellDNA().getTissueSize();
+    int tissueSize = getCell().getCellDNA().getTissueSize();
     int highestPosition=getBlock("GENESIS").getChainPosition();
     String nextBlockID = "GENESIS";
     ArrayList<String> candidates = new ArrayList<String>();
@@ -325,10 +325,10 @@ public class Chain
    */
   private void requestVotes(Block block, boolean accepted, String notifyingCell, boolean notifyingCellAccepted)
   {
-    if (!block.cellVoted(cell.getCellName()))
+    if (!block.cellVoted(getCell().getCellName()))
     {
-      logger.debug("Chain.sendConsensusVotes()", "Adding local (" + cell.getCellName() + ") vote (" + accepted + ") for block " + block.getBlockID());
-      block.addVote(new Vote(cell.getCellName(), accepted));
+      logger.debug("Chain.sendConsensusVotes()", "Adding local (" + getCell().getCellName() + ") vote (" + accepted + ") for block " + block.getBlockID());
+      block.addVote(new Vote(getCell().getCellName(), accepted));
     }
     if (!block.cellVoted(notifyingCell))
     {
@@ -339,18 +339,18 @@ public class Chain
     {
       logger.debug("Chain.sendConsensusVotes()", "Sending consensus vote (" + accepted + ") for block " + block.getBlockID() + " to the tissue");
       logger.debug("Chain.sendConsensusVotes()", "Getting the list of the cells from the DNA");
-      List<CellInterface> celIterfaces = getCell().getCellDNA().getCellInterfaces();
+      List<CellInterface> celIterfaces = getCell().getCellDNA().getTissueCellsInterfaces();
       Iterator cellsIfIterator = celIterfaces.iterator();
       while (cellsIfIterator.hasNext())
       {
         CellInterface cellInterface = (CellInterface) cellsIfIterator.next();
-        if ((!cellInterface.getCellName().equals(cell.getCellName())) && (!cellInterface.getCellName().equals(block.getCellID())))
+        if ((!cellInterface.getCellName().equals(getCell().getCellName())) && (!cellInterface.getCellName().equals(block.getCellID())))
         {
           logger.debug("Chain.sendConsensusVotes()", "Cell " + cellInterface.getCellName() + " elegible for notification ");
           if (!block.cellVoted(cellInterface.getCellName()))
           {
             logger.debug("Chain.sendConsensusVotes()", "Notifying cell: " + cellInterface.getCellName() + ":" + cellInterface.getCellNetworkName() + ":" + cellInterface.getPort());
-            ChainNotifyCell cnc = new ChainNotifyCell(cellInterface.getCellNetworkName(), cellInterface.getPort(), block, cellInterface.getCellName(), cell.getCellName(), accepted);
+            ChainNotifyCell cnc = new ChainNotifyCell(cellInterface.getCellNetworkName(), cellInterface.getPort(), block, cellInterface.getCellName(), getCell().getCellName(), accepted);
             (new Thread(cnc)).start();
           }
           else
@@ -360,13 +360,13 @@ public class Chain
         }
         else
         {
-          if ((cellInterface.getCellName().equals(cell.getCellName())))
+          if ((cellInterface.getCellName().equals(getCell().getCellName())))
           {
-            logger.debug("Chain.sendConsensusVotes()", "Cell " + cellInterface.getCellName() + " NOT elegible for notification as it is local (" + cell.getCellName() + ")");
+            logger.debug("Chain.sendConsensusVotes()", "Cell " + cellInterface.getCellName() + " NOT elegible for notification as it is local (" + getCell().getCellName() + ")");
           }
           if ((cellInterface.getCellName().equals(block.getCellID())))
           {
-            logger.debug("Chain.sendConsensusVotes()", "Cell " + cellInterface.getCellName() + " NOT elegible for notification as it is creator (" + cell.getCellName() + ")");
+            logger.debug("Chain.sendConsensusVotes()", "Cell " + cellInterface.getCellName() + " NOT elegible for notification as it is creator (" + getCell().getCellName() + ")");
           }
           if ((cellInterface.getCellName().equals(notifyingCell)))
           {
@@ -409,7 +409,13 @@ public class Chain
     blockToFlat("GENESIS",flatChain);
     return flatChain.toString();
   }
-  
+
+  /**
+   * Get the proVided block ID's as flat and append to the StringBuffer output
+   * 
+   * @param blockID the ID of the block to the converted to flat and added to the output
+   * @param output the output StringBuffer
+   */
   private void blockToFlat(String blockID,StringBuffer output)
   {
     output.append(getBlock(blockID).toFlat() + "\n");
@@ -419,6 +425,11 @@ public class Chain
     }   
   }
 
+  /**
+   * Returns a String with all blocks in the chain one by line
+   * 
+   * @return String with all blocks in the chain one by line
+   */
   public String dumpChain()
   {
     StringBuffer dumpChain = new StringBuffer();
@@ -426,12 +437,12 @@ public class Chain
     while (blockKeys.hasMoreElements())
     {
       String blockID = (String) blockKeys.nextElement();
-      dumpChain.append("\nChain.dumpChain(" + cell.getCellName() + ") RAW  POS("+getBlock(blockID).getChainPosition()+") PREV(" + getBlock(blockID).getPrevBlockID() + ") ID(" + getBlock(blockID).getBlockID() + ")");
+      dumpChain.append("\nChain.dumpChain(" + getCell().getCellName() + ") RAW  POS("+getBlock(blockID).getChainPosition()+") PREV(" + getBlock(blockID).getPrevBlockID() + ") ID(" + getBlock(blockID).getBlockID() + ")");
     }
     String[] chainArray = toFlat().split("\n");
     for (String chainBlock: chainArray)
     {
-      dumpChain.append("\nChain.dumpChain(" + cell.getCellName() + ") CHAIN " + chainBlock);
+      dumpChain.append("\nChain.dumpChain(" + getCell().getCellName() + ") CHAIN " + chainBlock);
     }
     return dumpChain.toString();
   }

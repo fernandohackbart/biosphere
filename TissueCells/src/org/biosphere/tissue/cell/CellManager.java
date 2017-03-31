@@ -201,9 +201,14 @@ public class CellManager
     ArrayList<String> serviceStopContexts = new ArrayList<String>();
     serviceStopContexts.add("/org/biosphere/cell/service/stop");
     cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.ServiceStopHandler",serviceStopContexts); 
+    
     ArrayList<String> httpServiceStopContexts = new ArrayList<String>();
     httpServiceStopContexts.add("/org/biosphere/cell/httpservice/stop");
     cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.HTTPServiceStopHandler",httpServiceStopContexts); 
+    
+    ArrayList<String> cellStatusContexts = new ArrayList<String>();
+    cellStatusContexts.add("/org/biosphere/cell/status");
+    cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.CellStatus",cellStatusContexts); 
       
     ServiceDefinition sdCellTissueListener = new ServiceDefinition();
     sdCellTissueListener.setServiceDefinitionName("CellTissueListener");
@@ -232,7 +237,7 @@ public class CellManager
     ArrayList<String> chainGetImageChainContexts = new ArrayList<String>();
     chainGetImageChainContexts.add("/org/biosphere/cell/chain/get/chainimage");
     cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.ChainGetImageChainHandler",chainGetImageChainContexts); 
-       
+            
     return sdCellTissueListener;
   }
   

@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.StringReader;
 import java.io.StringWriter;
 
 import java.math.BigInteger;
@@ -23,7 +24,9 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -42,6 +45,7 @@ import org.biosphere.tissue.utils.Logger;
 
 import org.w3c.dom.Document;
 
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class DNACore
@@ -181,6 +185,43 @@ public class DNACore
     }
     return writer.toString();
   }
+  
+  public String getDNACoreAsPrettyString()
+  {
+    String output = "FAIL";
+    try
+    {
+      DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+      InputSource is = new InputSource();
+      is.setCharacterStream(new StringReader(getDNACoreAsString()));
+      Document doc = db.parse(is);
+      Transformer transformer = TransformerFactory.newInstance().newTransformer();
+      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+      StreamResult result = new StreamResult(new StringWriter());
+      DOMSource source = new DOMSource(doc);
+      transformer.transform(source,result);      
+      output=result.getWriter().toString();
+    }
+    catch (ParserConfigurationException e)
+    {
+      TissueExceptionHandler.handleGenericException(e,"DNACore.getDNACoreAsPrettyString()","ParserConfigurationException:");
+    }
+    catch (IOException | SAXException e)
+    {
+      TissueExceptionHandler.handleGenericException(e,"DNACore.getDNACoreAsPrettyString()","IOException | SAXException:");
+    }
+    catch (TransformerConfigurationException e)
+    {
+      TissueExceptionHandler.handleGenericException(e,"DNACore.getDNACoreAsPrettyString()","TransformerConfigurationException:");
+    }
+    catch (TransformerException e)
+    {
+      TissueExceptionHandler.handleGenericException(e,"DNACore.getDNACoreAsPrettyString()","TransformerException:");
+    }
+
+    return output;
+  }
 
   private Tissue unmarshallDNACore()
   {
@@ -279,7 +320,7 @@ public class DNACore
     logger.debug("DNACore.setTissueName()", "Tissue.setTissuename(\"" + tissueName + "\")");
   }
   
-  public List<CellInterface> getCellInterfaces()
+  public List<CellInterface> getTissueCellsInterfaces()
   {
      List<CellInterface> interfacesList = new ArrayList<CellInterface>();
     logger.debug("DNACore.getCellInterfaces()","Getting the list of the cells from the DNA");
