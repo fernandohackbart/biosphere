@@ -16,11 +16,11 @@ import org.biosphere.tissue.utils.KeystoreManager;
 import org.biosphere.tissue.utils.Logger;
 import org.biosphere.tissue.utils.RequestUtils;
 
-public class CellStatus implements CellHTTPHandlerInterface
+public class CellStatusHandler implements CellHTTPHandlerInterface
 {
   private Logger logger;
   
-  public CellStatus()
+  public CellStatusHandler()
   {
     super();
     logger = new Logger();
@@ -68,9 +68,11 @@ public class CellStatus implements CellHTTPHandlerInterface
       response.append("##############################################################################\n");
       response.append("Chain dump: "+getCell().getChain().dumpChain()+"\n");
       response.append("##############################################################################\n");
-      response.append("Keystore dump: \n"+new KeystoreManager().dumpKeystore(getCell().getCellKeystore(), getCell().getCellKeystorePWD())+"\n");
+      response.append("Keystore dump: \n"+new KeystoreManager().dumpKeystore(getCell().getCellKeystore(), getCell().getCellKeystorePWD(), getCell().getCellName())+"\n");
       response.append("##############################################################################\n");
-      response.append("Tissue DNA: \n"+getCell().getCellDNA().getDNACoreAsPrettyString()+"\n");
+      //response.append("Keystore algorithms: \n"+new KeystoreManager().showAlgorithm()+"\n");      
+      response.append("##############################################################################\n");
+      //response.append("Tissue DNA: \n"+getCell().getCellDNA().getDNACoreAsPrettyString()+"\n");
       response.append("##############################################################################\n");
       
       Headers h = t.getResponseHeaders();
@@ -78,9 +80,7 @@ public class CellStatus implements CellHTTPHandlerInterface
       t.sendResponseHeaders(200, response.toString().getBytes().length);
       OutputStream os = t.getResponseBody();
       os.write(response.toString().getBytes(), 0, response.toString().getBytes().length);
-      os.close();
-      logger.debug("CellStatus.handle()","Response:"+ response);
-      
+      os.close();      
     }
     catch (IOException e)
     {
