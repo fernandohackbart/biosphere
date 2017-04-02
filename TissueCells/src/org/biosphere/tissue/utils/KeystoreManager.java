@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import java.io.StringWriter;
+
 import java.math.BigInteger;
 
 import java.security.Key;
@@ -23,14 +25,19 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateCrtKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.net.ssl.SSLContext;
@@ -40,7 +47,12 @@ import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.tissue.TissueManager;
 
 import org.bouncycastle.asn1.pkcs.CertificationRequest;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.ExtensionsGenerator;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
@@ -48,13 +60,16 @@ import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
+import org.bouncycastle.openssl.jcajce.JcaMiscPEMGenerator;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
+import org.bouncycastle.util.Integers;
 import org.bouncycastle.util.encoders.Base64;
+import org.bouncycastle.util.io.pem.PemWriter;
 
 public class KeystoreManager
 {
@@ -68,98 +83,11 @@ public class KeystoreManager
   
   public KeyStore getKeyStore(String cellName,String subjectName,String keyStorePass) throws NoSuchAlgorithmException, InvalidKeySpecException, OperatorCreationException, IOException, CertificateException, KeyStoreException
   {
-    //this.dumpKeystore(this.generateKeyStore("biosphere",keyStorePass),keyStorePass);
-    //this.showAlgorithm();
-
     //return this.getFileKeyStore("E:\\mywork\\Keystore\\testkey.jks",keyStorePass);
     //return this.generateKeyStore(cellName,subjectName,keyStorePass); 
     return this.generateKeyStoreSelf(cellName,subjectName,keyStorePass);
   }
-
  
-  private String getCellDN(String subjectName)
-  {
-    logger.info("KeystoreGenerator.getCellDN()","Cell DN: CN="+subjectName+TissueManager.OUDN);
-    return "CN="+subjectName+TissueManager.OUDN;
-  }
-  
-  private String getCellCADN(String subjectName)
-  {
-    logger.info("KeystoreGenerator.getCellCADN()","Cell CA DN: CN="+subjectName+"-CA"+TissueManager.OUDN);
-    //return "CN="+subjectName+"-CA"+OUDN;
-    return "CN="+subjectName+TissueManager.OUDN;
-  }
-  
-  public String dumpKeystore(KeyStore ks,String password)
-  {
-    logger.debug("KeystoreGenerator.dumpKeystore()","Dumping in memory keystore:");
-    StringBuffer output = new StringBuffer();
-    try
-    {    
-      Enumeration<String> e = ks.aliases();
-      while(e.hasMoreElements())
-      {
-        String alias = e.nextElement();
-        output.append("Alias: "+alias+"\n");    
-        try
-        {
-          KeyStore.ProtectionParameter protParam=null;
-          if (ks.isKeyEntry(alias))
-          {
-            protParam = new KeyStore.PasswordProtection(password.toCharArray());
-          }
-          KeyStore.Entry entry = ks.getEntry(alias, protParam);
-          Set<KeyStore.Entry.Attribute> attrs = entry.getAttributes();
-          for (KeyStore.Entry.Attribute attr: attrs)
-          {
-            output.append("  Attribute: "+attr.getName()+"="+attr.getValue()+"\n");
-          }              
-        }
-        catch (UnrecoverableEntryException f)
-        {
-          logger.debug("KeystoreGenerator.dumpKeystore()","UnrecoverableEntryException:"+f.getLocalizedMessage());
-        }
-        Key key = ks.getKey(alias,password.toCharArray());
-        String b64 = new String(Base64.encode(key.getEncoded()));
-        logger.debug("KeystoreGenerator.dumpKeystore()","-----BEGIN PRIVATE KEY-----\n"+b64+"-----END PRIVATE KEY-----\n");
-      }
-    }
-    catch (NoSuchAlgorithmException | UnrecoverableKeyException | KeyStoreException e)
-    {
-      TissueExceptionHandler.handleGenericException(e,"KeystoreManager.dumpKeystore()","Error dumping the keystore: "+e.getLocalizedMessage());
-    }
-    return output.toString();
-  }
-  
-  private void showAlgorithm()
-  {
-    for (Provider p: Security.getProviders())
-    {
-      for (Object o: p.keySet())
-      {
-        logger.info("KeystoreGenerator.showAlgorithm()","Security.getProviders():"+o);
-      }
-    }  
-
-    try
-    {
-      SSLContext c = SSLContext.getDefault();
-      SSLEngine engine = c.createSSLEngine();      
-      for (String s: engine.getEnabledCipherSuites())
-      {
-        logger.info("KeystoreGenerator.showAlgorithm()","SSLEngine.getEnabledCipherSuites():"+s);
-      }       
-      for (String s: engine.getEnabledProtocols())
-      {
-        logger.info("KeystoreGenerator.showAlgorithm()","SSLEngine.getEnabledCipherSuites():"+s);
-      }             
-    }
-    catch (NoSuchAlgorithmException e)
-    {
-      System.out.println(e.getMessage());
-    }
-  }
-
   private KeyStore getFileKeyStore(String file, String password) throws KeyStoreException, FileNotFoundException, IOException, NoSuchAlgorithmException, CertificateException
   {
     //keytool -genkey -keyalg RSA -alias selfsigned -keystore /tmp/testkey.jks -storepass password -validity 360 -keysize 2048
@@ -174,10 +102,10 @@ public class KeystoreManager
   {
     KeyStore ks = null;
     KeyPair cakp = generateKeyPair();
-    CertificationRequest cacr = generateRequest(cakp.getPublic(),cakp.getPrivate(),TissueManager.CADN,cellName+"-CA");
+    PKCS10CertificationRequest cacr = generateRequest(cakp.getPublic(),cakp.getPrivate(),TissueManager.CADN,cellName+"-CA");
     X509Certificate caCertificate = signRequest(cacr,cakp.getPrivate(),new X500Name(TissueManager.CADN),TissueManager.validityCA);
     KeyPair kp = generateKeyPair();
-    CertificationRequest cr = generateRequest(kp.getPublic(),kp.getPrivate(),getCellDN(subjectName),cellName);
+    PKCS10CertificationRequest cr = generateRequest(kp.getPublic(),kp.getPrivate(),getCellDN(subjectName),cellName);
     X509Certificate certificate = signRequest(cr,cakp.getPrivate(),new JcaX509CertificateHolder(caCertificate).getSubject(),TissueManager.validity);     
     ks = KeyStore.getInstance("JKS");
     ks.load(null, null);
@@ -195,8 +123,8 @@ public class KeystoreManager
   private KeyStore generateKeyStoreSelf(String cellName,String subjectName, String password) throws NoSuchAlgorithmException, InvalidKeySpecException, OperatorCreationException, IOException, CertificateException, KeyStoreException
   {
     KeyPair kp = generateKeyPair();
-    X500Name subject = new X500Name(getCellCADN(subjectName));
-    CertificationRequest cr = generateRequest(kp.getPublic(),kp.getPrivate(),getCellDN(subjectName),cellName);
+    X500Name subject = new X500Name(getCellCADN(cellName));
+    PKCS10CertificationRequest cr = generateRequest(kp.getPublic(),kp.getPrivate(),getCellDN(subjectName),getCellDN(cellName));
     X509Certificate certificate = signRequest(cr,kp.getPrivate(),subject,TissueManager.validity);
     Certificate[] certChain = new Certificate[1];
     certChain[0] = certificate;
@@ -204,7 +132,7 @@ public class KeystoreManager
     KeyStore ks = null;
     ks = KeyStore.getInstance("JKS");
     ks.load(null, null);
-    ks.setKeyEntry(cellName,kp.getPrivate(),password.toCharArray(), certChain); 
+    ks.setKeyEntry(cellName,kp.getPrivate(),password.toCharArray(), certChain);
     //ks.setCertificateEntry(subjectName,certificate); 
     return ks;
   }
@@ -214,7 +142,7 @@ public class KeystoreManager
     AsymmetricCipherKeyPair ackp=null;
     SecureRandom sr = new SecureRandom();
     RSAKeyPairGenerator rsakpg = new RSAKeyPairGenerator();
-    RSAKeyGenerationParameters params = new RSAKeyGenerationParameters(new BigInteger("35"),sr,TissueManager.keyStrenght,8);
+    RSAKeyGenerationParameters params = new RSAKeyGenerationParameters(new BigInteger(TissueManager.keyBigInteger),sr,TissueManager.keyStrenght,8);
     rsakpg.init(params);
     ackp = rsakpg.generateKeyPair();
     RSAKeyParameters publicKey = (RSAKeyParameters) ackp.getPublic();
@@ -224,27 +152,21 @@ public class KeystoreManager
     return new KeyPair(pubKey,privKey);    
   }
   
-  private CertificationRequest generateRequest(PublicKey pubKey,PrivateKey privKey,String subjectDN,String cellName) throws OperatorCreationException, IOException
+  private PKCS10CertificationRequest generateRequest(PublicKey pubKey,PrivateKey privKey,String subjectDN,String cellNameASN) throws OperatorCreationException, IOException
   {
     X500Name subject= new X500Name(subjectDN);
     PKCS10CertificationRequestBuilder p10Builder = new JcaPKCS10CertificationRequestBuilder(subject, pubKey);
+    ExtensionsGenerator extGen = new ExtensionsGenerator();
+    extGen.addExtension(Extension.subjectAlternativeName, false, new GeneralNames(new GeneralName(GeneralName.otherName,new X500Name(cellNameASN))));
+    p10Builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extGen.generate());
+    
     JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(TissueManager.SignerBuilderName);
     ContentSigner signer = csBuilder.build(privKey);
-    
-    //Add alternativeName to the certificate with the name of the Cell
-    
-    //List<GeneralName> namesList = new ArrayList<>();
-    //namesList.add(GeneralNameTool.toGeneralName(cellName));
-    //ExtensionsGenerator extGen = new ExtensionsGenerator();
-    //GeneralNames subjectAltNames = new GeneralNames(namesList.toArray(new GeneralName [] {}));
-    //extGen.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
-    //p10Builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extGen.generate());
-                
-    CertificationRequest csr = p10Builder.build(signer).toASN1Structure();
-    return csr;
+          
+    return p10Builder.build(signer);
   }
 
-  private X509Certificate signRequest(CertificationRequest inputCSR, PrivateKey caPrivKey,X500Name issuer,int validity) throws OperatorCreationException, IOException, CertificateException
+  private X509Certificate signRequest(PKCS10CertificationRequest inputCSR, PrivateKey caPrivKey,X500Name issuer,int validity) throws OperatorCreationException, IOException, CertificateException
   {
     Date startDate = new Date();
     Calendar c = Calendar.getInstance();
@@ -252,13 +174,145 @@ public class KeystoreManager
     c.add(Calendar.YEAR,validity);
     Date expiryDate = c.getTime();
     BigInteger serialNumber= BigInteger.valueOf(TissueManager.defaultSerialNumber);
-    PKCS10CertificationRequest pk10Holder = new PKCS10CertificationRequest(inputCSR);
-    X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(issuer,serialNumber,startDate,expiryDate,pk10Holder.getSubject(),pk10Holder.getSubjectPublicKeyInfo());
+    X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(issuer,serialNumber,startDate,expiryDate,inputCSR.getSubject(),inputCSR.getSubjectPublicKeyInfo());
     JcaContentSignerBuilder builder = new JcaContentSignerBuilder(TissueManager.SignerBuilderName);
     ContentSigner signer = builder.build(caPrivKey);
     byte[] certBytes = certBuilder.build(signer).getEncoded();
     CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
     X509Certificate certificate = (X509Certificate)certificateFactory.generateCertificate(new ByteArrayInputStream(certBytes));
     return certificate;
+  }
+  
+  public String dumpKeystore(KeyStore ks,String password,String cellName)
+  {
+    logger.debug("KeystoreManager.dumpKeystore()","Dumping in memory keystore:");
+    
+    StringBuffer output = new StringBuffer();
+    try
+    {    
+      output.append("  Cell key: \n"+getKey(ks, password, cellName)+"\n");
+      
+      Enumeration<String> e = ks.aliases();
+      while(e.hasMoreElements())
+      {
+        String alias = e.nextElement();
+        output.append("Alias: "+alias+"\n");    
+        try
+        {
+          X509Certificate cert = (X509Certificate)ks.getCertificate(alias);
+          output.append("  Certificate isser: "+cert.getIssuerDN()+"\n");
+          output.append("  Certificate subject DN: "+cert.getSubjectDN()+"\n");
+          output.append("  Certificate serial number: "+cert.getSerialNumber()+"\n");
+          output.append("  Certificate not before: "+cert.getNotBefore()+"\n");
+          output.append("  Certificate not after: "+cert.getNotAfter()+"\n");
+          output.append("  Certificate ASN: "+cert.getSubjectAlternativeNames()+"\n");
+          if (cert.getSubjectAlternativeNames()!=null)
+          {
+            Iterator it = cert.getSubjectAlternativeNames().iterator();
+            while (it.hasNext())
+            {
+              List list = (List)it.next();
+              output.append("  Certificate ASN 0: "+list.get(0).toString()+"\n");
+              output.append("  Certificate ASN 1: "+list.get(1).toString()+"\n");
+            }
+          }
+          output.append("  Certificate: \n"+getCertificate(ks, alias)+"\n");
+  /*
+          KeyStore.Entry entry = ks.getEntry(alias, protParam);
+          Set<KeyStore.Entry.Attribute> attrs = entry.getAttributes();
+          output.append("  Attributes count: "+attrs.size()+"\n");
+          for (KeyStore.Entry.Attribute attr: attrs)
+          {
+            output.append("    Attribute: "+attr.getName()+"="+attr.getValue()+"\n");
+          }  
+  */
+        }
+        catch (IOException f)
+        {
+          logger.error("KeystoreManager.dumpKeystore()","IOException:"+f.getLocalizedMessage());
+        }
+        catch (CertificateParsingException f)
+        {
+          logger.error("KeystoreManager.dumpKeystore()","CertificateParsingException:"+f.getLocalizedMessage());
+        }
+      }
+    }
+    catch (NoSuchAlgorithmException | KeyStoreException e)
+    {
+      TissueExceptionHandler.handleGenericException(e,"KeystoreManager.dumpKeystore()","Error dumping the keystore: "+e.getLocalizedMessage());
+    }
+    catch (IOException | UnrecoverableKeyException e)
+    {
+      logger.error("KeystoreManager.dumpKeystore()","UnrecoverableEntryException:"+e.getLocalizedMessage());
+    }
+    return output.toString();
+  }
+  
+  public String showAlgorithm()
+  {
+    StringBuffer output = new StringBuffer();
+    for (Provider p: Security.getProviders())
+    {
+      for (Object o: p.keySet())
+      {
+        output.append("Security.getProviders():"+o+"\n");
+      }
+    }  
+    try
+    {
+      SSLContext c = SSLContext.getDefault();
+      SSLEngine engine = c.createSSLEngine();      
+      for (String s: engine.getEnabledCipherSuites())
+      {
+        output.append("SSLEngine.getEnabledCipherSuites():"+s+"\n");
+      }       
+      for (String s: engine.getEnabledProtocols())
+      {
+        output.append("SSLEngine.getEnabledCipherSuites():"+s+"\n");
+      }             
+    }
+    catch (NoSuchAlgorithmException e)
+    {
+      TissueExceptionHandler.handleGenericException(e,"KeystoreManager.showAlgorithm()","Error showAlgorithm: "+e.getLocalizedMessage());
+    }
+    return output.toString();
+  }
+
+  public String getKey(KeyStore ks,String password,String keyAlias) throws KeyStoreException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException
+  {
+    logger.info("KeystoreManager.getCertificate()","KeyAlias:"+keyAlias);
+    Key key = ks.getKey(keyAlias,password.toCharArray());
+    StringWriter sw = new StringWriter();
+    PemWriter pw = new PemWriter(sw);
+    pw.writeObject(new JcaMiscPEMGenerator(key));
+    pw.flush();
+    String pemEncodedCert = sw.toString();
+    logger.debug("KeystoreManager.getCertificate()","\n"+pemEncodedCert);
+    return pemEncodedCert;    
+  }
+  
+  public String getCertificate(KeyStore ks,String certAlias) throws KeyStoreException, IOException
+  {
+    logger.info("KeystoreManager.getCertificate()","CertAlias:"+certAlias);
+    Certificate cert = ks.getCertificate(certAlias);
+    StringWriter sw = new StringWriter();
+    PemWriter pw = new PemWriter(sw);
+    pw.writeObject(new JcaMiscPEMGenerator(cert));
+    pw.flush();
+    String pemEncodedCert = sw.toString();
+    logger.debug("KeystoreManager.getCertificate()","\n"+pemEncodedCert);
+    return pemEncodedCert;    
+  }
+  
+  private String getCellDN(String subjectName)
+  {
+    logger.info("KeystoreManager.getCellDN()","Cell DN: CN="+subjectName+TissueManager.OUDN);
+    return "CN="+subjectName+TissueManager.OUDN;
+  }
+  
+  private String getCellCADN(String subjectName)
+  {
+    logger.info("KeystoreManager.getCellCADN()","Cell CA DN: CN="+subjectName+"-CA"+TissueManager.OUDN);
+    return "CN="+subjectName+TissueManager.OUDN;
   }
 }

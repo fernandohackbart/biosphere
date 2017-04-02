@@ -35,6 +35,7 @@ public class TissueManager
   public final static String CADN= "CN=CA"+OUDN;
   public final static String SignerBuilderName = "SHA256withRSA";
   public final static int keyStrenght = 2048;
+  public final static String keyBigInteger = "35";
   public final static int validityCA = 10; 
   public final static int validity = 1;
   public final static int defaultSerialNumber=1;
