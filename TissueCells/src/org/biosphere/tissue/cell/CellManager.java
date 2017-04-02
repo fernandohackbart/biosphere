@@ -208,7 +208,7 @@ public class CellManager
     
     ArrayList<String> cellStatusContexts = new ArrayList<String>();
     cellStatusContexts.add("/org/biosphere/cell/status");
-    cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.CellStatus",cellStatusContexts); 
+    cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.CellStatusHandler",cellStatusContexts); 
       
     ServiceDefinition sdCellTissueListener = new ServiceDefinition();
     sdCellTissueListener.setServiceDefinitionName("CellTissueListener");
