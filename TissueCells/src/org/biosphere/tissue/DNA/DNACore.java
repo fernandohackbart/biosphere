@@ -323,7 +323,7 @@ public class DNACore
   public List<CellInterface> getTissueCellsInterfaces()
   {
      List<CellInterface> interfacesList = new ArrayList<CellInterface>();
-    logger.debug("DNACore.getCellInterfaces()","Getting the list of the cells from the DNA");
+    logger.debug("DNACore.getTissueCellsInterfaces()","Getting the list of the cells from the DNA");
     // get the list of the cells
     Tissue.Tissuecells cells = getCells();
     Iterator cellsIterator = cells.getCell().iterator();
@@ -332,7 +332,7 @@ public class DNACore
       Celltype DNAcell=(Celltype)cellsIterator.next();
       for (int i = 0; i < DNAcell.getCellinterface().getCelladdresses().getCelladdress().size(); i++) 
       {
-        logger.debug("DNACore.getCellInterfaces()","Adding cell: "+DNAcell.getCellname()+" ("+DNAcell.getCellinterface().getCelladdresses().getCelladdress().get(i)+":"+DNAcell.getCellinterface().getCellport().intValue()+") to the list");
+        logger.debug("DNACore.getTissueCellsInterfaces()","Adding cell: "+DNAcell.getCellname()+" ("+DNAcell.getCellinterface().getCelladdresses().getCelladdress().get(i)+":"+DNAcell.getCellinterface().getCellport().intValue()+") to the list");
         interfacesList.add(new CellInterface(DNAcell.getCellname(),DNAcell.getCellinterface().getCelladdresses().getCelladdress().get(i),DNAcell.getCellinterface().getCellport().intValue()));
       }
     }
