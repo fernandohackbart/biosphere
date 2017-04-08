@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:biosphereTissueService="http://www.biosphere.org/tissue/1.0/service"
+            targetNamespace="http://www.biosphere.org/tissue/1.0/service" elementFormDefault="qualified">
+  <xsd:complexType name="tissueservicetype">
+    <xsd:sequence>
+      <xsd:element name="servicename" maxOccurs="1" type="xsd:string"/>
+      <xsd:element name="serviceversion" maxOccurs="1" type="xsd:string"/>
+      <xsd:element name="servicetype" maxOccurs="1" type="xsd:string"/>
+      <xsd:element name="servicedaemon" maxOccurs="1" type="xsd:boolean"/>
+      <xsd:element name="serviceclass" maxOccurs="1" type="xsd:string"/>
+      <xsd:element name="serviceparameters">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="serviceparameter" maxOccurs="unbounded">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="serviceparametername" maxOccurs="1" type="xsd:string"/>
+                  <!--The serviceparametervalue should be multi valued -->
+                  <xsd:element name="serviceparametervalue" maxOccurs="1" type="xsd:string"/>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

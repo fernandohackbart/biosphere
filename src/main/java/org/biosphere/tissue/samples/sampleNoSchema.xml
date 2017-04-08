@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<tissue>
+  <tissuename>Test</tissuename>
+  <DNAversion>1.0</DNAversion>
+  <tissuepublickey>KeY1</tissuepublickey>
+  <tissueannounce>
+    <tissuemulticastgroup>230.0.0.1</tissuemulticastgroup>
+    <tissuemulticastport>1049</tissuemulticastport>
+  </tissueannounce>
+  <tissuenervoussystem>
+    <tissuedefaultport>1040</tissuedefaultport>
+  </tissuenervoussystem>
+  <tissuecells>
+    <cell>
+      <cellname>Cell1</cellname>
+      <cellpublickey>KeY2</cellpublickey>
+      <cellinterface>
+        <cellport>1041</cellport>
+        <celladdresses>
+          <celladdress>12.0.0.1</celladdress>
+          <celladdress>192.168.56.101</celladdress>
+        </celladdresses>
+      </cellinterface>
+    </cell>
+  </tissuecells>
+  <tissueservices>
+    <tissueservice>
+      <servicename>DNSLookup</servicename>
+      <serviceversion>1.0</serviceversion>
+      <serviceclass>org.biosphere.DNSlookup</serviceclass>
+      <serviceparameters>
+        <serviceparameter>
+          <serviceparametername>HostToCheck</serviceparametername>
+          <serviceparametervalue>www.biosphere.org</serviceparametervalue>
+        </serviceparameter>
+      </serviceparameters>
+    </tissueservice>
+  </tissueservices>
+</tissue>

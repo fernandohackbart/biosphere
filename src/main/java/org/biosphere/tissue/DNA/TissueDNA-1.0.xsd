@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+   xmlns:biosphereCell="http://www.biosphere.org/tissue/1.0/cell"
+xmlns:biosphereService="http://www.biosphere.org/tissue/1.0/service"
+       targetNamespace="http://www.biosphere.org/tissue/1.0/DNA" 
+                 xmlns="http://www.biosphere.org/tissue/1.0/DNA" 
+  attributeFormDefault="qualified">
+ 
+  <xsd:import namespace="http://www.biosphere.org/tissue/1.0/cell" schemaLocation="TissueCell-1.0.xsd"/>
+  <xsd:import namespace="http://www.biosphere.org/tissue/1.0/service" schemaLocation="TissueService-1.0.xsd"/>
+  <xsd:element name="tissue">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="tissuename" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+        <xsd:element name="DNAversion" minOccurs="1" maxOccurs="1" type="xsd:float"/>
+        <xsd:element name="tissuepublickey" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+        <xsd:element name="tissueannounce" minOccurs="1" maxOccurs="1">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="tissuemulticastgroup" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+              <xsd:element name="tissuemulticastport" minOccurs="1" maxOccurs="1" type="xsd:integer"/>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="tissuenervoussystem" minOccurs="1" maxOccurs="1">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="tissuedefaultport" minOccurs="1" maxOccurs="1" type="xsd:integer"/>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="tissuecells" minOccurs="0" maxOccurs="1">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="cell" minOccurs="0" maxOccurs="unbounded" type="biosphereCell:celltype"/>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="tissueservices" minOccurs="0" maxOccurs="1">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="tissueservice" minOccurs="0" maxOccurs="unbounded" type="biosphereService:tissueservicetype"/>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

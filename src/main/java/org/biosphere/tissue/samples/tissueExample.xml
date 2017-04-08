@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<tissue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.biosphere.org/tissue/1.0/DNA ../DNA/TissueDNA-1.0.xsd"
+        xmlns="http://www.biosphere.org/tissue/1.0/DNA">
+  <tissuename xmlns=""></tissuename>
+  <DNAversion xmlns=""></DNAversion>
+  <tissuepublickey xmlns=""></tissuepublickey>
+  <tissueannounce xmlns="">
+    <tissuemulticastgroup></tissuemulticastgroup>
+    <tissuemulticastport></tissuemulticastport>
+  </tissueannounce>
+  <tissuenervoussystem xmlns="">
+    <tissuedefaultport></tissuedefaultport>
+  </tissuenervoussystem>
+  <tissuecells xmlns="">
+    <cell><cellname xmlns="http://www.biosphere.org/tissue/1.0/cell"/><cellpublickey xmlns="http://www.biosphere.org/tissue/1.0/cell"/><cellinterface xmlns="http://www.biosphere.org/tissue/1.0/cell">
+        <cellport xmlns="http://www.biosphere.org/tissue/1.0/cell/interface"/>
+        <celladdresses xmlns="http://www.biosphere.org/tissue/1.0/cell/interface">
+          <celladdress/>
+        </celladdresses>
+      </cellinterface></cell>
+  </tissuecells>
+  <tissueservices xmlns="">
+    <tissueservice><servicename xmlns="http://www.biosphere.org/tissue/1.0/service"/><serviceversion xmlns="http://www.biosphere.org/tissue/1.0/service"/><serviceclass xmlns="http://www.biosphere.org/tissue/1.0/service"/><serviceparameters xmlns="http://www.biosphere.org/tissue/1.0/service">
+        <serviceparameter>
+          <serviceparametername/>
+          <serviceparametervalue/>
+        </serviceparameter>
+      </serviceparameters></tissueservice>
+  </tissueservices>
+</tissue>

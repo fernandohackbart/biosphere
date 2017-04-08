@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<biosphereTissueService:tissueservice xmlns="http://www.biosphere.org/tissue/1.0/tissue/service"
+                                      xmlns:biosphereTissueService="http://www.biosphere.org/tissue/1.0/tissue/service"
+                                      biosphereTissueService:schemaLocation="/home/fhackbart/Personal/Biosphere/mywork/Biosphere/TissueCells/src/org/biosphere/tissue/DNA/TissueService-1.0.xsd">
+  <biosphereTissueService:servicename>DNSLookup</biosphereTissueService:servicename>
+  <biosphereTissueService:serviceversion>1.0</biosphereTissueService:serviceversion>
+  <biosphereTissueService:serviceclass>org.biosphere.DNSlookup</biosphereTissueService:serviceclass>
+  <biosphereTissueService:serviceparameters>
+    <biosphereTissueService:serviceparameter>
+      <biosphereTissueService:serviceparametername>HostToCheck</biosphereTissueService:serviceparametername>
+      <biosphereTissueService:serviceparametervalue>www.biosphere.org</biosphereTissueService:serviceparametervalue>
+    </biosphereTissueService:serviceparameter>
+  </biosphereTissueService:serviceparameters>
+</biosphereTissueService:tissueservice>
