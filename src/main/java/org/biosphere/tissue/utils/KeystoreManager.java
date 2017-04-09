@@ -41,9 +41,12 @@ import javax.net.ssl.SSLEngine;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.tissue.TissueManager;
 
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.ExtensionsGenerator;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
@@ -98,14 +101,14 @@ public class KeystoreManager {
 		KeyPair cakp = generateKeyPair();
 		PKCS10CertificationRequest cacr = generateRequest(cakp.getPublic(), cakp.getPrivate(), getCellCADN(cellName),
 				cellName + "-CA");
-		X509Certificate caCertificate = signRequest(cacr, cakp.getPrivate(), new X500Name(getCellCADN(cellName)),
+		X509Certificate caCertificate = signRequest(cacr, cakp.getPrivate(), new X500Name(getCellCADN(cellName)),cellName,subjectName,
 				TissueManager.validityCA);
 
 		KeyPair kp = generateKeyPair();
 		PKCS10CertificationRequest cr = generateRequest(kp.getPublic(), kp.getPrivate(), getCellDN(subjectName),
 				cellName);
 		X509Certificate certificate = signRequest(cr, cakp.getPrivate(),
-				new JcaX509CertificateHolder(caCertificate).getSubject(), TissueManager.validity);
+				new JcaX509CertificateHolder(caCertificate).getSubject(),cellName,subjectName, TissueManager.validity);
 
 		KeyStore ks = null;
 		ks = KeyStore.getInstance("JKS");
@@ -127,9 +130,9 @@ public class KeystoreManager {
 			CertificateException, KeyStoreException {
 		KeyPair kp = generateKeyPair();
 		PKCS10CertificationRequest cr = generateRequest(kp.getPublic(), kp.getPrivate(), getCellDN(subjectName),
-				getCellDN(cellName));
-		X509Certificate certificate = signRequest(cr, kp.getPrivate(), new X500Name(getCellCADN(cellName)),
-				TissueManager.validity);
+				cellName);
+		X509Certificate certificate = signRequest(cr, kp.getPrivate(), new X500Name(getCellCADN(cellName)),cellName
+				,subjectName,TissueManager.validity);
 
 		Certificate[] certChain = new Certificate[1];
 		certChain[0] = certificate;
@@ -165,18 +168,21 @@ public class KeystoreManager {
 			String cellNameASN) throws OperatorCreationException, IOException {
 		X500Name subject = new X500Name(subjectDN);
 		PKCS10CertificationRequestBuilder p10Builder = new JcaPKCS10CertificationRequestBuilder(subject, pubKey);
+		
+		logger.debug("KeystoreManager.generateRequest()", "subjectDN: " + cellNameASN);
 		ExtensionsGenerator extGen = new ExtensionsGenerator();
 		extGen.addExtension(Extension.subjectAlternativeName, false,
-				new GeneralNames(new GeneralName(GeneralName.otherName, new X500Name(cellNameASN))));
+				new GeneralNames(new GeneralName(GeneralName.dNSName, cellNameASN)));
 		p10Builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extGen.generate());
 
 		JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(TissueManager.SignerBuilderName);
 		ContentSigner signer = csBuilder.build(privKey);
-
-		return p10Builder.build(signer);
+		PKCS10CertificationRequest req = p10Builder.build(signer);
+		formatRequest(req);
+		return req;
 	}
 
-	private X509Certificate signRequest(PKCS10CertificationRequest inputCSR, PrivateKey caPrivKey, X500Name issuer,
+	private X509Certificate signRequest(PKCS10CertificationRequest inputCSR, PrivateKey caPrivKey, X500Name issuer,String cellName,String subjectName,
 			int validity) throws OperatorCreationException, IOException, CertificateException {
 		Date startDate = new Date();
 		Calendar c = Calendar.getInstance();
@@ -186,6 +192,29 @@ public class KeystoreManager {
 		BigInteger serialNumber = BigInteger.valueOf(TissueManager.defaultSerialNumber);
 		X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(issuer, serialNumber, startDate, expiryDate,
 				inputCSR.getSubject(), inputCSR.getSubjectPublicKeyInfo());
+		
+		/*
+		Attribute[] attrs = inputCSR.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+		for(int i = 0; i < attrs.length; i++)
+		{
+			logger.debug("KeystoreManager.signRequest()", "Attribute :"+attrs[i].toASN1Primitive());
+			ASN1Encodable[] attrVals=attrs[i].getAttributeValues();
+			for(int j= 0; j < attrVals.length; j++)
+			{
+				logger.debug("KeystoreManager.signRequest()", "Attribute value:"+attrVals[j].toASN1Primitive());
+				//certBuilder.addExtension(Extension.subjectAlternativeName, true, attrVals[j].toASN1Primitive());
+			}
+		}
+		*/
+		
+		GeneralName[] gnArray = {new GeneralName(GeneralName.dNSName,cellName),new GeneralName(GeneralName.dNSName,subjectName)};
+		GeneralNames gns = new GeneralNames(gnArray);
+		certBuilder.addExtension(Extension.subjectAlternativeName, false,gns);
+		KeyUsage usage = new KeyUsage(KeyUsage.keyCertSign
+	            | KeyUsage.digitalSignature | KeyUsage.keyEncipherment
+	            | KeyUsage.dataEncipherment | KeyUsage.cRLSign);
+		certBuilder.addExtension(Extension.keyUsage, false, usage);
+		
 		JcaContentSignerBuilder builder = new JcaContentSignerBuilder(TissueManager.SignerBuilderName);
 		ContentSigner signer = builder.build(caPrivKey);
 		byte[] certBytes = certBuilder.build(signer).getEncoded();
@@ -216,25 +245,14 @@ public class KeystoreManager {
 					output.append("  Certificate signing alg: " + cert.getSigAlgName() + "\n");
 					output.append("  Certificate type: " + cert.getType() + "\n");
 
-					output.append("  Certificate ASN: " + cert.getSubjectAlternativeNames() + "\n");
 					if (cert.getSubjectAlternativeNames() != null) {
 						Iterator it = cert.getSubjectAlternativeNames().iterator();
 						while (it.hasNext()) {
 							List list = (List) it.next();
-							output.append("  Certificate ASN 0: " + list.get(0).toString() + "\n");
-							output.append("  Certificate ASN 1: " + list.get(1).toString() + "\n");
+							output.append("  Certificate ASN: " +list.get(0).toString()+":"+list.get(1).toString()+"\n");
 						}
 					}
 					output.append("  Certificate: \n" + getCertificate(ks, alias) + "\n");
-					/*
-					 * KeyStore.Entry entry = ks.getEntry(alias, protParam);
-					 * Set<KeyStore.Entry.Attribute> attrs =
-					 * entry.getAttributes();
-					 * output.append("  Attributes count: "+attrs.size()+"\n");
-					 * for (KeyStore.Entry.Attribute attr: attrs) {
-					 * output.append("    Attribute: "+attr.getName()+"="+attr.
-					 * getValue()+"\n"); }
-					 */
 				} catch (IOException f) {
 					logger.error("KeystoreManager.dumpKeystore()", "IOException:" + f.getLocalizedMessage());
 				} catch (CertificateParsingException f) {
@@ -282,6 +300,7 @@ public class KeystoreManager {
 		PemWriter pw = new PemWriter(sw);
 		pw.writeObject(new JcaMiscPEMGenerator(key));
 		pw.flush();
+		pw.close();
 		String pemEncodedCert = sw.toString();
 		logger.debug("KeystoreManager.getKey()", "\n" + pemEncodedCert);
 		return pemEncodedCert;
@@ -294,8 +313,20 @@ public class KeystoreManager {
 		PemWriter pw = new PemWriter(sw);
 		pw.writeObject(new JcaMiscPEMGenerator(cert));
 		pw.flush();
+		pw.close();
 		String pemEncodedCert = sw.toString();
 		logger.debug("KeystoreManager.getCertificate()", "\n" + pemEncodedCert);
+		return pemEncodedCert;
+	}
+	
+	public String formatRequest(PKCS10CertificationRequest inputCSR) throws IOException {
+		StringWriter sw = new StringWriter();
+		PemWriter pw = new PemWriter(sw);
+		pw.writeObject(new JcaMiscPEMGenerator(inputCSR));
+		pw.flush();
+		pw.close();
+		String pemEncodedCert = sw.toString();
+		logger.debug("KeystoreManager.formatRequest()", "\n" + pemEncodedCert);
 		return pemEncodedCert;
 	}
 

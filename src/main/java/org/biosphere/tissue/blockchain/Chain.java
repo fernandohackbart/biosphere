@@ -20,10 +20,9 @@ public class Chain {
 	public Chain(String cellID, Cell cell) throws BlockException {
 		super();
 		logger = new Logger();
-		setCellID(cellID);
 		setCell(cell);
 		chain = new Hashtable<String, Block>();
-		Block genesisBlock = new Block(getCellID(), "GENESIS", "GENESIS", this, true);
+		Block genesisBlock = new Block(getCell(), "GENESIS", "GENESIS", this, true);
 		addBlockToChain(genesisBlock);
 	}
 
@@ -41,7 +40,6 @@ public class Chain {
 	public Chain(String cellID, Cell cell, String flatChain) throws BlockException {
 		super();
 		logger = new Logger();
-		setCellID(cellID);
 		setCell(cell);
 		chain = new Hashtable<String, Block>();
 		parseChain(flatChain);
@@ -51,11 +49,6 @@ public class Chain {
 	 * The cell which the Chain belongs to
 	 */
 	private Cell cell;
-
-	/**
-	 * The name of the cell that this ChainManager is running
-	 */
-	private String cellID;
 
 	/**
 	 * The hashtable that holds the chain
@@ -169,25 +162,7 @@ public class Chain {
 		return chain.get(getNextBlockID());
 	}
 
-	/**
-	 * Define this Cell name
-	 *
-	 * @param cellID
-	 */
-	private final void setCellID(String cellID) {
-		this.cellID = cellID;
-	}
-
-	/**
-	 * Return the current Cell name
-	 *
-	 * @return
-	 */
-	public final String getCellID() {
-		return cellID;
-	}
-
-	/**
+    /**
 	 * Add a block to the chain, to be called by clients
 	 *
 	 * @param payload
@@ -196,10 +171,10 @@ public class Chain {
 	public synchronized boolean addBlock(String payload) throws BlockException {
 		logger.debugAddBlock("Chain.addBlock()", "Adding block with payload:" + payload);
 		Block nextBlock = getNextBlock();
-		Block newBlock = new Block(getCellID(), payload, nextBlock.getBlockID(), this, false);
+		Block newBlock = new Block(getCell(), payload, nextBlock.getBlockID(), this, false);
 		logger.debugAddBlock("Chain.addBlock()",
 				"Block (" + newBlock.getBlockID() + ") extending block (" + nextBlock.getBlockID() + ")!");
-		return appendBlock(newBlock, getCellID(), true);
+		return appendBlock(newBlock, getCell().getCellName(), true);
 	}
 
 	/**
@@ -212,7 +187,7 @@ public class Chain {
 	public synchronized boolean appendBlock(String flatBlock) throws ChainException {
 		boolean accepted = false;
 		try {
-			Block block = new Block(flatBlock, this);
+			Block block = new Block(flatBlock, this,getCell());
 			String notifyingCell = flatBlock.split(":")[8];
 			boolean notifyingCellAccepted = false;
 			if (flatBlock.split(":")[9] != null) {
@@ -267,7 +242,7 @@ public class Chain {
 	public boolean appendBlock(Block block, String notifyingCell, boolean notifyingCellAccepted) {
 		boolean accepted = true;
 		try {
-			if (block.isValid()) {
+			if (block.isValid(getCell())) {
 				if (addBlockToChain(block)) {
 					requestVotes(block, accepted, notifyingCell, notifyingCellAccepted);
 				} else {
@@ -364,7 +339,7 @@ public class Chain {
 		String[] flatBlockArray = flatChain.split("\n");
 		logger.debug("Chain.parseChain()", "Parsing flatChain");
 		for (String flatBlock : flatBlockArray) {
-			Block tmpBlock = new Block(flatBlock, this);
+			Block tmpBlock = new Block(flatBlock, this,getCell());
 			logger.debug("Chain.parseChain()", "Adding block ID: " + tmpBlock.getBlockID());
 			addBlockToChain(tmpBlock);
 		}

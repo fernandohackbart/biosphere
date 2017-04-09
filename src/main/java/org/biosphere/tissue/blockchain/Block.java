@@ -1,17 +1,26 @@
 package org.biosphere.tissue.blockchain;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.UUID;
 
+import org.biosphere.tissue.Cell;
+import org.biosphere.tissue.utils.CellSigner;
 import org.biosphere.tissue.utils.Logger;
-
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.encoders.Base64;
 
 public class Block {
@@ -33,7 +42,7 @@ public class Block {
 	/**
 	 * Signature of the cell that created the Block
 	 */
-	private byte[] cellSignature;
+	private String cellSignature;
 
 	/**
 	 * Previous Block SHA-256 hash
@@ -94,7 +103,7 @@ public class Block {
 	 * @param flatBlock
 	 *            the flat String that represents the Block content
 	 */
-	Block(String flatBlock, Chain chain) throws BlockException {
+	Block(String flatBlock, Chain chain,Cell cell) throws BlockException {
 		super();
 		logger = new Logger();
 		logger.debug("Block.Block()", "Creating new Block: cell(" + flatBlock.split(":")[1] + ") prev block ID("
@@ -107,13 +116,14 @@ public class Block {
 		setPrevHash(flatBlock.split(":")[5]);
 		setBlockHash(flatBlock.split(":")[6]);
 		setPayload(new String(Base64.decode(flatBlock.split(":")[7])));
+		setCellSignature(flatBlock.split(":")[8]);
 		setChain(chain);
 		setAcceptanceVotes(new ArrayList<Vote>());
 		setNextBlockIDs(new ArrayList<String>());
 		if (!getBlockID().equals("GENESIS")) {
 			chain.getBlock(getPrevBlockID()).addNextBlockID(getBlockID());
 		}
-		if (!isValid()) {
+		if (!isValid(cell)) {
 			throw new BlockException("Block ID(" + getBlockID() + ") is not valid!");
 		}
 	}
@@ -128,7 +138,7 @@ public class Block {
 	 *            the unique identified of the Cell that added the Block to the
 	 *            chain, mostly the local Cell.
 	 */
-	Block(String cellID, String payload, String prevBlockID, Chain chain, boolean genesis) throws BlockException {
+	Block(Cell cell, String payload, String prevBlockID, Chain chain, boolean genesis) throws BlockException {
 		super();
 		logger = new Logger();
 		logger.debug("Block.Block()",
@@ -136,7 +146,7 @@ public class Block {
 		setChain(chain);
 		setAcceptanceVotes(new ArrayList<Vote>());
 		setNextBlockIDs(new ArrayList<String>());
-		setCellID(cellID);
+		setCellID(cell.getCellName());
 		setPrevBlockID(prevBlockID);
 		if (genesis) {
 			setBlockID("GENESIS");
@@ -149,6 +159,7 @@ public class Block {
 			chain.getBlock(getPrevBlockID()).addNextBlockID(getBlockID());
 		}
 		setPayload(payload);
+		generateCellSignature(cell);
 		setBlockHash(calculateBlockHash());
 		setTimestamp(new Date());
 	}
@@ -363,7 +374,7 @@ public class Block {
 	String toFlat() {
 		return getChainPosition() + ":" + getTimestamp().getTime() + ":" + getCellID() + ":" + getPrevBlockID() + ":"
 				+ getBlockID() + ":" + getPrevHash() + ":" + getBlockHash() + ":"
-				+ Base64.toBase64String(getPayload().getBytes(StandardCharsets.UTF_8));
+				+ Base64.toBase64String(getPayload().getBytes(StandardCharsets.UTF_8)) + ":" + getCellSignature();
 	}
 
 	/**
@@ -391,7 +402,7 @@ public class Block {
 		String digestHexa = null;
 		try {
 			if (prevHash != null) {
-				String hashInput = prevHash + ":" + payload;
+				String hashInput = getPrevHash() + ":" + getPayload() + ":" + getCellSignature();
 				MessageDigest md = MessageDigest.getInstance("SHA-256");
 				md.update(hashInput.getBytes(StandardCharsets.UTF_8));
 				byte[] digest = digest = md.digest();
@@ -441,15 +452,25 @@ public class Block {
 	 * 
 	 * @return boolean value fo rthe question "block validated?"
 	 */
-	boolean isValid() throws BlockException {
+	boolean isValid(Cell cell) throws BlockException {
 		boolean valid = true;
 		if (!calculateBlockHash().equals(getBlockHash())) {
 			// throw new BlockException("The block hash does not match the
 			// prevBlockHash+payload calculation");
 			valid = false;
 		}
-		// TODO check for other required validations
-		return valid;
+		/*
+		try {
+			if (!CellSigner.verify(getCellID(), cell, getCellSignature()))
+			{
+				valid=false;
+			}
+		} catch (CertificateException | OperatorCreationException | CMSException e) {
+			throw new BlockException("Cell signature is not valid", e);
+		}
+		*/
+	    // TODO check for other required validations
+	    return valid;
 	}
 
 	/**
@@ -520,7 +541,7 @@ public class Block {
 	 * 
 	 * @param cellSignature
 	 */
-	private final void setCellSignature(byte[] cellSignature) {
+	private final void setCellSignature(String cellSignature) {
 		this.cellSignature = cellSignature;
 	}
 
@@ -528,8 +549,15 @@ public class Block {
 	 * Check if the signature is valid for the known provided public key
 	 * 
 	 */
-	final void generateCellSignature(byte[] cellPrivKey) {
-		setCellSignature("".getBytes());
+	final void generateCellSignature(Cell cell) {
+		try {
+			setCellSignature(CellSigner.sign(cell));
+		} catch (UnrecoverableKeyException | InvalidKeyException | CertificateEncodingException | KeyStoreException
+				| NoSuchAlgorithmException | NoSuchProviderException | SignatureException | OperatorCreationException
+				| CMSException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -537,7 +565,7 @@ public class Block {
 	 *
 	 * @return
 	 */
-	public final byte[] getCellSignature() {
+	public final String getCellSignature() {
 		return cellSignature;
 	}
 
@@ -546,7 +574,7 @@ public class Block {
 	 * 
 	 * @return
 	 */
-	public final byte[] checkCellSignature(String cellPublicKey) {
+	public final String checkCellSignature(String cellPublicKey) {
 		return cellSignature;
 	}
 }
