@@ -366,17 +366,26 @@ public class Block {
 		return payload;
 	}
 
-	/**
-	 * Exposes the block in flat (JSON or XML) format
-	 * 
-	 * @return flat representation of the block
-	 */
-	String toFlat() {
-		return getChainPosition() + ":" + getTimestamp().getTime() + ":" + getCellID() + ":" + getPrevBlockID() + ":"
-				+ getBlockID() + ":" + getPrevHash() + ":" + getBlockHash() + ":"
-				+ Base64.toBase64String(getPayload().getBytes(StandardCharsets.UTF_8)) + ":" + getCellSignature();
+	 /**
+	  * Generates a FlatBlock representation of the block
+	  * 
+	  * @return a FltBlock instance of the block
+	  */
+	public final FlatBlock getFlatBlock()
+	{
+		FlatBlock lvb = new FlatBlock();
+		lvb.setBlockHash(getBlockHash());
+        lvb.setBlockID(getBlockID());
+        lvb.setCellID(getCellID());
+        lvb.setCellSignature(getCellSignature());
+        lvb.setChainPosition(getChainPosition());
+        lvb.setPayload(getPayload());
+        lvb.setPrevBlockID(getPrevBlockID());
+        lvb.setPrevHash(getPrevHash());
+        lvb.setTimestamp(getTimestamp());
+		return lvb;
 	}
-
+	
 	/**
 	 * Calculates the hash of this block and set the blockHash attribute
 	 */
@@ -450,25 +459,26 @@ public class Block {
 	/**
 	 * Validates the Block if it is consistent
 	 * 
-	 * @return boolean value fo rthe question "block validated?"
+	 * @return boolean value for the question "block validated?"
 	 */
 	boolean isValid(Cell cell) throws BlockException {
 		boolean valid = true;
 		if (!calculateBlockHash().equals(getBlockHash())) {
-			// throw new BlockException("The block hash does not match the
-			// prevBlockHash+payload calculation");
+			//throw new BlockException("The block hash does not match the prevBlockHash+payload calculation");
+			logger.debug("Block.isValid()", "Block: " + getBlockID() + " hashes does not match");
 			valid = false;
 		}
-		/*
 		try {
 			if (!CellSigner.verify(getCellID(), cell, getCellSignature()))
 			{
+				logger.debug("Block.isValid()", "Block: " + getBlockID() + " signature does not match");
 				valid=false;
 			}
 		} catch (CertificateException | OperatorCreationException | CMSException e) {
 			throw new BlockException("Cell signature is not valid", e);
 		}
-		*/
+		//BlockPayloadValidator bpv = Class.forName("org.biosphere.tissue.blockchain.DefaultBlockPayloadValidator");
+		//bpv.validate(nextBlock, chain)
 	    // TODO check for other required validations
 	    return valid;
 	}
@@ -547,16 +557,16 @@ public class Block {
 
 	/**
 	 * Check if the signature is valid for the known provided public key
+	 * @throws BlockException 
 	 * 
 	 */
-	final void generateCellSignature(Cell cell) {
+	final void generateCellSignature(Cell cell) throws BlockException {
 		try {
 			setCellSignature(CellSigner.sign(cell));
 		} catch (UnrecoverableKeyException | InvalidKeyException | CertificateEncodingException | KeyStoreException
 				| NoSuchAlgorithmException | NoSuchProviderException | SignatureException | OperatorCreationException
 				| CMSException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new BlockException("Execption generation cell signature ", e);
 		}
 	}
 
@@ -577,4 +587,6 @@ public class Block {
 	public final String checkCellSignature(String cellPublicKey) {
 		return cellSignature;
 	}
+	
+
 }

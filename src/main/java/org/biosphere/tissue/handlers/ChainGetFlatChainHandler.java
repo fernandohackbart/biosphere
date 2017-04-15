@@ -1,24 +1,26 @@
 package org.biosphere.tissue.handlers;
 
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-
 import java.io.IOException;
-import java.io.OutputStream;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.blockchain.ChainExceptionHandler;
 import org.biosphere.tissue.utils.Logger;
 
-public class ChainGetFlatChainHandler implements CellHTTPHandlerInterface {
+public class ChainGetFlatChainHandler extends HttpServlet implements CellJettyHandlerInterface {
+
+	private static final long serialVersionUID = 1L;
 	private Logger logger;
+	private Cell cell;
+	private String contentType;
 
 	public ChainGetFlatChainHandler() {
 		super();
 		logger = new Logger();
 	}
-
-	private Cell cell;
 
 	public void setCell(Cell cell) {
 		this.cell = cell;
@@ -27,23 +29,31 @@ public class ChainGetFlatChainHandler implements CellHTTPHandlerInterface {
 	private Cell getCell() {
 		return cell;
 	}
+	
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+	
+	private String getContentType()
+	{
+		return this.contentType;
+	}
 
 	@Override
-	public void handle(HttpExchange t) {
-		try {
-			String partnerCell = t.getRemoteAddress().getHostName() + ":" + t.getRemoteAddress().getPort();
-			logger.debug("ChainGetFlatChain.handle()", "Request from: " + partnerCell);
-			String response = cell.getChain().toFlat();
-			Headers h = t.getResponseHeaders();
-			h.add("Content-Type", "application/xml");
-			t.sendResponseHeaders(200, response.getBytes().length);
-			OutputStream os = t.getResponseBody();
-			os.write(response.getBytes(), 0, response.getBytes().length);
-			os.close();
-		} catch (IOException e) {
-			ChainExceptionHandler.handleGenericException(e, "ChainGetFlatChain.handle()", "IOException:");
-		} catch (Exception e) {
-			ChainExceptionHandler.handleGenericException(e, "ChainGetFlatChain.handle()", "Exception:");
-		}
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
+		logger.debug("ChainGetFlatChain.doPost()", "Request from: " + partnerCell);
+		String responseString = cell.getChain().toFlat();
+		response.setContentType(getContentType());
+		response.setContentLength(responseString.getBytes().length);
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.getWriter().println(responseString);
+	}
+
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doPost(request, response);
 	}
 }

@@ -368,7 +368,7 @@ public class Chain {
 	 *            the output StringBuffer
 	 */
 	private void blockToFlat(String blockID, StringBuffer output) {
-		output.append(getBlock(blockID).toFlat() + "\n");
+		output.append(getBlock(blockID).getFlatBlock().toColonString() + "\n");
 		for (String nextBlockID : getBlock(blockID).getNextBlockIDs()) {
 			blockToFlat(nextBlockID, output);
 		}

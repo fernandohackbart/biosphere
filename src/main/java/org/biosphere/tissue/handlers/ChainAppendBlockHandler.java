@@ -1,10 +1,11 @@
 package org.biosphere.tissue.handlers;
 
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-
 import java.io.IOException;
-import java.io.OutputStream;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.blockchain.ChainException;
@@ -12,15 +13,17 @@ import org.biosphere.tissue.blockchain.ChainExceptionHandler;
 import org.biosphere.tissue.utils.Logger;
 import org.biosphere.tissue.utils.RequestUtils;
 
-public class ChainAppendBlockHandler implements CellHTTPHandlerInterface {
+public class ChainAppendBlockHandler extends HttpServlet implements CellJettyHandlerInterface {
+
+	private static final long serialVersionUID = 1L;
 	private Logger logger;
+	private Cell cell;
+	private String contentType;
 
 	public ChainAppendBlockHandler() {
 		super();
 		logger = new Logger();
 	}
-
-	private Cell cell;
 
 	public void setCell(Cell cell) {
 		this.cell = cell;
@@ -29,34 +32,44 @@ public class ChainAppendBlockHandler implements CellHTTPHandlerInterface {
 	private Cell getCell() {
 		return cell;
 	}
+	
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+	
+	private String getContentType()
+	{
+		return this.contentType;
+	}
 
 	@Override
-	public void handle(HttpExchange t) {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		try {
-			String partnerCell = t.getRemoteAddress().getHostName() + ":" + t.getRemoteAddress().getPort();
-			logger.debugAppBlock("ChainAppendBlockHandler.handle()",
-					"##############################################################################");
-			logger.debugAppBlock("ChainAppendBlockHandler.handle()",
-					"Cell " + cell.getCellName() + " request from: " + partnerCell);
-			String request = RequestUtils.getRequestAsString(t.getRequestBody());
-			boolean accepted = cell.getChain().appendBlock(request);
-			logger.debugAppBlock("ChainAppendBlockHandler.handle()",
-					"Block accepted by " + cell.getCellName() + ":" + accepted);
-			String response = getCell().getCellName() + ":" + accepted;
+			String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
 
-			Headers h = t.getResponseHeaders();
-			h.add("Content-Type", "application/xml");
-			t.sendResponseHeaders(200, response.getBytes().length);
-			OutputStream os = t.getResponseBody();
-			os.write(response.getBytes(), 0, response.getBytes().length);
-			os.close();
-			logger.debugAppBlock("ChainAppendBlockHandler.handle()", "Response: " + response);
-		} catch (IOException e) {
-			ChainExceptionHandler.handleGenericException(e, "ChainAppendBlockHandler.handle()", "IOException:");
+			logger.debugAppBlock("ChainAppendBlockHandler.doPost()",
+					"##############################################################################");
+			logger.debugAppBlock("ChainAppendBlockHandler.doPost()",
+					"Cell " + cell.getCellName() + " request from: " + partnerCell);
+			String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
+			boolean accepted = cell.getChain().appendBlock(requestPayload);
+			logger.debugAppBlock("ChainAppendBlockHandler.doPost()",
+					"Block accepted by " + cell.getCellName() + ":" + accepted);
+			String responseString = getCell().getCellName() + ":" + accepted;
+			response.setContentType(getContentType());
+			response.setContentLength(responseString.getBytes().length);
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.getWriter().println(responseString);
+			logger.debugAppBlock("ChainAppendBlockHandler.doPost()", "Response: " + responseString);
 		} catch (ChainException e) {
-			ChainExceptionHandler.handleGenericException(e, "ChainAppendBlockHandler.handle()", "Exception:");
-		} catch (Exception e) {
-			ChainExceptionHandler.handleGenericException(e, "ChainAppendBlockHandler.handle()", "Exception:");
+			ChainExceptionHandler.handleGenericException(e, "ChainAddBlockHandler.doPost()", "ChainException:");
 		}
+	}
+
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doPost(request, response);
 	}
 }

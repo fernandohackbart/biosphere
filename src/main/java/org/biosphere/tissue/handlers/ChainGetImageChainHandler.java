@@ -1,29 +1,30 @@
 package org.biosphere.tissue.handlers;
 
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-
 import java.awt.image.BufferedImage;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
 import javax.imageio.ImageIO;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.blockchain.ChainExceptionHandler;
 import org.biosphere.tissue.utils.Logger;
 
-public class ChainGetImageChainHandler implements CellHTTPHandlerInterface {
+public class ChainGetImageChainHandler extends HttpServlet implements CellJettyHandlerInterface {
+
+	private static final long serialVersionUID = 1L;
 	private Logger logger;
+	private Cell cell;
+	private String contentType;
 
 	public ChainGetImageChainHandler() {
 		super();
 		logger = new Logger();
 	}
-
-	private Cell cell;
 
 	public void setCell(Cell cell) {
 		this.cell = cell;
@@ -32,27 +33,35 @@ public class ChainGetImageChainHandler implements CellHTTPHandlerInterface {
 	private Cell getCell() {
 		return cell;
 	}
+	
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+	
+	private String getContentType()
+	{
+		return this.contentType;
+	}
 
 	@Override
-	public void handle(HttpExchange t) {
-		try {
-			String partnerCell = t.getRemoteAddress().getHostName() + ":" + t.getRemoteAddress().getPort();
-			logger.debug("ChainGetImageChain.handle()", "Request from: " + partnerCell);
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
+		logger.debug("ChainGetImageChain.handle()", "Request from: " + partnerCell);
+		byte[] responseBytes = generateRandomImage();
+		// byte[] response = generateGraphImage(cell.getChain().toFlat());
+		response.setContentType(getContentType());
+		response.setContentLength(responseBytes.length);
+		response.setStatus(HttpServletResponse.SC_OK);
+		OutputStream os = response.getOutputStream();
+		os.write(responseBytes, 0, responseBytes.length);
+		os.close();
+	}
 
-			byte[] response = generateRandomImage();
-			// byte[] response = generateGraphImage(cell.getChain().toFlat());
-
-			Headers h = t.getResponseHeaders();
-			h.add("Content-Type", "image/png");
-			t.sendResponseHeaders(200, response.length);
-			OutputStream os = t.getResponseBody();
-			os.write(response, 0, response.length);
-			os.close();
-		} catch (IOException e) {
-			ChainExceptionHandler.handleGenericException(e, "ChainGetFlatChain.handle()", "IOException:");
-		} catch (Exception e) {
-			ChainExceptionHandler.handleGenericException(e, "ChainGetFlatChain.handle()", "Exception:");
-		}
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doPost(request, response);
 	}
 
 	private byte[] generateRandomImage() throws IOException {

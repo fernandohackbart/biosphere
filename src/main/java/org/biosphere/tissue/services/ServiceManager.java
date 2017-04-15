@@ -1,33 +1,31 @@
 package org.biosphere.tissue.services;
 
-import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.HttpsConfigurator;
-import com.sun.net.httpserver.HttpsServer;
-
 import java.io.IOException;
-
-import java.net.InetSocketAddress;
-
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.concurrent.Executors;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
+import javax.servlet.Servlet;
 
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.exceptions.CellException;
-import org.biosphere.tissue.handlers.CellHTTPHandlerInterface;
+import org.biosphere.tissue.handlers.CellJettyHandlerInterface;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
-import org.biosphere.tissue.utils.HTTPSSLConfigurator;
 import org.biosphere.tissue.utils.Logger;
+
+import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
+import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+
 
 public final class ServiceManager {
 	public ServiceManager() {
@@ -48,7 +46,7 @@ public final class ServiceManager {
 			case "THREAD":
 				isRunning = cellServiceInstances.get(serviceName).getThreadService().isAlive();
 				break;
-			case "HTTP":
+			case "SERVLET":
 				isRunning = cellServiceInstances.containsKey(serviceName);
 				break;
 			}
@@ -64,7 +62,7 @@ public final class ServiceManager {
 			case "THREAD":
 				isLoaded = cellServiceInstances.containsKey(serviceName);
 				break;
-			case "HTTP":
+			case "SERVLET":
 				isLoaded = cellServiceInstances.containsKey(serviceName);
 				break;
 			}
@@ -74,7 +72,7 @@ public final class ServiceManager {
 
 	public static Hashtable<String, String> getStatus() {
 		Hashtable<String, String> statusTable = new Hashtable<String, String>();
-		Enumeration serviceList = cellServiceInstances.keys();
+		Enumeration<String> serviceList = cellServiceInstances.keys();
 		while (serviceList.hasMoreElements()) {
 			String serviceName = (String) serviceList.nextElement();
 			String serviceType = cellServiceInstances.get(serviceName).getServiceDefinitionType();
@@ -85,16 +83,31 @@ public final class ServiceManager {
 								+ cellServiceInstances.get(serviceName).getThreadService().getState().toString()
 								+ " daemon:" + cellServiceInstances.get(serviceName).getThreadService().isDaemon());
 				break;
-			case "HTTP":
-				statusTable.put(serviceName, "HTTP services have no status so far!");
+			case "SERVLET":
+				statusTable.put(serviceName, cellServiceInstances.get(serviceName).getJettyServer().getState());
 				break;
 			}
 		}
 		return statusTable;
 	}
 
-	private static Class loadClass(String className) throws CellException {
-		Class serviceClass = null;
+	public static StringBuffer getServletStatus(String serviceName) {
+		StringBuffer statusTable = new StringBuffer();
+     	if(cellServiceInstances.get(serviceName).getServiceDefinitionType().equals("SERVLET"))
+     	{
+			try {
+				cellServiceInstances.get(serviceName).getJettyServer().dump(statusTable);
+			} catch (IOException e) {
+				TissueExceptionHandler.handleGenericException(e, "ServiceManager.getServletStatus()",
+						"Could not get status for servlet  " + serviceName);
+			}
+     		
+     	}
+		return statusTable;
+	}
+	
+	private static Class<?> loadClass(String className) throws CellException {
+		Class<?> serviceClass = null;
 		ClassLoader cl = Thread.currentThread().getContextClassLoader();
 		try {
 			serviceClass = cl.loadClass(className);
@@ -105,8 +118,7 @@ public final class ServiceManager {
 		return serviceClass;
 	}
 
-	private static int load(ServiceDefinition serviceDefinition, Cell cell) throws CellException {
-		int HTTPPort = 0;
+	private static void load(ServiceDefinition serviceDefinition, Cell cell) throws CellException {
 		Logger logger = new Logger();
 		logger.debug("ServiceManager.load()", "Loading " + serviceDefinition.getServiceDefinitionType() + " service "
 				+ serviceDefinition.getServiceDefinitionName());
@@ -114,16 +126,16 @@ public final class ServiceManager {
 		case "THREAD":
 			loadTHREAD(serviceDefinition, cell);
 			break;
-		case "HTTP":
-			HTTPPort = loadHTTP(serviceDefinition, cell);
+		case "SERVLET":
+			loadJetty(serviceDefinition, cell);
 			break;
+			
 		}
-		return HTTPPort;
 	}
 
 	private static void loadTHREAD(ServiceDefinition sd, Cell cell) {
 		try {
-			Class toStartServiceClass = loadClass(sd.getServiceDefinitionClass());
+			Class<?> toStartServiceClass = loadClass(sd.getServiceDefinitionClass());
 			THREADService toStartService = (THREADService) toStartServiceClass.newInstance();
 			toStartService.setCell(cell);
 			toStartService.setName(sd.getServiceDefinitionName());
@@ -146,93 +158,77 @@ public final class ServiceManager {
 		}
 	}
 
-	private static int loadHTTP(ServiceDefinition sd, Cell cell) throws CellException {
+	private static void loadJetty(ServiceDefinition sd, Cell cell) throws CellException {
 		Logger logger = new Logger();
 		int HTTPPort = 0;
-		try {
-			HttpsServer server = null;
-			boolean listening = false;
-			HTTPPort = (Integer) sd.getServiceDefinitionParameters().get("DefaultHTTPPort");
-			while (!listening) {
-				try {
-					server = HttpsServer.create(new InetSocketAddress(HTTPPort), 0);
-					logger.info(sd.getServiceDefinitionName(), "listening at " + HTTPPort + "!");
-					sd.addServiceDefinitionParameter("HTTPPort", HTTPPort);
-					listening = true;
-				} catch (java.net.BindException e) {
-					HTTPPort++;
-				}
-			}
-
-			server.setExecutor(Executors.newCachedThreadPool());
-
-			try {
-				KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-				kmf.init(cell.getCellKeystore(), cell.getCellKeystorePWD().toCharArray());
-				TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
-				tmf.init(cell.getCellKeystore());
-				SSLContext sslContext = SSLContext.getInstance("TLS");
-				sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
-				HttpsConfigurator httpSSLConfigurator = new HTTPSSLConfigurator(sslContext);
-				server.setHttpsConfigurator(httpSSLConfigurator);
-			}
-
-			catch (NoSuchAlgorithmException e) {
-				TissueExceptionHandler.handleUnrecoverableGenericException(e, "ServiceManager.loadHTTP()",
-						"Exception:");
-			} catch (KeyStoreException | UnrecoverableKeyException e) {
-				TissueExceptionHandler.handleUnrecoverableGenericException(e, "ServiceManager.loadHTTP()",
-						"Exception:");
-			} catch (KeyManagementException e) {
-				TissueExceptionHandler.handleUnrecoverableGenericException(e, "ServiceManager.loadHTTP()",
-						"KeyManagementException:");
-			}
-
+        try {
+			Server server = new Server();
+     		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 			@SuppressWarnings("unchecked")
-			Hashtable<String, ArrayList> cellTissueListenerHandlers = (Hashtable<String, ArrayList>) sd
-					.getServiceDefinitionParameters().get("Handlers");
-			Enumeration handlersList = cellTissueListenerHandlers.keys();
-			while (handlersList.hasMoreElements()) {
-				String handlerClassName = (String) handlersList.nextElement();
-				Class handlerClass = loadClass(handlerClassName);
-				CellHTTPHandlerInterface toStartHandler;
-				toStartHandler = (CellHTTPHandlerInterface) handlerClass.newInstance();
+			ArrayList<ServletHandlerDefinition> cellTissueJettyListenerHandlers = (ArrayList<ServletHandlerDefinition>) sd
+					.getServiceDefinitionParameters().get("Handlers");			
+			for (ServletHandlerDefinition cellTissueJettyListenerHandler : cellTissueJettyListenerHandlers)
+			{
+				Class<?> handlerClass = loadClass(cellTissueJettyListenerHandler.getClassName());
+				CellJettyHandlerInterface toStartHandler = (CellJettyHandlerInterface)handlerClass.newInstance();
 				toStartHandler.setCell(cell);
-				@SuppressWarnings("unchecked")
-				ArrayList<String> handlerContexts = cellTissueListenerHandlers.get(handlerClassName);
-				for (String context : handlerContexts) {
-					server.createContext(context, toStartHandler);
-					logger.debug("ServiceManager.loadHTTPService()",
-							"Handler " + handlerClassName + " added context: " + context);
-				}
+				toStartHandler.setContentType(cellTissueJettyListenerHandler.getContentType());
+				ArrayList<String> handlerContexts = cellTissueJettyListenerHandler.getContexts();
+				for (String contextURI : handlerContexts) {
+					context.addServlet(new ServletHolder((Servlet)toStartHandler), contextURI);
+					logger.debug("ServiceManager.loadJetty()",
+							"Handler " + cellTissueJettyListenerHandler.getClassName() + " added context: (" +cellTissueJettyListenerHandler.getContentType()+") "+ contextURI);
+				}				
 			}
-
-			// cellHTTPServiceInstances.put(sd.getServiceDefinitionName(),server);
+			ContextHandlerCollection contexts = new ContextHandlerCollection(); 
+			contexts.addHandler(context);
+			contexts.addHandler(new DefaultHandler());
+			server.setHandler(contexts);
+			
+			HTTPPort = (Integer) sd.getServiceDefinitionParameters().get("DefaultHTTPPort");
+			
+	        SslContextFactory sslContextFactory = new SslContextFactory();
+	        sslContextFactory.setKeyStore(cell.getCellKeystore());
+	        sslContextFactory.setCertAlias(cell.getCellName());
+	        sslContextFactory.setKeyStorePassword(cell.getCellKeystorePWD());
+	        sslContextFactory.setKeyManagerPassword(cell.getCellKeystorePWD());
+	        sslContextFactory.setTrustStore(cell.getCellKeystore());
+	        sslContextFactory.setTrustStorePassword(cell.getCellKeystorePWD());
+	        sslContextFactory.setProtocol("TLSv1.2");
+	        //sslContextFactory.setIncludeCipherSuites("TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384");
+	        HttpConfiguration hsc = new HttpConfiguration();
+	        hsc.setSecureScheme("https");
+	        hsc.setSecurePort(HTTPPort);
+	        hsc.setOutputBufferSize(32768);
+	        hsc.setRequestHeaderSize(8192);
+	        hsc.setResponseHeaderSize(8192);
+	        hsc.setSendServerVersion(true);
+	        hsc.setSendDateHeader(false);
+	        hsc.addCustomizer(new SecureRequestCustomizer());
+	        
+	        ServerConnector httpsConnector = new ServerConnector(server,
+	                new SslConnectionFactory(sslContextFactory,HttpVersion.HTTP_1_1.asString()),
+	                new HttpConnectionFactory(hsc));
+	        httpsConnector.setPort(HTTPPort);
+	        server.addConnector(httpsConnector);
 			ServiceInstance serviceInstance = new ServiceInstance(sd);
-			serviceInstance.setHttpServer(server);
+			serviceInstance.setJettyServer(server);
+			serviceInstance.setJettyServerConnector(httpsConnector);
+			serviceInstance.setJettyContexts(contexts);
 			cellServiceInstances.put(sd.getServiceDefinitionName(), serviceInstance);
-		} catch (IOException e) {
-			TissueExceptionHandler.handleUnrecoverableGenericException(e, "ServiceManager.loadHTTPService()",
-					"IOException:");
-		} catch (IllegalAccessException e) {
-			TissueExceptionHandler.handleUnrecoverableGenericException(e, "ServiceManager.loadHTTPService()",
-					"IllegalAccessException:");
-		} catch (InstantiationException e) {
-			TissueExceptionHandler.handleUnrecoverableGenericException(e, "ServiceManager.loadHTTPService()",
-					"InstantiationException:");
+		} catch (Exception e) {
+			TissueExceptionHandler.handleGenericException(e, "CellManager.startTissueListenerServiceJetty()","Exception:");
 		}
-		return HTTPPort;
 	}
-
+	
 	public static synchronized void start(String serviceName, Cell cell) {
 		Logger logger = new Logger();
 		ServiceDefinition sd = cell.getCellDNA().getServiceDefinition(serviceName);
 		try {
-			int HTTPPort = 0;
 			logger.info("ServiceManager.start()",
 					"Starting " + sd.getServiceDefinitionType() + " service " + sd.getServiceDefinitionName());
-			HTTPPort = startServiceDefinition(sd, cell);
-			if (sd.getServiceDefinitionType().equals("HTTP")) {
+			startServiceDefinition(sd, cell);
+			if (sd.getServiceDefinitionType().equals("SERVLET")) {
 				// TODO add HTTPPort to the DNA service parameters
 			}
 		} catch (CellException e) {
@@ -251,9 +247,9 @@ public final class ServiceManager {
 			} else {
 				try {
 					if (!isLoaded(sd.getServiceDefinitionName())) {
-						HTTPPort = load(sd, cell);
+						load(sd, cell);
 					}
-					startServiceInstance(sd.getServiceDefinitionName());
+					HTTPPort = startServiceInstance(sd.getServiceDefinitionName());
 				} catch (Exception e) {
 					TissueExceptionHandler.handleGenericException(e, "ServiceManager.startServiceDefinition()",
 							"Could not start " + sd.getServiceDefinitionType() + " service "
@@ -267,8 +263,9 @@ public final class ServiceManager {
 		return HTTPPort;
 	}
 
-	public static synchronized void startServiceInstance(String serviceName) {
+	public static synchronized int startServiceInstance(String serviceName) {
 		Logger logger = new Logger();
+		int HTTPPort = 0;
 		if (cellServiceInstances.containsKey(serviceName)) {
 			String serviceType = cellServiceInstances.get(serviceName).getServiceDefinitionType();
 			logger.debug("ServiceManager.startServiceInstance()",
@@ -277,16 +274,49 @@ public final class ServiceManager {
 			case "THREAD":
 				cellServiceInstances.get(serviceName).getThreadService().start();
 				break;
-			case "HTTP":
-				cellServiceInstances.get(serviceName).getHttpServer().start();
+			case "SERVLET":
+				HTTPPort = startServlet(cellServiceInstances.get(serviceName));
 				break;
 			}
 		} else {
 			logger.debug("ServiceManager.startServiceInstance()", "Service " + serviceName + " not loaded!");
 		}
-
+        return HTTPPort;
+		
 	}
 
+	private static int startServlet(ServiceInstance serviceInstance)
+	{
+		Logger logger = new Logger();
+		int HTTPPort = serviceInstance.getJettyServerConnector().getPort();
+		boolean listening = false;
+		try
+		{
+			while (!listening) {
+				try { 
+					serviceInstance.getJettyServerConnector().setPort(HTTPPort);
+					serviceInstance.getJettyServer().start();
+			        //serviceInstance.getJettyServer().join();
+					logger.info(serviceInstance.getServiceDefinitionName(), "listening at " + HTTPPort + "!");
+					listening = true;
+				} catch (java.net.BindException e) {
+					logger.debug("ServiceManager.loadJetty()","Port: " +  HTTPPort + " is used incrementing by 1 and retrying!");
+					HTTPPort++;
+					serviceInstance.getJettyServer().stop();
+					if (HTTPPort>65535)
+					{
+						throw new CellException("ServiceManager.startServlet()", "Maximum port number (65535) reached, aborting startup.");
+					}
+				}
+			}			
+		}
+		catch (Exception e)
+		{
+			TissueExceptionHandler.handleGenericException(e, "ServiceManager.startServlet", "Excpetion in service "+serviceInstance.getServiceDefinitionName());
+		}
+		return HTTPPort;
+	}
+	
 	public static synchronized void stop(String serviceType, String serviceName) throws CellException {
 		Logger logger = new Logger();
 		logger.debug("ServiceManager.stop()", "Stopping " + serviceType + " service " + serviceName);
@@ -295,8 +325,8 @@ public final class ServiceManager {
 		case "THREAD":
 			stopTHREAD(serviceName);
 			break;
-		case "HTTP":
-			stopHTTP(serviceName);
+		case "SERVLET":
+			stopServlet(serviceName);
 			break;
 		}
 	}
@@ -309,63 +339,74 @@ public final class ServiceManager {
 				cellServiceInstances.get(serviceName).getThreadService().interrupt();
 				cellServiceInstances.remove(serviceName);
 			} else {
-				throw new CellException("ServiceManager.stop()", "Service " + serviceName + " not running.");
+				throw new CellException("ServiceManager.stopTHREAD()", "Service " + serviceName + " not running.");
 			}
 		} else {
-			throw new CellException("ServiceManager.stop()", "Service " + serviceName + " not found.");
+			throw new CellException("ServiceManager.stopTHREAD()", "Service " + serviceName + " not found.");
 		}
 	}
 
-	private static void stopHTTP(String serviceName) throws CellException {
+	private static void stopServlet(String serviceName) throws CellException {
 		Logger logger = new Logger();
 		if (isRunning(serviceName)) {
-			logger.debug("ServiceManager.stopHTTPService()", "Stopping HTTPService " + serviceName);
-			cellServiceInstances.get(serviceName).getHttpServer().stop(5);
+			logger.debug("ServiceManager.stopHTTPService()", "Stopping ServletService " + serviceName);
+			try {
+				cellServiceInstances.get(serviceName).getJettyServer().stop();
+				cellServiceInstances.get(serviceName).getJettyServer().destroy();
+			} catch (Exception e) {
+				throw new CellException("ServiceManager.stopServlet()", "Service " + serviceName + " Exception: "+e.getLocalizedMessage());
+			}
 			cellServiceInstances.remove(serviceName);
 		} else {
-			throw new CellException("ServiceManager.stopHTTPService()", "Service " + serviceName + " not found.");
+			throw new CellException("ServiceManager.stopServlet()", "Service " + serviceName + " not found.");
 		}
 	}
 
-	public static synchronized void stopHTTPServices() {
+	public static synchronized void stopServletServices() {
 		Logger logger = new Logger();
-		logger.debug("ServiceManager.stopHTTPServices()", "Stopping all HTTPServices!");
-		Enumeration httpServiceList = cellServiceInstances.keys();
-		while (httpServiceList.hasMoreElements()) {
-			String serviceName = (String) httpServiceList.nextElement();
-			try {
-				stopHTTP(serviceName);
-			} catch (CellException e) {
-				TissueExceptionHandler.handleGenericException(e, "ServiceManager.stopHTTPServices()",
-						"Could not stop HTTPService " + serviceName);
+		logger.debug("ServiceManager.stopHTTPServices()", "Stopping all ServletServices!");
+		Enumeration<String> servletServiceList = cellServiceInstances.keys();
+		while (servletServiceList.hasMoreElements()) {
+			String serviceName = (String) servletServiceList.nextElement();
+			String serviceType = cellServiceInstances.get(serviceName).getServiceDefinitionType();
+			switch (serviceType) {
+			case "SERVLET":
+				try {
+					stopServlet(serviceName);
+				} catch (CellException e) {
+					TissueExceptionHandler.handleGenericException(e, "ServiceManager.stopServletServices()",
+							"Could not stop ServletService " + serviceName);
+				}
+				break;
 			}
+
 		}
 	}
 
-	public static synchronized void addHTTPContext(String serviceName, String handlerClassName,
-			ArrayList<String> contexts, Cell cell) {
+	public static synchronized void addServletContext(String serviceName, ServletHandlerDefinition shd, Cell cell) {
 		try {
 			Logger logger = new Logger();
 			if (isLoaded(serviceName)) {
-				HttpServer server = cellServiceInstances.get(serviceName).getHttpServer();
-				Class handlerClass = loadClass(handlerClassName);
-				CellHTTPHandlerInterface toStartHandler;
-				toStartHandler = (CellHTTPHandlerInterface) handlerClass.newInstance();
+				ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+				Class<?> handlerClass = loadClass(shd.getClassName());
+				CellJettyHandlerInterface toStartHandler = (CellJettyHandlerInterface)handlerClass.newInstance();
 				toStartHandler.setCell(cell);
-				for (String context : contexts) {
-					server.createContext(context, toStartHandler);
-					logger.debug("ServiceManager.addHTTPContext()",
-							"Handler " + handlerClassName + " added context:" + context);
+				toStartHandler.setContentType(shd.getContentType());
+				for (String contextURI : shd.getContexts()) {
+					context.addServlet(new ServletHolder((Servlet)toStartHandler), contextURI);
+					logger.debug("ServiceManager.loadJetty()",
+							"Handler " + shd.getClassName() + " added context: (" + shd.getContentType() +")" + contextURI);
 				}
+				cellServiceInstances.get(serviceName).getJettyContexts().addHandler(context);
 			}
 		} catch (IllegalAccessException e) {
-			TissueExceptionHandler.handleGenericException(e, "ServiceManager.addHTTPContext()",
+			TissueExceptionHandler.handleGenericException(e, "ServiceManager.addServletContext()",
 					"IllegalAccessException:");
 		} catch (InstantiationException e) {
-			TissueExceptionHandler.handleGenericException(e, "ServiceManager.addHTTPContext()",
+			TissueExceptionHandler.handleGenericException(e, "ServiceManager.addServletContext()",
 					"InstantiationException:");
 		} catch (CellException e) {
-			TissueExceptionHandler.handleGenericException(e, "ServiceManager.addHTTPContext()", "CellException:");
+			TissueExceptionHandler.handleGenericException(e, "ServiceManager.addServletContext()", "CellException:");
 		}
 	}
 }

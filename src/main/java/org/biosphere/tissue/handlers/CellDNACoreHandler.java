@@ -1,22 +1,26 @@
 package org.biosphere.tissue.handlers;
 
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
-import java.io.OutputStream;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.utils.Logger;
 
-public class CellDNACoreHandler implements CellHTTPHandlerInterface {
+public class CellDNACoreHandler extends HttpServlet implements CellJettyHandlerInterface {
 
+	private static final long serialVersionUID = 1L;
 	private Logger logger;
+	private Cell cell;
+	private String contentType;
 
 	public CellDNACoreHandler() {
 		logger = new Logger();
 	}
-
-	private Cell cell;
 
 	public void setCell(Cell cell) {
 		this.cell = cell;
@@ -25,40 +29,47 @@ public class CellDNACoreHandler implements CellHTTPHandlerInterface {
 	private Cell getCell() {
 		return cell;
 	}
+	
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+	
+	private String getContentType()
+	{
+		return this.contentType;
+	}
 
 	@Override
-	public void handle(HttpExchange t) {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+		String fileName = request.getServletPath().substring(1);
+		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
+		logger.debug("CellDNACoreHandler.doPost()", "Request for: " + fileName + " from " + partnerCell);
+		String dnaCore = null;
 		try {
-			String fileName = t.getHttpContext().getPath().substring(1);
-			String partnerCell = t.getRemoteAddress().getHostName() + ":" + t.getRemoteAddress().getPort();
-			logger.debug("CellDNACoreHandler.run()", "Request for: " + fileName + " from " + partnerCell);
-			String dnaCore = null;
-			try {
-				dnaCore = getCell().getCellDNA().getDNACoreAsString();
-			} catch (NullPointerException e) {
-				TissueExceptionHandler.handleGenericException(e, "CellDNACoreHandler.handle()",
-						"getCell().getCellDNA().getDNACoreAsString() NullPointerException :");
-			}
-			if (dnaCore != null) {
-				Headers h = t.getResponseHeaders();
-				h.add("Content-Type", "application/xml");
-				t.sendResponseHeaders(200, dnaCore.getBytes().length);
-				OutputStream os = t.getResponseBody();
-				os.write(dnaCore.getBytes(), 0, dnaCore.getBytes().length);
-				os.close();
-				logger.info("CellDNACoreHandler.run()", "Served: " + fileName + " size:" + dnaCore.getBytes().length);
-			} else {
-				String response = "<h1>404 Not Found</h1> Resource: " + fileName + " not found.\n";
-				Headers h = t.getResponseHeaders();
-				h.add("Content-Type", "text/html");
-				t.sendResponseHeaders(404, response.getBytes().length);
-				OutputStream os = t.getResponseBody();
-				os.write(response.getBytes(), 0, response.getBytes().length);
-				os.close();
-				logger.debug("CellDNACoreHandler.run()", "Resource: " + fileName + " is empty.");
-			}
-		} catch (IOException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellDNACoreHandler.handle()", "IOException:");
+			dnaCore = getCell().getCellDNA().getDNACoreAsString();
+		} catch (NullPointerException e) {
+			TissueExceptionHandler.handleGenericException(e, "CellDNACoreHandler.doPost()",
+					"getCell().getCellDNA().getDNACoreAsString() NullPointerException :");
 		}
+		if (dnaCore != null) {
+			response.setContentType(getContentType());
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.setContentLength(dnaCore.getBytes().length);
+			response.getWriter().println(dnaCore);
+			logger.info("CellDNACoreHandler.doPost()", "Served: " + fileName + " size:" + dnaCore.getBytes().length);
+		} else {
+			String responseString = "<h1>404 Not Found</h1> Resource: " + fileName + " not found.\n";
+			response.setContentType("text/html");
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			response.getWriter().println(responseString);
+			logger.debug("CellDNACoreHandler.doPost()", "Resource: " + fileName + " is empty.");
+		}		
 	}
+	
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doPost(request, response);
+	}
+	
 }

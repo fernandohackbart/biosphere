@@ -1,7 +1,8 @@
 package org.biosphere.tissue.services;
 
-import com.sun.net.httpserver.HttpServer;
-
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import java.util.Hashtable;
 
 public class ServiceInstance extends ServiceDefinition {
@@ -18,7 +19,9 @@ public class ServiceInstance extends ServiceDefinition {
 
 	private String cellName;
 	private THREADService threadService;
-	private HttpServer httpServer;
+	private Server jettyServer;
+	private ContextHandlerCollection jettyContexts;
+	private ServerConnector jettyServerConnector;
 	private Hashtable<String, Object> serviceInstanceParameters;
 
 	public final void loadDefinition(ServiceDefinition serviceDefinition) {
@@ -57,11 +60,27 @@ public class ServiceInstance extends ServiceDefinition {
 		return threadService;
 	}
 
-	public void setHttpServer(HttpServer httpServer) {
-		this.httpServer = httpServer;
+	public final Server getJettyServer() {
+		return jettyServer;
 	}
 
-	public HttpServer getHttpServer() {
-		return httpServer;
+	public final void setJettyServer(Server jettyServer) {
+		this.jettyServer = jettyServer;
+	}
+
+	public final ContextHandlerCollection getJettyContexts() {
+		return jettyContexts;
+	}
+
+	public final void setJettyContexts(ContextHandlerCollection jettyContexts) {
+		this.jettyContexts = jettyContexts;
+	}
+
+	public final ServerConnector getJettyServerConnector() {
+		return jettyServerConnector;
+	}
+
+	public final void setJettyServerConnector(ServerConnector jettyServerConnector) {
+		this.jettyServerConnector = jettyServerConnector;
 	}
 }

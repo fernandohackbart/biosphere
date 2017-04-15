@@ -45,7 +45,7 @@ public class ChainNotifyCell implements Runnable {
 		try {
 			String peerURL = "https://" + getHostname() + ":" + getPort() + "/org/biosphere/cell/chain/append/block";
 			logger.debug("ChainNotifyCell.run()", "Notifying " + peerURL);
-			String requestNotification = getBlock().toFlat() + ":" + getLocalCellName() + ":" + isAccepted();
+			String requestNotification = getBlock().getFlatBlock().toColonString() + ":" + getLocalCellName() + ":" + isAccepted();
 			URL urlNotification = new URL(peerURL);
 			HttpsURLConnection connNotification = (HttpsURLConnection) urlNotification.openConnection();
 			connNotification.setRequestMethod("POST");

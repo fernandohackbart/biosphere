@@ -1,6 +1,7 @@
 package org.biosphere.tissue.cell;
 
 import java.io.ByteArrayInputStream;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -25,7 +26,6 @@ import java.text.SimpleDateFormat;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.UUID;
 
@@ -41,6 +41,7 @@ import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.services.ServiceDefinition;
 import org.biosphere.tissue.services.ServiceManager;
+import org.biosphere.tissue.services.ServletHandlerDefinition;
 import org.biosphere.tissue.tissue.TissueManager;
 import org.biosphere.tissue.utils.KeystoreManager;
 import org.biosphere.tissue.utils.Logger;
@@ -147,101 +148,154 @@ public class CellManager {
 		sdCellACS.addServiceDefinitionParameter("ListenPort", TissueManager.announcePort);
 		return sdCellACS;
 	}
-
-	public final static ServiceDefinition getCellTissueListenerDefinition() {
-		// all those paramters should be placed inside the DNA and the consumed
-		// from there when starting the service
-		Hashtable<String, ArrayList> cellTissueListenerHandlers = new Hashtable<String, ArrayList>();
-
+	
+	public final static ServiceDefinition getCellTissueServletListenerDefinition() {
+		ArrayList<ServletHandlerDefinition> cellTissueJettyListenerHandlers = new ArrayList<ServletHandlerDefinition>();
+		
+		ServletHandlerDefinition cellDNACoreSHD = new ServletHandlerDefinition();
+		cellDNACoreSHD.setClassName("org.biosphere.tissue.handlers.CellDNACoreHandler");
+		cellDNACoreSHD.setContentType("application/xml");
 		ArrayList<String> cellDNACoreContexts = new ArrayList<String>();
 		cellDNACoreContexts.add("/org/biosphere/tissue/DNA/DNACore.xml");
-		cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.CellDNACoreHandler", cellDNACoreContexts);
-
+		cellDNACoreSHD.setContexts(cellDNACoreContexts);
+		cellTissueJettyListenerHandlers.add(cellDNACoreSHD);
+		
+		ServletHandlerDefinition cellTissueWelcomeSHD = new ServletHandlerDefinition();
+		cellTissueWelcomeSHD.setClassName("org.biosphere.tissue.handlers.CellTissueWelcomeHandler");
+		cellTissueWelcomeSHD.setContentType("text/plain");
 		ArrayList<String> cellTissueWelcomeContexts = new ArrayList<String>();
 		cellTissueWelcomeContexts.add("/org/biosphere/tissue/welcome");
-		cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.CellTissueWelcomeHandler",
-				cellTissueWelcomeContexts);
-
+		cellTissueWelcomeSHD.setContexts(cellTissueWelcomeContexts);
+		cellTissueJettyListenerHandlers.add(cellTissueWelcomeSHD);
+		
+		ServletHandlerDefinition cellTissueJoinSHD = new ServletHandlerDefinition();
+		cellTissueJoinSHD.setClassName("org.biosphere.tissue.handlers.CellTissueJoinHandler");
+		cellTissueJoinSHD.setContentType("text/plain");
 		ArrayList<String> cellTissueJoinContexts = new ArrayList<String>();
 		cellTissueJoinContexts.add("/org/biosphere/tissue/join");
-		cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.CellTissueJoinHandler", cellTissueJoinContexts);
+		cellTissueJoinSHD.setContexts(cellTissueJoinContexts);
+		cellTissueJettyListenerHandlers.add(cellTissueJoinSHD);
 
+		ServletHandlerDefinition cellDNASchemaSHD = new ServletHandlerDefinition();
+		cellDNASchemaSHD.setClassName("org.biosphere.tissue.handlers.CellDNASchemaHandler");
+		cellDNASchemaSHD.setContentType("application/xml");	
 		ArrayList<String> cellDNASchemaContexts = new ArrayList<String>();
 		cellDNASchemaContexts.add("/org/biosphere/tissue/DNA/TissueCell-1.0.xsd");
 		cellDNASchemaContexts.add("/org/biosphere/tissue/DNA/TissueCellInterface-1.0.xsd");
 		cellDNASchemaContexts.add("/org/biosphere/tissue/DNA/TissueDNA-1.0.xsd");
 		cellDNASchemaContexts.add("/org/biosphere/tissue/DNA/TissueService-1.0.xsd");
-		cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.CellDNASchemaHandler", cellDNASchemaContexts);
-
+		cellDNASchemaSHD.setContexts(cellDNASchemaContexts);
+		cellTissueJettyListenerHandlers.add(cellDNASchemaSHD);
+		
+		ServletHandlerDefinition cellStopSHD = new ServletHandlerDefinition();
+		cellStopSHD.setClassName("org.biosphere.tissue.handlers.CellStopHandler");
+		cellStopSHD.setContentType("text/plain");
 		ArrayList<String> cellStopContexts = new ArrayList<String>();
 		cellStopContexts.add("/org/biosphere/cell/stop");
-		cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.CellStopHandler", cellStopContexts);
-
+		cellStopSHD.setContexts(cellStopContexts);
+		cellTissueJettyListenerHandlers.add(cellStopSHD);
+		
+		ServletHandlerDefinition cellHTTPContextAddSHD = new ServletHandlerDefinition();
+		cellHTTPContextAddSHD.setClassName("org.biosphere.tissue.handlers.CellHTTPContextManagerHandler");
+		cellHTTPContextAddSHD.setContentType("text/plain");
 		ArrayList<String> cellHTTPContextAddContexts = new ArrayList<String>();
 		cellHTTPContextAddContexts.add("/org/biosphere/cell/http/context/add");
-		cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.CellHTTPContextManagerHandler",
-				cellHTTPContextAddContexts);
-
+		cellHTTPContextAddSHD.setContexts(cellHTTPContextAddContexts);
+		cellTissueJettyListenerHandlers.add(cellHTTPContextAddSHD);		
+		
+		ServletHandlerDefinition serviceStopSHD = new ServletHandlerDefinition();
+		serviceStopSHD.setClassName("org.biosphere.tissue.handlers.ServiceStopHandler");
+		serviceStopSHD.setContentType("text/html");
 		ArrayList<String> serviceStopContexts = new ArrayList<String>();
 		serviceStopContexts.add("/org/biosphere/cell/service/stop");
-		cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.ServiceStopHandler", serviceStopContexts);
-
+		serviceStopSHD.setContexts(serviceStopContexts);
+		cellTissueJettyListenerHandlers.add(serviceStopSHD);
+		
+		ServletHandlerDefinition httpServiceStopSHD = new ServletHandlerDefinition();
+		httpServiceStopSHD.setClassName("org.biosphere.tissue.handlers.HTTPServiceStopHandler");
+		httpServiceStopSHD.setContentType("text/html");
 		ArrayList<String> httpServiceStopContexts = new ArrayList<String>();
 		httpServiceStopContexts.add("/org/biosphere/cell/httpservice/stop");
-		cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.HTTPServiceStopHandler", httpServiceStopContexts);
+		httpServiceStopSHD.setContexts(httpServiceStopContexts);
+		cellTissueJettyListenerHandlers.add(httpServiceStopSHD);
 
+		ServletHandlerDefinition cellStatusSHD = new ServletHandlerDefinition();
+		cellStatusSHD.setClassName("org.biosphere.tissue.handlers.CellStatusHandler");
+		cellStatusSHD.setContentType("text/plain");
 		ArrayList<String> cellStatusContexts = new ArrayList<String>();
 		cellStatusContexts.add("/org/biosphere/cell/status");
-		cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.CellStatusHandler", cellStatusContexts);
+		cellStatusSHD.setContexts(cellStatusContexts);
+		cellTissueJettyListenerHandlers.add(cellStatusSHD);
 
-		ServiceDefinition sdCellTissueListener = new ServiceDefinition();
-		sdCellTissueListener.setServiceDefinitionName("CellTissueListener");
-		sdCellTissueListener.setServiceDefinitionType("HTTP");
-		sdCellTissueListener.setServiceDefinitionVersion("0.1");
-		sdCellTissueListener.setServiceDefinitionClass("com.sun.net.httpserver.HttpServer");
-		sdCellTissueListener.addServiceDefinitionParameter("Handlers", cellTissueListenerHandlers);
-		sdCellTissueListener.addServiceDefinitionParameter("DefaultHTTPPort", TissueManager.defaultTissuePort);
-
+		ServletHandlerDefinition chainAddBlockSHD = new ServletHandlerDefinition();
+		chainAddBlockSHD.setClassName("org.biosphere.tissue.handlers.ChainAddBlockHandler");
+		chainAddBlockSHD.setContentType("text/plain");
 		ArrayList<String> chainAddBlockContexts = new ArrayList<String>();
 		chainAddBlockContexts.add("/org/biosphere/cell/chain/add/block");
-		cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.ChainAddBlockHandler", chainAddBlockContexts);
+		chainAddBlockSHD.setContexts(chainAddBlockContexts);
+		cellTissueJettyListenerHandlers.add(chainAddBlockSHD);
 
+		ServletHandlerDefinition chainAppendBlockSHD = new ServletHandlerDefinition();
+		chainAppendBlockSHD.setClassName("org.biosphere.tissue.handlers.ChainAppendBlockHandler");
+		chainAppendBlockSHD.setContentType("text/plain");
 		ArrayList<String> chainAppendBlockContexts = new ArrayList<String>();
 		chainAppendBlockContexts.add("/org/biosphere/cell/chain/append/block");
-		cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.ChainAppendBlockHandler",
-				chainAppendBlockContexts);
-
+		chainAppendBlockSHD.setContexts(chainAppendBlockContexts);
+		cellTissueJettyListenerHandlers.add(chainAppendBlockSHD);
+		
+		ServletHandlerDefinition chainParseChainSHD = new ServletHandlerDefinition();
+		chainParseChainSHD.setClassName("org.biosphere.tissue.handlers.ChainParseChainHandler");
+		chainParseChainSHD.setContentType("text/plain");
 		ArrayList<String> chainParseChainContexts = new ArrayList<String>();
 		chainParseChainContexts.add("/org/biosphere/cell/chain/parse/chain");
-		cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.ChainParseChainHandler", chainParseChainContexts);
-
+		chainParseChainSHD.setContexts(chainParseChainContexts);
+		cellTissueJettyListenerHandlers.add(chainParseChainSHD);
+		
+		ServletHandlerDefinition chainGetChainSHD = new ServletHandlerDefinition();
+		chainGetChainSHD.setClassName("org.biosphere.tissue.handlers.ChainGetFlatChainHandler");
+		chainGetChainSHD.setContentType("text/plain");
 		ArrayList<String> chainGetChainContexts = new ArrayList<String>();
 		chainGetChainContexts.add("/org/biosphere/cell/chain/get/chain");
-		cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.ChainGetFlatChainHandler", chainGetChainContexts);
-
+		chainGetChainSHD.setContexts(chainGetChainContexts);
+		cellTissueJettyListenerHandlers.add(chainGetChainSHD);
+		
+		ServletHandlerDefinition chainGetImageChainSHD = new ServletHandlerDefinition();
+		chainGetImageChainSHD.setClassName("org.biosphere.tissue.handlers.ChainGetImageChainHandler");
+		chainGetImageChainSHD.setContentType("image/png");
 		ArrayList<String> chainGetImageChainContexts = new ArrayList<String>();
 		chainGetImageChainContexts.add("/org/biosphere/cell/chain/get/chainimage");
-		cellTissueListenerHandlers.put("org.biosphere.tissue.handlers.ChainGetImageChainHandler",
-				chainGetImageChainContexts);
-
-		return sdCellTissueListener;
+		chainGetImageChainSHD.setContexts(chainGetImageChainContexts);
+		cellTissueJettyListenerHandlers.add(chainGetImageChainSHD);
+		//#################################################################################################
+		
+		ServiceDefinition sdCellTissueJettyListener = new ServiceDefinition();
+		sdCellTissueJettyListener.setServiceDefinitionName("CellTissueJettyListener");
+		sdCellTissueJettyListener.setServiceDefinitionType("SERVLET");
+		sdCellTissueJettyListener.setServiceDefinitionVersion("0.1");
+		sdCellTissueJettyListener.setServiceDefinitionClass("org.eclipse.jetty.server.Server");
+		sdCellTissueJettyListener.addServiceDefinitionParameter("Handlers", cellTissueJettyListenerHandlers);
+		sdCellTissueJettyListener.addServiceDefinitionParameter("DefaultHTTPPort", TissueManager.defaultTissuePort);
+		return sdCellTissueJettyListener;
 	}
-
+	
 	public final static ServiceDefinition getCellServiceListenerDefinition() {
-		// all those paramters should be placed inside the DNA and the consumed
+		// all those parameters should be placed inside the DNA and the consumed
 		// from there when starting the service
-		Hashtable<String, ArrayList> cellServiceListenerHandlers = new Hashtable<String, ArrayList>();
-
-		ArrayList<String> cellDNACoreContexts = new ArrayList<String>();
-		cellDNACoreContexts.add("/");
-		cellServiceListenerHandlers.put("org.biosphere.tissue.handlers.CellServiceInstantiationHandler",
-				cellDNACoreContexts);
+		
+		ArrayList<ServletHandlerDefinition> cellServiceListenerHandlers = new ArrayList<ServletHandlerDefinition>();
+		ServletHandlerDefinition cellServiceListenerSHD = new ServletHandlerDefinition();
+		cellServiceListenerSHD.setClassName("org.biosphere.tissue.handlers.CellServiceInstantiationHandler");
+		cellServiceListenerSHD.setContentType("text/plain");
+		ArrayList<String> chainParseChainContexts = new ArrayList<String>();
+		chainParseChainContexts.add("/");
+		cellServiceListenerSHD.setContexts(chainParseChainContexts);
+		cellServiceListenerHandlers.add(cellServiceListenerSHD);
 
 		ServiceDefinition sdCellTissueListener = new ServiceDefinition();
 		sdCellTissueListener.setServiceDefinitionName("CellServiceListener");
-		sdCellTissueListener.setServiceDefinitionType("HTTP");
+		sdCellTissueListener.setServiceDefinitionType("SERVLET");
 		sdCellTissueListener.setServiceDefinitionVersion("0.1");
-		sdCellTissueListener.setServiceDefinitionClass("com.sun.net.httpserver.HttpServer");
+		sdCellTissueListener.setServiceDefinitionClass("org.eclipse.jetty.server.Server");
 		sdCellTissueListener.addServiceDefinitionParameter("Handlers", cellServiceListenerHandlers);
 		sdCellTissueListener.addServiceDefinitionParameter("DefaultHTTPPort",
 				TissueManager.defaultTissuePort + TissueManager.portJumpFactor);
@@ -249,7 +303,7 @@ public class CellManager {
 	}
 
 	public static final void startTissueListenerService(Cell cell) throws CellException {
-		cell.setTissuePort(ServiceManager.startServiceDefinition(getCellTissueListenerDefinition(), cell));
+		cell.setTissuePort(ServiceManager.startServiceDefinition(getCellTissueServletListenerDefinition(), cell));
 	}
 
 	public static final void loadServicesDNA(Cell cell) {
@@ -259,7 +313,7 @@ public class CellManager {
 		logger.debug("CellManager.addServicesDNA()", "Adding CellAnnounceListener definition to DNA");
 		cell.getCellDNA().addService(getCellAnnounceListenerDefinition());
 		logger.debug("CellManager.addServicesDNA()", "Adding CellTissueListener definition to DNA");
-		cell.getCellDNA().addService(getCellTissueListenerDefinition());
+		cell.getCellDNA().addService(getCellTissueServletListenerDefinition());
 		// logger.debug("CellManager.addServicesDNA()","Adding CellACS
 		// definition to DNA");
 		// cell.getCellDNA().addService(getCellACSDefinition());
@@ -270,7 +324,7 @@ public class CellManager {
 	public static final void startServicesDNA(Cell cell) {
 		Logger logger = new Logger();
 		Tissue.Tissueservices services = cell.getCellDNA().getServices();
-		Iterator servicesIterator = services.getTissueservice().iterator();
+		Iterator<Tissueservicetype> servicesIterator = services.getTissueservice().iterator();
 		while (servicesIterator.hasNext()) {
 			Tissueservicetype service = (Tissueservicetype) servicesIterator.next();
 			logger.debug("CellManager.startServicesDNA()", "Starting " + service.getServicename() + " from DNA");
@@ -287,7 +341,6 @@ public class CellManager {
 			InvalidKeySpecException, OperatorCreationException, IOException, CertificateException, KeyStoreException {
 		KeystoreManager kg = new KeystoreManager();
 		KeyStore ks = kg.getKeyStore(cell.getCellName(), cell.getCellNetworkName(), cell.getCellKeystorePWD());
-		// kg.dumpKeystore(ks,cell.getCellKeystorePWD());
 		return ks;
 	}
 
@@ -341,12 +394,13 @@ public class CellManager {
 		PemWriter pw = new PemWriter(sw);
 		pw.writeObject(new JcaMiscPEMGenerator(cert));
 		pw.flush();
+		pw.close();
 		String pemEncodedCert = sw.toString();
 		logger.debug("CellManager.getCellCertificateFromKeystore()", "\n" + pemEncodedCert);
 		return pemEncodedCert;
 	}
 
-	public static final void addCellTrustKeystore(String cellName, String certPem, Cell cell)
+	public static final synchronized void addCellTrustKeystore(String cellName, String certPem, Cell cell)
 			throws KeyStoreException, CertificateEncodingException, IOException, CertificateException {
 		Logger logger = new Logger();
 		logger.info("CellManager.addCellTrustKeystore()",
@@ -354,6 +408,7 @@ public class CellManager {
 		logger.info("CellManager.addCellTrustKeystore()", "Certificate:\n" + certPem);
 		PemReader pr = new PemReader(new StringReader(certPem));
 		PemObject pem = pr.readPemObject();
+		pr.close();
 		CertificateFactory cf = CertificateFactory.getInstance("X509");
 		Certificate cert = cf.generateCertificate(new ByteArrayInputStream(pem.getContent()));
 		KeyStore ks = cell.getCellKeystore();

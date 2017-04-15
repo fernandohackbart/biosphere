@@ -12,11 +12,9 @@ import javax.net.ssl.HttpsURLConnection;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 
 public class FileUtils {
+	
 	public FileUtils() {
-		logger = new Logger();
 	}
-
-	private Logger logger;
 
 	public InputStream getFile(String fileURL) {
 		InputStream is = null;

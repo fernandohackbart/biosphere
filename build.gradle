@@ -8,6 +8,9 @@
 
 // Apply the java-library plugin to add support for Java Library
 apply plugin: 'java-library'
+apply plugin: 'application'
+
+mainClassName = "org.biosphere.tissue.Cell"
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -28,8 +31,20 @@ dependencies {
     implementation 'org.bouncycastle:bcpkix-jdk15on:1.56'
     implementation 'org.jgrapht:jgrapht-core:1.0.1'
     implementation 'org.jgrapht:jgrapht-ext:1.0.1'
+    implementation 'org.eclipse.jetty:jetty-server:9.4.3.v20170317'
+    implementation 'org.eclipse.jetty:jetty-servlet:9.4.3.v20170317'
     
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
+}
+
+jar {
+  from configurations.runtime
+  manifest {
+    attributes ('Main-Class': 'org.biosphere.tissue.Cell',
+                'Class-Path': configurations.runtime.files.collect { jarDir+"/$it.name" }.join(' ')
+               )
+  }
+
 }
 

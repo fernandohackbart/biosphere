@@ -1,7 +1,6 @@
 package org.biosphere.tissue.utils;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.PrivateKey;
@@ -22,6 +21,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 
 import org.biosphere.tissue.Cell;
+import org.biosphere.tissue.exceptions.TissueExceptionHandler;
+
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaCertStore;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -42,8 +43,6 @@ import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.bouncycastle.util.Store;
 import org.bouncycastle.util.encoders.Base64;
 
-import sun.misc.BASE64Encoder;
-
 public class CellSigner {
 
 	public static String sign(Cell cell) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException,
@@ -52,28 +51,33 @@ public class CellSigner {
 		Security.addProvider(new BouncyCastleProvider());
 		KeyStore ks = cell.getCellKeystore();
 		Key key = ks.getKey(cell.getCellName(), cell.getCellKeystorePWD().toCharArray());
+		
 		PrivateKey privKey = (PrivateKey) key;
+		
 		Signature signature = Signature.getInstance("SHA1WithRSA", "BC");
 		signature.initSign(privKey);
 		signature.update(cell.getCellName().getBytes());
+		CMSTypedData msg = new CMSProcessableByteArray(signature.sign());
+		
 		X509Certificate cert = (X509Certificate) ks.getCertificate(cell.getCellName());
 		List certList = new ArrayList();
-		CMSTypedData msg = new CMSProcessableByteArray(signature.sign());
 		certList.add(cert);
 		Store certs = new JcaCertStore(certList);
 		CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
 		ContentSigner sha1Signer = new JcaContentSignerBuilder("SHA1withRSA").setProvider("BC").build(privKey);
-		gen.addSignerInfoGenerator(
-				new JcaSignerInfoGeneratorBuilder(new JcaDigestCalculatorProviderBuilder().setProvider("BC").build())
-						.build(sha1Signer, cert));
+		gen.addSignerInfoGenerator(new JcaSignerInfoGeneratorBuilder(new JcaDigestCalculatorProviderBuilder().setProvider("BC").build()).build(sha1Signer, cert));
 		gen.addCertificates(certs);
-		CMSSignedData sigData = gen.generate(msg, false);
+		
+		CMSSignedData sigData = gen.generate(msg, true);
 		String envelopedData = Base64.toBase64String(sigData.getEncoded());
+
 		return envelopedData;
 	}
 
 	public static boolean verify(String cellName, Cell cell, String cellSignature) throws CMSException, CertificateException, OperatorCreationException {
+		Logger logger = new Logger();
 		boolean verified = false;
+		boolean rightSigner = false;
 		Security.addProvider(new BouncyCastleProvider());
 		CMSSignedData cms = new CMSSignedData(Base64.decode(cellSignature.getBytes()));
 		Store store = cms.getCertificates();
@@ -89,8 +93,81 @@ public class CellSigner {
 			if (signer.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider("BC").build(cert))) {
 				verified=true;
 			}
-		}
-		return verified;
-	}
+			
+			
+			//Compare the local certificate for the cell and the certificate that comes with the signature, they should match.
+			/*
+			try {
+				KeyStore ks = cell.getCellKeystore();
+				X509Certificate localCert = (X509Certificate)ks.getCertificate(cell.getCellName());
+				localCert.getPublicKey().
+			} catch (KeyStoreException e) {
+				TissueExceptionHandler.handleGenericException(e,"CellSigner.verify()","KeyStoreException");
+			}
+			*/
 
+			
+			
+			logger.debug("CellSigner.verify()", "Signed for: " + cellName + " by: " + cert.getSubjectX500Principal());
+			if (cert.getSubjectAlternativeNames() != null) {
+				Iterator itasn = cert.getSubjectAlternativeNames().iterator();
+				while (itasn.hasNext()) {
+					List list = (List) itasn.next();
+					logger.debug("CellSigner.verify()", "  Certificate ASN: " +getGeneralName((int)list.get(0))+":"+list.get(1).toString());
+					if(list.get(1).toString().equals(cellName))
+					{
+						logger.debug("CellSigner.verify()", "  Expected signer: " +getGeneralName((int)list.get(0))+":"+list.get(1).toString());
+						rightSigner=true;
+					}
+				}
+			}
+
+		}
+		return verified&&rightSigner;
+	}
+	
+/*
+    public static String getCertificateFingerprint(X509Certificate cert) 
+    {
+    	byte[] der = cert.getEncoded();
+    	byte[] sha1 = digestOf("SHA_256", der);
+    	byte[] hexBytes = Hex.encode(sha1);
+    	String hex = new String(hexBytes, "ASCII").toUpperCase();
+
+    	StringBuffer fp = new StringBuffer();
+    	int i = 0;
+    	fp.append(hex.substring(i, i + 2));
+    	while ((i += 2) < hex.length()) {
+    		fp.append(':');
+    		fp.append(hex.substring(i, i + 2));
+    	}
+
+    }
+*/
+	private static String getGeneralName(int index)
+	{
+        String generalName="unknown";
+        switch (index) {
+            case 0:  generalName = "otherName";
+                     break;
+            case 1:  generalName = "rfc822Name";
+                    break;
+            case 2:  generalName = "dNSName";
+                     break;
+            case 3:  generalName = "x400Address";
+                     break;
+            case 4:  generalName = "directoryName";
+                     break;
+            case 5:  generalName = "ediPartyName";
+                     break;
+            case 6:  generalName = "uniformResourceIdentifier";
+                     break;
+            case 7:  generalName = "iPAddress";
+                     break;
+            case 8:  generalName = "registeredID";
+                     break;
+        }
+        return generalName;
+	}
 }
+

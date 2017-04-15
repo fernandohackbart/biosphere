@@ -249,7 +249,7 @@ public class KeystoreManager {
 						Iterator it = cert.getSubjectAlternativeNames().iterator();
 						while (it.hasNext()) {
 							List list = (List) it.next();
-							output.append("  Certificate ASN: " +list.get(0).toString()+":"+list.get(1).toString()+"\n");
+							output.append("  Certificate ASN: " +getGeneralName((int)list.get(0))+":"+list.get(1).toString()+"\n");
 						}
 					}
 					output.append("  Certificate: \n" + getCertificate(ks, alias) + "\n");
@@ -338,5 +338,31 @@ public class KeystoreManager {
 	private String getCellCADN(String subjectName) {
 		logger.info("KeystoreManager.getCellCADN()", "Cell CA DN: CN=" + subjectName + "-CA" + TissueManager.OUDN);
 		return "CN=" + subjectName + "-CA" + TissueManager.OUDN;
+	}
+	
+	private String getGeneralName(int index)
+	{
+        String generalName="unknown";
+        switch (index) {
+            case 0:  generalName = "otherName";
+                     break;
+            case 1:  generalName = "rfc822Name";
+                    break;
+            case 2:  generalName = "dNSName";
+                     break;
+            case 3:  generalName = "x400Address";
+                     break;
+            case 4:  generalName = "directoryName";
+                     break;
+            case 5:  generalName = "ediPartyName";
+                     break;
+            case 6:  generalName = "uniformResourceIdentifier";
+                     break;
+            case 7:  generalName = "iPAddress";
+                     break;
+            case 8:  generalName = "registeredID";
+                     break;
+        }
+        return generalName;
 	}
 }

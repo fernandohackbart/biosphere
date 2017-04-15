@@ -1,50 +1,70 @@
 package org.biosphere.tissue.handlers;
 
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-
 import java.io.IOException;
-import java.io.OutputStream;
 
 import java.util.ArrayList;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.services.ServiceManager;
-import org.biosphere.tissue.exceptions.TissueExceptionHandler;
+import org.biosphere.tissue.services.ServletHandlerDefinition;
 import org.biosphere.tissue.utils.Logger;
 
-public class CellHTTPContextManagerHandler implements CellHTTPHandlerInterface {
+public class CellHTTPContextManagerHandler extends HttpServlet implements CellJettyHandlerInterface {
+
+	private static final long serialVersionUID = 1L;
+	private Logger logger;
+	private Cell cell;
+	private String contentType;
+	
 	public CellHTTPContextManagerHandler() {
 		logger = new Logger();
 	}
 
-	private Logger logger;
-	private Cell cell;
-
 	public void setCell(Cell cell) {
 		this.cell = cell;
 	}
-
-	@Override
-	public void handle(HttpExchange t) {
-		try {
-			String serviceName = "CellServiceListener";
-			ArrayList<String> cellDNACoreContexts = new ArrayList<String>();
-			cellDNACoreContexts.add("/sampleservice");
-			ServiceManager.addHTTPContext(serviceName, "org.biosphere.tissue.handlers.CellSampleServiceHandler",
-					cellDNACoreContexts, cell);
-
-			String clientAddress = t.getRemoteAddress().getHostName() + ":" + t.getRemoteAddress().getPort();
-			logger.debug("CellHTTPContextAdd.handle()", "Request from: " + clientAddress);
-			String response = "<h1>CellHTTPContextAdd.handle()</h1> Hello: " + clientAddress;
-			Headers h = t.getResponseHeaders();
-			h.add("Content-Type", "text/html");
-			t.sendResponseHeaders(200, response.getBytes().length);
-			OutputStream os = t.getResponseBody();
-			os.write(response.getBytes(), 0, response.getBytes().length);
-			os.close();
-		} catch (IOException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellSampleServiceHandler.handle()", "IOException:");
-		}
+	
+	private Cell getCell() {
+		return cell;
 	}
+	
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+	
+	private String getContentType()
+	{
+		return this.contentType;
+	}
+	
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
+		String serviceName = "CellServiceListener";
+		ServletHandlerDefinition cellSampleServiceSHD = new ServletHandlerDefinition();
+		cellSampleServiceSHD.setClassName("org.biosphere.tissue.handlers.CellSampleServiceHandler");
+		cellSampleServiceSHD.setContentType("text/html");
+		ArrayList<String> chainParseChainContexts = new ArrayList<String>();
+		chainParseChainContexts.add("/org/biosphere/tissue/CellSampleService");
+		cellSampleServiceSHD.setContexts(chainParseChainContexts);
+		ServiceManager.addServletContext(serviceName,cellSampleServiceSHD, cell);
+		logger.debug("CellHTTPContextAdd.doPost()", "Request from: " + partnerCell);
+		String responseString = "<h1>CellHTTPContextAdd.doPost()</h1> This should be replaced by the Jetty way if working!!!" + partnerCell;
+     	response.setContentType(getContentType());
+		response.setContentLength(responseString.getBytes().length);
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.getWriter().println(responseString);		
+	}
+	
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doPost(request, response);
+	}
+
 }

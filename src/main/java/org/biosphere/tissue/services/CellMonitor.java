@@ -29,7 +29,7 @@ public class CellMonitor extends THREADService {
 				// ExceptionHandler.handleGenericException(e,"CellMonitor.run()","Monitor
 				// signaled to stop, exiting!:");
 				logger.info("CellMonitor.run()", "Monitor signaled to stop, exiting!");
-				ServiceManager.stopHTTPServices();
+				ServiceManager.stopServletServices();
 				keepRunnig = false;
 			}
 		}
