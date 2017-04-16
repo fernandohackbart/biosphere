@@ -6,9 +6,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
-import java.text.SimpleDateFormat;
-
-import java.util.Date;
 import java.util.UUID;
 
 import org.biosphere.tissue.Cell;
@@ -17,7 +14,11 @@ import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.blockchain.Chain;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
+import org.biosphere.tissue.protocol.ServiceServletContext;
+import org.biosphere.tissue.protocol.TissueJoin;
 import org.biosphere.tissue.utils.Logger;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TissueManager {
 	public TissueManager() {
@@ -35,6 +36,7 @@ public class TissueManager {
 	public final static String keyBigInteger = "35";
 	public final static int validityCA = 10;
 	public final static int validity = 1;
+	public final static int joinDatagramSize = 2048;
 	public final static int defaultSerialNumber = 1;
 	public final static Long monitorInterval = 240000L;
 	public final static int portJumpFactor = 20;
@@ -62,14 +64,20 @@ public class TissueManager {
 		while (!cell.isTissueMember()) {
 			try {
 				Thread.sleep(Long.parseLong(joinPollInternval));
-				byte[] buf = new byte[256];
-				String myAddress = cell.getCellNetworkName() + ":" + cell.getTissuePort();
-				buf = (myAddress).getBytes();
+				TissueJoin tj = new TissueJoin();
+				tj.setCellName(cell.getCellName());
+				tj.setCellNetworkName(cell.getCellNetworkName());
+				tj.setTissuePort(cell.getTissuePort());
+				tj.setCellCertificate(cell.getCellCertificate());
+				ObjectMapper mapper = new ObjectMapper();
+				String tissueJoinString = mapper.writeValueAsString(tj);
+				byte[] buf = (tissueJoinString).getBytes();
+				logger.debug("TissueManager.joinTissue()","TissueJoinString as byteArray size = "+buf.length+" bytes");
 				socket = new DatagramSocket();
 				DatagramPacket packet = new DatagramPacket(buf, buf.length);
 				packet.setAddress(InetAddress.getByName(announceAddress));
 				packet.setPort(Integer.parseInt(announcePort));
-				logger.info("TissueManager.joinTissue()", " Announcing: " + myAddress);
+				logger.info("TissueManager.joinTissue()", " Announcing: (" + tj.getCellName()+") "+tj.getCellNetworkName()+":"+tj.getTissuePort());
 				socket.send(packet);
 				tryCount++;
 				try {
@@ -107,15 +115,6 @@ public class TissueManager {
 
 	private static String generateRandomTissueName() {
 		String tissueName = "Biosphere-" + UUID.randomUUID().toString();
-		return tissueName;
-	}
-
-	private static String generateDateTissueName() {
-		String tissueName = "NotDefined!";
-		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyyMMddHHmmss");
-		Date now = new Date();
-		String strDate = sdfDate.format(now);
-		tissueName = "Biosphere-" + strDate;
 		return tissueName;
 	}
 }

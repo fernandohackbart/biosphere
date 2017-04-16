@@ -14,14 +14,15 @@ import org.biosphere.tissue.utils.Logger;
 import org.biosphere.tissue.utils.RequestUtils;
 import org.biosphere.tissue.services.ServiceManager;
 
-public class ServiceStopHandler extends HttpServlet implements CellJettyHandlerInterface {
+public class ServiceThreadStopHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
 	private Logger logger;
 	private Cell cell;
 	private String contentType;
+	private String contentEncoding;
 
-	public ServiceStopHandler() {
+	public ServiceThreadStopHandler() {
 		logger = new Logger();
 	}
 
@@ -37,6 +38,15 @@ public class ServiceStopHandler extends HttpServlet implements CellJettyHandlerI
 	private String getContentType()
 	{
 		return this.contentType;
+	}
+	
+	public void setContentEncoding(String contentEncoding) {
+		this.contentEncoding = contentEncoding;
+	}
+	
+	private String getContentEncoding()
+	{
+		return this.contentEncoding;
 	}
 
 	@Override
@@ -54,9 +64,11 @@ public class ServiceStopHandler extends HttpServlet implements CellJettyHandlerI
 					+ " Exception: " + e.getMessage();
 		}
 		response.setContentType(getContentType());
+		response.setCharacterEncoding(getContentEncoding());
 		response.setContentLength(responseString.getBytes().length);
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.getWriter().println(responseString);		
+		response.getWriter().println(responseString);	
+		response.flushBuffer();
 	}
 	
 	@Override

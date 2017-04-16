@@ -8,7 +8,16 @@ import java.util.List;
 
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.DNA.CellInterface;
+import org.biosphere.tissue.protocol.BlockAddRequest;
+import org.biosphere.tissue.protocol.BlockAddResponse;
+import org.biosphere.tissue.protocol.FatBlockAppendRequest;
+import org.biosphere.tissue.protocol.FlatBlock;
+import org.biosphere.tissue.protocol.FlatChain;
 import org.biosphere.tissue.utils.Logger;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Chain {
 	/**
@@ -37,7 +46,7 @@ public class Chain {
 	 * @param currentBlockID
 	 *            the current Block ID in the Chain being joined to
 	 */
-	public Chain(String cellID, Cell cell, String flatChain) throws BlockException {
+	public Chain(String cellID, Cell cell, FlatChain flatChain) throws BlockException {
 		super();
 		logger = new Logger();
 		setCell(cell);
@@ -168,13 +177,17 @@ public class Chain {
 	 * @param payload
 	 *            the payload of the block to be added
 	 */
-	public synchronized boolean addBlock(String payload) throws BlockException {
-		logger.debugAddBlock("Chain.addBlock()", "Adding block with payload:" + payload);
+	public synchronized BlockAddResponse addBlock(BlockAddRequest blockAddRequest) throws BlockException {
+		logger.debugAddBlock("Chain.addBlock()", "Adding block with payload:" + blockAddRequest.getPayload());
 		Block nextBlock = getNextBlock();
-		Block newBlock = new Block(getCell(), payload, nextBlock.getBlockID(), this, false);
+		Block newBlock = new Block(getCell(), blockAddRequest.getPayload(), nextBlock.getBlockID(), this, false);
 		logger.debugAddBlock("Chain.addBlock()",
 				"Block (" + newBlock.getBlockID() + ") extending block (" + nextBlock.getBlockID() + ")!");
-		return appendBlock(newBlock, getCell().getCellName(), true);
+		boolean accepted = appendBlock(newBlock, getCell().getCellName(), true);
+		BlockAddResponse bar = new BlockAddResponse();
+		bar.setAccepted(accepted);
+		bar.setCellName(getCell().getCellName());
+		return bar;
 	}
 
 	/**
@@ -184,16 +197,11 @@ public class Chain {
 	 *            the block to be appended to the chain
 	 * @return boolean true if the block was accepted
 	 */
-	public synchronized boolean appendBlock(String flatBlock) throws ChainException {
+	public synchronized boolean appendBlock(FatBlockAppendRequest flatBlock) throws ChainException {
 		boolean accepted = false;
 		try {
-			Block block = new Block(flatBlock, this,getCell());
-			String notifyingCell = flatBlock.split(":")[8];
-			boolean notifyingCellAccepted = false;
-			if (flatBlock.split(":")[9] != null) {
-				notifyingCellAccepted = Boolean.parseBoolean(flatBlock.split(":")[9]);
-			}
-			accepted = appendBlock(block, notifyingCell, notifyingCellAccepted);
+			Block block = new Block(flatBlock,this,getCell());
+			accepted = appendBlock(block,flatBlock.getNotifyingCell(),flatBlock.isAccepted());
 		} catch (BlockException e) {
 			ChainExceptionHandler.handleGenericException(e, "Chain.appendBlock()",
 					"Failed to create new block instance.");
@@ -335,29 +343,30 @@ public class Chain {
 	 *            the String (JSON or XML) to be converted in to a Hashtable
 	 * @return the chain hashtable
 	 */
-	private void parseChain(String flatChain) throws BlockException {
-		String[] flatBlockArray = flatChain.split("\n");
+	private void parseChain(FlatChain flatChain) throws BlockException {
 		logger.debug("Chain.parseChain()", "Parsing flatChain");
-		for (String flatBlock : flatBlockArray) {
+		for (FlatBlock flatBlock : flatChain.getBlocks()) {
 			Block tmpBlock = new Block(flatBlock, this,getCell());
 			logger.debug("Chain.parseChain()", "Adding block ID: " + tmpBlock.getBlockID());
 			addBlockToChain(tmpBlock);
 		}
 		logger.debug("Chain.parseChain()", "chain size after parse: " + chain.size());
 	}
-
+	
 	/**
 	 * Return a flat (JSON or XML) representaion of the chain in its current
 	 * state
 	 *
 	 * @return flat String of the Chain
+	 * @throws JsonProcessingException 
 	 */
-	public String toFlat() {
-		StringBuffer flatChain = new StringBuffer();
-		blockToFlat("GENESIS", flatChain);
-		return flatChain.toString();
+	public String toJSON() throws JsonProcessingException {
+		FlatChain flatChain = new FlatChain();
+		blockToJSON("GENESIS", flatChain);
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.writeValueAsString(flatChain);
 	}
-
+	
 	/**
 	 * Get the proVided block ID's as flat and append to the StringBuffer output
 	 * 
@@ -367,13 +376,13 @@ public class Chain {
 	 * @param output
 	 *            the output StringBuffer
 	 */
-	private void blockToFlat(String blockID, StringBuffer output) {
-		output.append(getBlock(blockID).getFlatBlock().toColonString() + "\n");
+	private void blockToJSON(String blockID, FlatChain flatChain) {
+		flatChain.addBlock(getBlock(blockID).getFlatBlock());
 		for (String nextBlockID : getBlock(blockID).getNextBlockIDs()) {
-			blockToFlat(nextBlockID, output);
+			blockToJSON(nextBlockID, flatChain);
 		}
 	}
-
+	
 	/**
 	 * Returns a String with all blocks in the chain one by line
 	 * 
@@ -388,10 +397,12 @@ public class Chain {
 					+ getBlock(blockID).getChainPosition() + ") PREV(" + getBlock(blockID).getPrevBlockID() + ") ID("
 					+ getBlock(blockID).getBlockID() + ")");
 		}
+		/*
 		String[] chainArray = toFlat().split("\n");
 		for (String chainBlock : chainArray) {
 			dumpChain.append("\nChain.dumpChain(" + getCell().getCellName() + ") CHAIN " + chainBlock);
 		}
+		*/
 		return dumpChain.toString();
 	}
 }

@@ -18,12 +18,13 @@ import org.biosphere.tissue.services.ServiceManager;
 import org.biosphere.tissue.utils.KeystoreManager;
 import org.biosphere.tissue.utils.Logger;
 
-public class CellStatusHandler extends HttpServlet implements CellJettyHandlerInterface {
+public class CellStatusHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
 	private Logger logger;
 	private Cell cell;
 	private String contentType;
+	private String contentEncoding;
 
 	public CellStatusHandler() {
 		super();
@@ -46,7 +47,16 @@ public class CellStatusHandler extends HttpServlet implements CellJettyHandlerIn
 	{
 		return this.contentType;
 	}
-
+	
+	public void setContentEncoding(String contentEncoding) {
+		this.contentEncoding = contentEncoding;
+	}
+	
+	private String getContentEncoding()
+	{
+		return this.contentEncoding;
+	}
+	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
@@ -95,9 +105,11 @@ public class CellStatusHandler extends HttpServlet implements CellJettyHandlerIn
 		}
 		String responseString = responseSB.toString();
 		response.setContentType(getContentType());
+		response.setCharacterEncoding(getContentEncoding());
 		response.setContentLength(responseString.getBytes().length);
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.getWriter().println(responseString);		
+		response.getWriter().println(responseString);
+		response.flushBuffer();
 	}
 	
 	@Override

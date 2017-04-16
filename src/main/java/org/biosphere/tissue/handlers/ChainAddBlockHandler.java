@@ -10,15 +10,20 @@ import javax.servlet.http.HttpServletResponse;
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.blockchain.ChainExceptionHandler;
+import org.biosphere.tissue.protocol.BlockAddRequest;
+import org.biosphere.tissue.protocol.BlockAddResponse;
 import org.biosphere.tissue.utils.Logger;
 import org.biosphere.tissue.utils.RequestUtils;
 
-public class ChainAddBlockHandler extends HttpServlet implements CellJettyHandlerInterface {
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class ChainAddBlockHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
 	private Logger logger;
 	private Cell cell;
 	private String contentType;
+	private String contentEncoding;
 
 	public ChainAddBlockHandler() {
 		super();
@@ -41,6 +46,15 @@ public class ChainAddBlockHandler extends HttpServlet implements CellJettyHandle
 	{
 		return this.contentType;
 	}
+	
+	public void setContentEncoding(String contentEncoding) {
+		this.contentEncoding = contentEncoding;
+	}
+	
+	private String getContentEncoding()
+	{
+		return this.contentEncoding;
+	}
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -52,16 +66,17 @@ public class ChainAddBlockHandler extends HttpServlet implements CellJettyHandle
 			logger.debugAddBlock("ChainAddBlockHandler.doPost()",
 					"Cell " + cell.getCellName() + " request from: " + partnerCell);
 			String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
-			String responseString = getCell().getCellName() + " failed to add block!";
 			logger.debugAddBlock("ChainAddBlockHandler.doPost()", "Payload to be added to the block:" + requestPayload);
-			if (cell.getChain().addBlock(requestPayload)) {
-				logger.debugAddBlock("ChainAddBlockHandler.handle()", "Request: " + requestPayload);
-				responseString = getCell().getCellName() + " added block!";
-			}
+			ObjectMapper mapper = new ObjectMapper();
+			BlockAddRequest bare = mapper.readValue(requestPayload.getBytes(),BlockAddRequest.class);
+			BlockAddResponse bar = cell.getChain().addBlock(bare);
+			String responseString = mapper.writeValueAsString(bar);
 			response.setContentType(getContentType());
+			response.setCharacterEncoding(getContentEncoding());
 			response.setContentLength(responseString.getBytes().length);
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.getWriter().println(responseString);
+			response.flushBuffer();
 			logger.debugAddBlock("ChainAddBlockHandler.doPost()", responseString);
 		} catch (BlockException e) {
 			ChainExceptionHandler.handleGenericException(e, "ChainAddBlockHandler.doPost()", "BlockException:");

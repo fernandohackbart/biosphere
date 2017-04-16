@@ -12,12 +12,13 @@ import org.biosphere.tissue.DNA.DNACore;
 import org.biosphere.tissue.utils.Logger;
 import org.biosphere.tissue.utils.RequestUtils;
 
-public class CellTissueJoinHandler extends HttpServlet implements CellJettyHandlerInterface {
+public class CellTissueJoinHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
 	private Logger logger;
 	private Cell cell;
 	private String contentType;
+	private String contentEncoding;
 
 	public CellTissueJoinHandler() {
 		logger = new Logger();
@@ -39,6 +40,15 @@ public class CellTissueJoinHandler extends HttpServlet implements CellJettyHandl
 	{
 		return this.contentType;
 	}
+	
+	public void setContentEncoding(String contentEncoding) {
+		this.contentEncoding = contentEncoding;
+	}
+	
+	private String getContentEncoding()
+	{
+		return this.contentEncoding;
+	}
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
@@ -58,9 +68,11 @@ public class CellTissueJoinHandler extends HttpServlet implements CellJettyHandl
 		getCell().setTissueMember(true);
 		String responseString = getCell().getCellName() + " sucessfull joined the tissue!";
 		response.setContentType(getContentType());
+		response.setCharacterEncoding(getContentEncoding());
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentLength(responseString.getBytes().length);
 		response.getWriter().println(responseString);	
+		response.flushBuffer();
 		logger.info("CellTissueJoinHandler.doPost()",
 				"Joined tissue: " + getCell().getCellDNA().getTissueName() + " from: " + partnerCell);
 	}

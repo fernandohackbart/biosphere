@@ -33,6 +33,9 @@ dependencies {
     implementation 'org.jgrapht:jgrapht-ext:1.0.1'
     implementation 'org.eclipse.jetty:jetty-server:9.4.3.v20170317'
     implementation 'org.eclipse.jetty:jetty-servlet:9.4.3.v20170317'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.0.pr2'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.9.0.pr2'
+    //implementation 'org.springframework:spring-web:4.3.7.RELEASE'
     
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'

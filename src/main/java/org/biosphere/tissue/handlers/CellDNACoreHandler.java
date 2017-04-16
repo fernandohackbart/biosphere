@@ -11,12 +11,13 @@ import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.utils.Logger;
 
-public class CellDNACoreHandler extends HttpServlet implements CellJettyHandlerInterface {
+public class CellDNACoreHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
 	private Logger logger;
 	private Cell cell;
 	private String contentType;
+	private String contentEncoding;
 
 	public CellDNACoreHandler() {
 		logger = new Logger();
@@ -38,6 +39,16 @@ public class CellDNACoreHandler extends HttpServlet implements CellJettyHandlerI
 	{
 		return this.contentType;
 	}
+	
+	public void setContentEncoding(String contentEncoding) {
+		this.contentEncoding = contentEncoding;
+	}
+	
+	private String getContentEncoding()
+	{
+		return this.contentEncoding;
+	}
+
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
@@ -53,15 +64,18 @@ public class CellDNACoreHandler extends HttpServlet implements CellJettyHandlerI
 		}
 		if (dnaCore != null) {
 			response.setContentType(getContentType());
+			response.setCharacterEncoding(getContentEncoding());
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.setContentLength(dnaCore.getBytes().length);
 			response.getWriter().println(dnaCore);
+			response.flushBuffer();
 			logger.info("CellDNACoreHandler.doPost()", "Served: " + fileName + " size:" + dnaCore.getBytes().length);
 		} else {
 			String responseString = "<h1>404 Not Found</h1> Resource: " + fileName + " not found.\n";
 			response.setContentType("text/html");
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			response.getWriter().println(responseString);
+			response.flushBuffer();
 			logger.debug("CellDNACoreHandler.doPost()", "Resource: " + fileName + " is empty.");
 		}		
 	}

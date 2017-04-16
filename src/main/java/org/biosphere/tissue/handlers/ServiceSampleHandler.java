@@ -7,17 +7,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.services.ServiceDefinition;
 import org.biosphere.tissue.utils.Logger;
 
-public class CellSampleServiceHandler extends HttpServlet implements CellJettyHandlerInterface {
+public class ServiceSampleHandler extends HttpServlet implements CellServletHandlerInterface {
 	
 	private static final long serialVersionUID = 1L;
 	private Logger logger;
 	private Cell cell;
 	private String contentType;
+	private String contentEncoding;
 	
-	public CellSampleServiceHandler() {
+	public ServiceSampleHandler() {
 		logger = new Logger();
 	}
 
@@ -38,15 +38,26 @@ public class CellSampleServiceHandler extends HttpServlet implements CellJettyHa
 		return this.contentType;
 	}
 	
+	public void setContentEncoding(String contentEncoding) {
+		this.contentEncoding = contentEncoding;
+	}
+	
+	private String getContentEncoding()
+	{
+		return this.contentEncoding;
+	}
+
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-		String responseString="<h1>Hello from HelloServlet from :"+getCell().getCellName()+"</h1>";
+		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
+		String responseString="<h1>ServiceSampleHandler cell :"+getCell().getCellName()+"</h1>";
 		response.setContentType(getContentType());
+		response.setCharacterEncoding(getContentEncoding());
 		response.setContentLength(responseString.getBytes().length);
 		response.setStatus(HttpServletResponse.SC_OK);
-		logger.debug("CellSampleServiceHandler.doPost()",
-				"##############################################################################");
+		logger.debug("ServiceSampleHandler.doPost()"," Request from "+partnerCell);
 		response.getWriter().println(responseString);		
+		response.flushBuffer();
 	}
 	
 	@Override

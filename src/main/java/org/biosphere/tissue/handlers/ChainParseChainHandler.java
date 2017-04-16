@@ -11,15 +11,20 @@ import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.blockchain.Chain;
 import org.biosphere.tissue.blockchain.ChainExceptionHandler;
+import org.biosphere.tissue.protocol.FlatChain;
+import org.biosphere.tissue.protocol.TissueGreeting;
 import org.biosphere.tissue.utils.Logger;
 import org.biosphere.tissue.utils.RequestUtils;
 
-public class ChainParseChainHandler extends HttpServlet implements CellJettyHandlerInterface {
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class ChainParseChainHandler extends HttpServlet implements CellServletHandlerInterface {
 	
 	private static final long serialVersionUID = 1L;
 	private Logger logger;
 	private Cell cell;
 	private String contentType;
+	private String contentEncoding;
 
 	public ChainParseChainHandler() {
 		super();
@@ -43,6 +48,15 @@ public class ChainParseChainHandler extends HttpServlet implements CellJettyHand
 		return this.contentType;
 	}
 	
+	public void setContentEncoding(String contentEncoding) {
+		this.contentEncoding = contentEncoding;
+	}
+	
+	private String getContentEncoding()
+	{
+		return this.contentEncoding;
+	}
+	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -51,15 +65,18 @@ public class ChainParseChainHandler extends HttpServlet implements CellJettyHand
 			logger.debug("ChainParseChainHandler.doPost()", "Request from: " + partnerCell);
 			String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
 			String responseString = getCell().getCellName() + " failed to parse chain!";
-			logger.debug("ChainParseChainHandler.doPost()", "flatChain: \n" + requestPayload);
-			Chain tmpChain = new Chain(getCell().getCellName(), cell, requestPayload);
-			logger.debug("ChainParseChainHandler.doPost()", "Parsed flatChain: \n" + tmpChain.toFlat());
+			ObjectMapper mapper = new ObjectMapper();
+			FlatChain fc = mapper.readValue(requestPayload.getBytes(), FlatChain.class);
+			Chain tmpChain = new Chain(getCell().getCellName(), cell, fc);
+			logger.debug("ChainParseChainHandler.doPost()", "Parsed flatChain: \n" + tmpChain.toJSON());
 			getCell().setChain(tmpChain);
 			responseString = "Chain parsed successfully";
 			response.setContentType(getContentType());
+			response.setCharacterEncoding(getContentEncoding());
 			response.setContentLength(responseString.getBytes().length);
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.getWriter().println(responseString);
+			response.flushBuffer();
 			logger.info("ChainParseChainHandler.doPost()", responseString);
 		} catch (BlockException e) {
 			ChainExceptionHandler.handleGenericException(e, "ChainAddBlockHandler.doPost()", "BlockException:");

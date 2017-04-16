@@ -15,7 +15,10 @@ import java.util.stream.Collectors;
 import javax.net.ssl.HttpsURLConnection;
 
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
+import org.biosphere.tissue.protocol.FatBlockAppendRequest;
 import org.biosphere.tissue.utils.Logger;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ChainNotifyCell implements Runnable {
 	public ChainNotifyCell(String hostname, int port, Block block, String remoteCellName, String localCellName,
@@ -45,7 +48,15 @@ public class ChainNotifyCell implements Runnable {
 		try {
 			String peerURL = "https://" + getHostname() + ":" + getPort() + "/org/biosphere/cell/chain/append/block";
 			logger.debug("ChainNotifyCell.run()", "Notifying " + peerURL);
-			String requestNotification = getBlock().getFlatBlock().toColonString() + ":" + getLocalCellName() + ":" + isAccepted();
+			
+			FatBlockAppendRequest fbar = new FatBlockAppendRequest();
+			fbar.setAccepted(isAccepted());
+			fbar.setNotifyingCell(getLocalCellName());
+			fbar.setFlatBlock(getBlock().getFlatBlock());
+			
+			ObjectMapper mapper = new ObjectMapper();
+			String requestNotification = mapper.writeValueAsString(fbar);
+			
 			URL urlNotification = new URL(peerURL);
 			HttpsURLConnection connNotification = (HttpsURLConnection) urlNotification.openConnection();
 			connNotification.setRequestMethod("POST");

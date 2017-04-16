@@ -24,6 +24,12 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.biosphere.tissue.cell.CellManager;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
+import org.biosphere.tissue.protocol.TissueGreeting;
+import org.biosphere.tissue.protocol.TissueJoin;
+import org.biosphere.tissue.protocol.TissueWelcome;
+import org.biosphere.tissue.tissue.TissueManager;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class CellAnnounceListener extends THREADService {
 	public CellAnnounceListener() {
@@ -54,12 +60,11 @@ public class CellAnnounceListener extends THREADService {
 			socket.joinGroup(address);
 			DatagramPacket packet;
 			while (keepListening) {
-				byte[] buf = new byte[256];
+				byte[] buf = new byte[TissueManager.joinDatagramSize];
 				packet = new DatagramPacket(buf, buf.length);
 				socket.receive(packet);
 				String receivedPayload = new String(packet.getData(), 0, packet.getLength());
-				logger.debug("CellAnnounceListener.run()",
-						"received request from " + receivedPayload + " adopting cell!");
+				logger.debug("CellAnnounceListener.run()", "Received request adopting cell!");
 				adoptCell(receivedPayload);
 			}
 			socket.leaveGroup(address);
@@ -73,101 +78,94 @@ public class CellAnnounceListener extends THREADService {
 		}
 	}
 
-	private void adoptCell(String cellAddress) {
+	private void adoptCell(String tissueJoin) {
 		try {
-			logger.debug("CellAnnounceListener.adoptCell()", "Adopting: " + cellAddress);
-			String requestWelcome = "WLCM:" + cell.getCellDNA().getTissueName() + ":" + cell.getCellName() + "\n"
-					+ cell.getCellCertificate();
-			URL urlWelcome = new URL("https://" + cellAddress.split(":")[0] + ":" + cellAddress.split(":")[1]
-					+ "/org/biosphere/tissue/welcome");
+			ObjectMapper mapper = new ObjectMapper();
+			TissueJoin tj = mapper.readValue(tissueJoin.getBytes(), TissueJoin.class);
+
+			logger.debug("CellAnnounceListener.adoptCell()",
+					"Adopting: (" + tj.getCellName() + ") " + tj.getCellNetworkName() + ":" + tj.getTissuePort());
+			try {
+				CellManager.addCellTrustKeystore(tj.getCellName(), tj.getCellCertificate(), cell);
+			} catch (CertificateEncodingException | KeyStoreException e) {
+				TissueExceptionHandler.handleGenericException(e, "CellAnnounceListener.adoptCell()",
+						"CellManager.addCellTrustKeystore:");
+			} catch (CertificateException e) {
+				TissueExceptionHandler.handleGenericException(e, "CellAnnounceListener.adoptCell()",
+						"CellManager.addCellTrustKeystore:");
+			}
+
+			TissueWelcome tw = new TissueWelcome();
+			tw.setTissueName(cell.getCellDNA().getTissueName());
+			tw.setCellName(cell.getCellName());
+			tw.setCellCertificate(cell.getCellCertificate());
+			String requestWelcome = mapper.writeValueAsString(tw);
+			URL urlWelcome = new URL(
+					"https://" + tj.getCellNetworkName() + ":" + tj.getTissuePort() + "/org/biosphere/tissue/welcome");
 			logger.debug("CellAnnounceListener.adoptCell()", "Contacting: " + urlWelcome.getProtocol() + "://"
 					+ urlWelcome.getHost() + ":" + urlWelcome.getPort() + "/org/biosphere/tissue/welcome");
-
-			CellManager.setRelaxedSSLSocketFactory(cell);
-
 			HttpsURLConnection connWelcome = (HttpsURLConnection) urlWelcome.openConnection();
 			connWelcome.setRequestMethod("POST");
 			connWelcome.setDoOutput(true);
 			connWelcome.setInstanceFollowRedirects(false);
-			connWelcome.setRequestProperty("Content-Type", "application/xml");
+			connWelcome.setRequestProperty("Content-Type", "application/json");
 			connWelcome.setRequestProperty("charset", "utf-8");
 			connWelcome.setRequestProperty("Content-Length",
 					"" + requestWelcome.getBytes(StandardCharsets.UTF_8).length);
 			connWelcome.setUseCaches(false);
-
 			DataOutputStream wrWelcome = new DataOutputStream(connWelcome.getOutputStream());
 			wrWelcome.write(requestWelcome.getBytes());
 			connWelcome.connect();
 			String responsePayload = getResponseAsString(connWelcome.getInputStream());
 			connWelcome.disconnect();
 
-			CellManager.setDefaultSSLSocketFactory(cell);
+			TissueGreeting tg = mapper.readValue(responsePayload.getBytes(), TissueGreeting.class);
+			logger.debug("CellAnnounceListener.adoptCell()", "Greeting response: " + tg.getMessage());
+			String requestJoin = "https://" + cell.getCellNetworkName() + ":" + cell.getTissuePort()
+					+ "/org/biosphere/tissue/DNA/DNACore.xml\n" + cell.getCellCertificate();
+			URL urlJoin = new URL(
+					"https://" + tj.getCellNetworkName() + ":" + tj.getTissuePort() + "/org/biosphere/tissue/join");
+			logger.debug("CellAnnounceListener.adoptCell()", "Sending DNACore URL to: " + urlJoin.getProtocol() + "://"
+					+ urlJoin.getHost() + ":" + urlJoin.getPort() + "/org/biosphere/tissue/join");
+			HttpsURLConnection connJoin = (HttpsURLConnection) urlJoin.openConnection();
+			connJoin.setRequestMethod("POST");
+			connJoin.setDoOutput(true);
+			connJoin.setInstanceFollowRedirects(false);
+			connJoin.setRequestProperty("Content-Type", "application/json");
+			connJoin.setRequestProperty("charset", "utf-8");
+			connJoin.setRequestProperty("Content-Length", "" + requestJoin.getBytes(StandardCharsets.UTF_8).length);
+			connJoin.setUseCaches(false);
+			DataOutputStream wrJoin = new DataOutputStream(connJoin.getOutputStream());
+			wrJoin.write(requestJoin.getBytes());
+			// TODO send all the possible interfaces
+			connJoin.connect();
+			String responseJoin = getResponseAsString(connJoin.getInputStream());
+			connJoin.disconnect();
+			logger.debug("CellAnnounceListener.adoptCell()", "Join response: " + responseJoin);
 
-			String responseWelcome = responsePayload.substring(0, responsePayload.indexOf("\n"));
-			logger.debug("CellAnnounceListener.adoptCell()", "Welcome response: " + responseWelcome);
+			String requestChain = cell.getChain().toJSON();	
+			URL urlChain = new URL("https://" + tj.getCellNetworkName() + ":" + tj.getTissuePort()
+					+ "/org/biosphere/cell/chain/parse/chain");
+			logger.debug("CellAnnounceListener.adoptCell()", "Sending Chain to: " + urlJoin.getProtocol() + "://"
+					+ urlJoin.getHost() + ":" + urlJoin.getPort() + "/org/biosphere/cell/chain/parse/chain");
+			HttpsURLConnection connChain = (HttpsURLConnection) urlChain.openConnection();
+			connChain.setRequestMethod("POST");
+			connChain.setDoOutput(true);
+			connChain.setInstanceFollowRedirects(false);
+			connChain.setRequestProperty("Content-Type", "text/plain");
+			connChain.setRequestProperty("charset", "utf-8");
+			connChain.setRequestProperty("Content-Length", "" + requestJoin.getBytes(StandardCharsets.UTF_8).length);
+			connChain.setUseCaches(false);
+			DataOutputStream wrChain = new DataOutputStream(connChain.getOutputStream());
+			wrChain.write(requestChain.getBytes());
+			connJoin.connect();
+			String responseChain = getResponseAsString(connChain.getInputStream());
+			connJoin.disconnect();
+			logger.debug("CellAnnounceListener.adoptCell()", "Chain send response: " + responseChain);
 
-			if (responseWelcome.startsWith("GRTS:")) {
-				String responseCellName = responseWelcome.split(":")[1];
-				String responseCert = responsePayload.substring(responsePayload.indexOf("\n") + 1);
-				try {
-					CellManager.addCellTrustKeystore(responseCellName, responseCert, cell);
-				} catch (CertificateEncodingException | KeyStoreException e) {
-					TissueExceptionHandler.handleGenericException(e, "CellAnnounceListener.adoptCell()",
-							"CellManager.addCellTrustKeystore:");
-				} catch (CertificateException e) {
-					TissueExceptionHandler.handleGenericException(e, "CellAnnounceListener.adoptCell()",
-							"CellManager.addCellTrustKeystore:");
-				}
-
-				String requestJoin = "https://" + cell.getCellNetworkName() + ":" + cell.getTissuePort()
-						+ "/org/biosphere/tissue/DNA/DNACore.xml\n" + cell.getCellCertificate();
-				URL urlJoin = new URL("https://" + cellAddress.split(":")[0] + ":" + cellAddress.split(":")[1]
-						+ "/org/biosphere/tissue/join");
-				logger.debug("CellAnnounceListener.adoptCell()", "Sending DNACore URL to: " + urlJoin.getProtocol()
-						+ "://" + urlJoin.getHost() + ":" + urlJoin.getPort() + "/org/biosphere/tissue/join");
-				HttpsURLConnection connJoin = (HttpsURLConnection) urlJoin.openConnection();
-				connJoin.setRequestMethod("POST");
-				connJoin.setDoOutput(true);
-				connJoin.setInstanceFollowRedirects(false);
-				connJoin.setRequestProperty("Content-Type", "application/xml");
-				connJoin.setRequestProperty("charset", "utf-8");
-				connJoin.setRequestProperty("Content-Length", "" + requestJoin.getBytes(StandardCharsets.UTF_8).length);
-				connJoin.setUseCaches(false);
-				DataOutputStream wrJoin = new DataOutputStream(connJoin.getOutputStream());
-				wrJoin.write(requestJoin.getBytes());
-				// TODO send all the possible interfaces
-				connJoin.connect();
-				String responseJoin = getResponseAsString(connJoin.getInputStream());
-				connJoin.disconnect();
-				logger.debug("CellAnnounceListener.adoptCell()", "Join response: " + responseJoin);
-
-				// TODO send the Chain from this point
-				String requestChain = cell.getChain().toFlat();
-				URL urlChain = new URL("https://" + cellAddress.split(":")[0] + ":" + cellAddress.split(":")[1]
-						+ "/org/biosphere/cell/chain/parse/chain");
-				logger.debug("CellAnnounceListener.adoptCell()", "Sending Chain to: " + urlJoin.getProtocol() + "://"
-						+ urlJoin.getHost() + ":" + urlJoin.getPort() + "/org/biosphere/cell/chain/parse/chain");
-				HttpsURLConnection connChain = (HttpsURLConnection) urlChain.openConnection();
-				connChain.setRequestMethod("POST");
-				connChain.setDoOutput(true);
-				connChain.setInstanceFollowRedirects(false);
-				connChain.setRequestProperty("Content-Type", "application/xml");
-				connChain.setRequestProperty("charset", "utf-8");
-				connChain.setRequestProperty("Content-Length",
-						"" + requestJoin.getBytes(StandardCharsets.UTF_8).length);
-				connChain.setUseCaches(false);
-				DataOutputStream wrChain = new DataOutputStream(connChain.getOutputStream());
-				wrChain.write(requestChain.getBytes());
-				connJoin.connect();
-				String responseChain = getResponseAsString(connChain.getInputStream());
-				connJoin.disconnect();
-				logger.debug("CellAnnounceListener.adoptCell()", "Chain send response: " + responseChain);
-
-				logger.debug("CellAnnounceListener.adoptCell()", "Adding adopted cell to the local DNA!");
-				cell.getCellDNA().addCell(responseCellName, responseCert, cellAddress.split(":")[0],
-						Integer.parseInt(cellAddress.split(":")[1]));
-
-			}
+			logger.debug("CellAnnounceListener.adoptCell()", "Adding adopted cell to the local DNA!");
+			cell.getCellDNA().addCell(tg.getCellName(), tj.getCellCertificate(), tj.getCellNetworkName(),
+					tj.getTissuePort());
 		} catch (UnknownHostException e) {
 			TissueExceptionHandler.handleGenericException(e, "CellAnnounceListener.adoptCell()",
 					"UnknownHostException:");

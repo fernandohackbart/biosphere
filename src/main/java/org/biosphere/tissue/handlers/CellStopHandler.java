@@ -1,6 +1,5 @@
 package org.biosphere.tissue.handlers;
 
-
 import java.io.IOException;
 
 import javax.servlet.ServletException;
@@ -12,13 +11,13 @@ import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.cell.CellManager;
 import org.biosphere.tissue.utils.Logger;
 
-
-public class CellStopHandler extends HttpServlet implements CellJettyHandlerInterface {
+public class CellStopHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
 	private Logger logger;
 	private Cell cell;
 	private String contentType;
+	private String contentEncoding;
 	
 	public CellStopHandler() {
 		logger = new Logger();
@@ -36,6 +35,16 @@ public class CellStopHandler extends HttpServlet implements CellJettyHandlerInte
 	{
 		return this.contentType;
 	}
+	
+	public void setContentEncoding(String contentEncoding) {
+		this.contentEncoding = contentEncoding;
+	}
+	
+	private String getContentEncoding()
+	{
+		return this.contentEncoding;
+	}
+
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
@@ -43,9 +52,11 @@ public class CellStopHandler extends HttpServlet implements CellJettyHandlerInte
 		logger.debug("CellStopHandler.doPost()", "Request from: " + partnerCell);
 		String responseString = "<h1>CellStopHandler.doPost()</h1> Cell stop request from: " + partnerCell;
 		response.setContentType(getContentType());
+		response.setCharacterEncoding(getContentEncoding());
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentLength(responseString.getBytes().length);
 		response.getWriter().println(responseString);	
+		response.flushBuffer();
 		CellManager.stopCell();
 	}
 	

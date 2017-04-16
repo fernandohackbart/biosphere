@@ -9,7 +9,7 @@ import javax.servlet.Servlet;
 
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.exceptions.CellException;
-import org.biosphere.tissue.handlers.CellJettyHandlerInterface;
+import org.biosphere.tissue.handlers.CellServletHandlerInterface;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.utils.Logger;
 
@@ -32,10 +32,6 @@ public final class ServiceManager {
 		super();
 	}
 
-	// private static Hashtable<String,THREADService> cellTHREADServiceInstances
-	// = new Hashtable<String,THREADService>();
-	// private static Hashtable<String,HttpServer> cellHTTPServiceInstances =
-	// new Hashtable<String,HttpServer>();
 	private static Hashtable<String, ServiceInstance> cellServiceInstances = new Hashtable<String, ServiceInstance>();
 
 	public static synchronized boolean isRunning(String serviceName) {
@@ -127,9 +123,8 @@ public final class ServiceManager {
 			loadTHREAD(serviceDefinition, cell);
 			break;
 		case "SERVLET":
-			loadJetty(serviceDefinition, cell);
+			loadServlet(serviceDefinition, cell);
 			break;
-			
 		}
 	}
 
@@ -141,7 +136,6 @@ public final class ServiceManager {
 			toStartService.setName(sd.getServiceDefinitionName());
 			toStartService.setParameters(sd.getServiceDefinitionParameters());
 			toStartService.setDaemon(sd.isServiceDefinitionDaemon());
-
 			// cellTHREADServiceInstances.put(serviceDefinition.getServiceDefinitionName(),toStartService);
 			ServiceInstance serviceInstance = new ServiceInstance(sd);
 			serviceInstance.setThreadService(toStartService);
@@ -158,26 +152,27 @@ public final class ServiceManager {
 		}
 	}
 
-	private static void loadJetty(ServiceDefinition sd, Cell cell) throws CellException {
+	private static void loadServlet(ServiceDefinition sd, Cell cell) throws CellException {
 		Logger logger = new Logger();
 		int HTTPPort = 0;
         try {
 			Server server = new Server();
      		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 			@SuppressWarnings("unchecked")
-			ArrayList<ServletHandlerDefinition> cellTissueJettyListenerHandlers = (ArrayList<ServletHandlerDefinition>) sd
+			ArrayList<ServletHandlerDefinition> cellTissueListenerHandlers = (ArrayList<ServletHandlerDefinition>) sd
 					.getServiceDefinitionParameters().get("Handlers");			
-			for (ServletHandlerDefinition cellTissueJettyListenerHandler : cellTissueJettyListenerHandlers)
+			for (ServletHandlerDefinition cellTissueListenerHandler : cellTissueListenerHandlers)
 			{
-				Class<?> handlerClass = loadClass(cellTissueJettyListenerHandler.getClassName());
-				CellJettyHandlerInterface toStartHandler = (CellJettyHandlerInterface)handlerClass.newInstance();
+				Class<?> handlerClass = loadClass(cellTissueListenerHandler.getClassName());
+				CellServletHandlerInterface toStartHandler = (CellServletHandlerInterface)handlerClass.newInstance();
 				toStartHandler.setCell(cell);
-				toStartHandler.setContentType(cellTissueJettyListenerHandler.getContentType());
-				ArrayList<String> handlerContexts = cellTissueJettyListenerHandler.getContexts();
+				toStartHandler.setContentType(cellTissueListenerHandler.getContentType());
+				toStartHandler.setContentEncoding(cellTissueListenerHandler.getContentEncoding());
+				ArrayList<String> handlerContexts = cellTissueListenerHandler.getContexts();
 				for (String contextURI : handlerContexts) {
 					context.addServlet(new ServletHolder((Servlet)toStartHandler), contextURI);
-					logger.debug("ServiceManager.loadJetty()",
-							"Handler " + cellTissueJettyListenerHandler.getClassName() + " added context: (" +cellTissueJettyListenerHandler.getContentType()+") "+ contextURI);
+					logger.debug("ServiceManager.loadServlet()",
+							sd.getServiceDefinitionName() + " handler " + cellTissueListenerHandler.getClassName() + " added context: (" +cellTissueListenerHandler.getContentType()+") "+ contextURI);
 				}				
 			}
 			ContextHandlerCollection contexts = new ContextHandlerCollection(); 
@@ -205,7 +200,6 @@ public final class ServiceManager {
 	        hsc.setSendServerVersion(true);
 	        hsc.setSendDateHeader(false);
 	        hsc.addCustomizer(new SecureRequestCustomizer());
-	        
 	        ServerConnector httpsConnector = new ServerConnector(server,
 	                new SslConnectionFactory(sslContextFactory,HttpVersion.HTTP_1_1.asString()),
 	                new HttpConnectionFactory(hsc));
@@ -217,7 +211,7 @@ public final class ServiceManager {
 			serviceInstance.setJettyContexts(contexts);
 			cellServiceInstances.put(sd.getServiceDefinitionName(), serviceInstance);
 		} catch (Exception e) {
-			TissueExceptionHandler.handleGenericException(e, "CellManager.startTissueListenerServiceJetty()","Exception:");
+			TissueExceptionHandler.handleGenericException(e, "CellManager.loadServlet()","Exception:");
 		}
 	}
 	
@@ -300,7 +294,7 @@ public final class ServiceManager {
 					logger.info(serviceInstance.getServiceDefinitionName(), "listening at " + HTTPPort + "!");
 					listening = true;
 				} catch (java.net.BindException e) {
-					logger.debug("ServiceManager.loadJetty()","Port: " +  HTTPPort + " is used incrementing by 1 and retrying!");
+					logger.debug("ServiceManager.startServlet()","Port: " +  HTTPPort + " is used incrementing by 1 and retrying!");
 					HTTPPort++;
 					serviceInstance.getJettyServer().stop();
 					if (HTTPPort>65535)
@@ -389,13 +383,14 @@ public final class ServiceManager {
 			if (isLoaded(serviceName)) {
 				ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 				Class<?> handlerClass = loadClass(shd.getClassName());
-				CellJettyHandlerInterface toStartHandler = (CellJettyHandlerInterface)handlerClass.newInstance();
+				CellServletHandlerInterface toStartHandler = (CellServletHandlerInterface)handlerClass.newInstance();
 				toStartHandler.setCell(cell);
 				toStartHandler.setContentType(shd.getContentType());
+				toStartHandler.setContentEncoding(shd.getContentEncoding());
 				for (String contextURI : shd.getContexts()) {
 					context.addServlet(new ServletHolder((Servlet)toStartHandler), contextURI);
-					logger.debug("ServiceManager.loadJetty()",
-							"Handler " + shd.getClassName() + " added context: (" + shd.getContentType() +")" + contextURI);
+					logger.debug("ServiceManager.addServletContext()",
+							"Handler " + shd.getClassName() + " added context: (" + shd.getContentType() +") " + contextURI);
 				}
 				cellServiceInstances.get(serviceName).getJettyContexts().addHandler(context);
 			}

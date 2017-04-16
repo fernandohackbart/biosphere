@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.UUID;
 
 import org.biosphere.tissue.Cell;
+import org.biosphere.tissue.protocol.FlatBlock;
 import org.biosphere.tissue.utils.CellSigner;
 import org.biosphere.tissue.utils.Logger;
 import org.bouncycastle.cms.CMSException;
@@ -103,20 +104,20 @@ public class Block {
 	 * @param flatBlock
 	 *            the flat String that represents the Block content
 	 */
-	Block(String flatBlock, Chain chain,Cell cell) throws BlockException {
+	Block(FlatBlock flatBlock, Chain chain,Cell cell) throws BlockException {
 		super();
 		logger = new Logger();
-		logger.debug("Block.Block()", "Creating new Block: cell(" + flatBlock.split(":")[1] + ") prev block ID("
-				+ flatBlock.split(":")[2] + ") block ID(" + flatBlock.split(":")[3] + ")");
-		setChainPosition(Integer.parseInt(flatBlock.split(":")[0]));
-		setTimestamp(new Date(Long.parseLong(flatBlock.split(":")[1])));
-		setCellID(flatBlock.split(":")[2]);
-		setPrevBlockID(flatBlock.split(":")[3]);
-		setBlockID(flatBlock.split(":")[4]);
-		setPrevHash(flatBlock.split(":")[5]);
-		setBlockHash(flatBlock.split(":")[6]);
-		setPayload(new String(Base64.decode(flatBlock.split(":")[7])));
-		setCellSignature(flatBlock.split(":")[8]);
+		logger.debug("Block.Block()", "Creating new Block: cell(" + flatBlock.getCellID() + ") prev block ID("
+				+ flatBlock.getPrevBlockID() + ") block ID(" + flatBlock.getBlockID() + ")");
+		setChainPosition(flatBlock.getChainPosition());
+		setTimestamp(flatBlock.getTimestamp());
+		setCellID(flatBlock.getCellID());
+		setPrevBlockID(flatBlock.getPrevBlockID());
+		setBlockID(flatBlock.getBlockID());
+		setPrevHash(flatBlock.getPrevHash());
+		setBlockHash(flatBlock.getBlockHash());
+		setPayload(new String(Base64.decode(flatBlock.getPayload())));
+		setCellSignature(flatBlock.getCellSignature());
 		setChain(chain);
 		setAcceptanceVotes(new ArrayList<Vote>());
 		setNextBlockIDs(new ArrayList<String>());
@@ -127,7 +128,7 @@ public class Block {
 			throw new BlockException("Block ID(" + getBlockID() + ") is not valid!");
 		}
 	}
-
+	
 	/**
 	 * Creates one empty instance of e Block
 	 * <p>
@@ -373,17 +374,17 @@ public class Block {
 	  */
 	public final FlatBlock getFlatBlock()
 	{
-		FlatBlock lvb = new FlatBlock();
-		lvb.setBlockHash(getBlockHash());
-        lvb.setBlockID(getBlockID());
-        lvb.setCellID(getCellID());
-        lvb.setCellSignature(getCellSignature());
-        lvb.setChainPosition(getChainPosition());
-        lvb.setPayload(getPayload());
-        lvb.setPrevBlockID(getPrevBlockID());
-        lvb.setPrevHash(getPrevHash());
-        lvb.setTimestamp(getTimestamp());
-		return lvb;
+		FlatBlock fb = new FlatBlock();
+		fb.setBlockHash(getBlockHash());
+		fb.setBlockID(getBlockID());
+		fb.setCellID(getCellID());
+		fb.setCellSignature(getCellSignature());
+		fb.setChainPosition(getChainPosition());
+		fb.setPayload(Base64.toBase64String(getPayload().getBytes(StandardCharsets.UTF_8)));
+		fb.setPrevBlockID(getPrevBlockID());
+		fb.setPrevHash(getPrevHash());
+		fb.setTimestamp(getTimestamp());
+		return fb;
 	}
 	
 	/**

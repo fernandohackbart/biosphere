@@ -14,12 +14,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.utils.Logger;
 
-public class ChainGetImageChainHandler extends HttpServlet implements CellJettyHandlerInterface {
+public class ChainGetImageChainHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
 	private Logger logger;
 	private Cell cell;
 	private String contentType;
+	private String contentEncoding;
 
 	public ChainGetImageChainHandler() {
 		super();
@@ -42,7 +43,16 @@ public class ChainGetImageChainHandler extends HttpServlet implements CellJettyH
 	{
 		return this.contentType;
 	}
-
+	
+	public void setContentEncoding(String contentEncoding) {
+		this.contentEncoding = contentEncoding;
+	}
+	
+	private String getContentEncoding()
+	{
+		return this.contentEncoding;
+	}
+	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -51,11 +61,13 @@ public class ChainGetImageChainHandler extends HttpServlet implements CellJettyH
 		byte[] responseBytes = generateRandomImage();
 		// byte[] response = generateGraphImage(cell.getChain().toFlat());
 		response.setContentType(getContentType());
+		response.setCharacterEncoding(getContentEncoding());
 		response.setContentLength(responseBytes.length);
 		response.setStatus(HttpServletResponse.SC_OK);
 		OutputStream os = response.getOutputStream();
 		os.write(responseBytes, 0, responseBytes.length);
 		os.close();
+		response.flushBuffer();
 	}
 
 	@Override
