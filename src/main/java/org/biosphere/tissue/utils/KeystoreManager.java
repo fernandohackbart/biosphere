@@ -69,10 +69,10 @@ import org.bouncycastle.util.io.pem.PemWriter;
 public class KeystoreManager {
 	public KeystoreManager() {
 		super();
-		logger = new Logger();
+		logger = new TissueLogger();
 	}
 
-	private Logger logger;
+	private TissueLogger logger;
 
 	public KeyStore getKeyStore(String cellName, String subjectName, String keyStorePass)
 			throws NoSuchAlgorithmException, InvalidKeySpecException, OperatorCreationException, IOException,

@@ -12,19 +12,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.utils.Logger;
+import org.biosphere.tissue.utils.TissueLogger;
 
 public class ChainGetImageChainHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
-	private Logger logger;
+	private TissueLogger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 
 	public ChainGetImageChainHandler() {
 		super();
-		logger = new Logger();
+		logger = new TissueLogger();
 	}
 
 	public void setCell(Cell cell) {

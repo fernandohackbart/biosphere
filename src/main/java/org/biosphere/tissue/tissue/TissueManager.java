@@ -16,7 +16,7 @@ import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.protocol.ServiceServletContext;
 import org.biosphere.tissue.protocol.TissueJoin;
-import org.biosphere.tissue.utils.Logger;
+import org.biosphere.tissue.utils.TissueLogger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -42,7 +42,7 @@ public class TissueManager {
 	public final static int portJumpFactor = 20;
 
 	public final static void createTissue(Cell cell) throws CellException {
-		Logger logger = new Logger();
+		TissueLogger logger = new TissueLogger();
 		logger.info("TissueManager.createTissue()", " Creating tissue!");
 		DNACore dna = new DNACore();
 		cell.setCellDNA(dna);
@@ -58,7 +58,7 @@ public class TissueManager {
 	}
 
 	public final static void joinTissue(Cell cell) throws CellException {
-		Logger logger = new Logger();
+		TissueLogger logger = new TissueLogger();
 		int tryCount = 0;
 		DatagramSocket socket = null;
 		while (!cell.isTissueMember()) {
@@ -106,7 +106,7 @@ public class TissueManager {
 	}
 
 	public static String generateTissueName() {
-		Logger logger = new Logger();
+		TissueLogger logger = new TissueLogger();
 		String tissueName = generateRandomTissueName();
 		// String tissueName = generateDateTissueName();
 		logger.info("TissueManager.generateTissueName()", "Tissue name: " + tissueName);

@@ -9,6 +9,7 @@
 // Apply the java-library plugin to add support for Java Library
 apply plugin: 'java-library'
 apply plugin: 'application'
+apply plugin: 'maven-publish'
 
 mainClassName = "org.biosphere.tissue.Cell"
 
@@ -35,6 +36,7 @@ dependencies {
     implementation 'org.eclipse.jetty:jetty-servlet:9.4.3.v20170317'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.0.pr2'
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.9.0.pr2'
+    implementation 'org.slf4j:slf4j-api:1.7.25'
     //implementation 'org.springframework:spring-web:4.3.7.RELEASE'
     
     // Use JUnit test framework

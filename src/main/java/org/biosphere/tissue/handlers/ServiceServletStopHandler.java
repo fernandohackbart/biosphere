@@ -11,19 +11,19 @@ import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.services.ServiceManager;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
-import org.biosphere.tissue.utils.Logger;
+import org.biosphere.tissue.utils.TissueLogger;
 import org.biosphere.tissue.utils.RequestUtils;
 
 public class ServiceServletStopHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
-	private Logger logger;
+	private TissueLogger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 	
 	public ServiceServletStopHandler() {
-		logger = new Logger();
+		logger = new TissueLogger();
 	}
 
 	public void setCell(Cell cell) {

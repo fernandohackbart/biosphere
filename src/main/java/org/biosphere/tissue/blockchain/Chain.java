@@ -13,7 +13,7 @@ import org.biosphere.tissue.protocol.BlockAddResponse;
 import org.biosphere.tissue.protocol.FatBlockAppendRequest;
 import org.biosphere.tissue.protocol.FlatBlock;
 import org.biosphere.tissue.protocol.FlatChain;
-import org.biosphere.tissue.utils.Logger;
+import org.biosphere.tissue.utils.TissueLogger;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,7 +28,7 @@ public class Chain {
 	 */
 	public Chain(String cellID, Cell cell) throws BlockException {
 		super();
-		logger = new Logger();
+		logger = new TissueLogger();
 		setCell(cell);
 		chain = new Hashtable<String, Block>();
 		Block genesisBlock = new Block(getCell(), "GENESIS", "GENESIS", this, true);
@@ -48,7 +48,7 @@ public class Chain {
 	 */
 	public Chain(String cellID, Cell cell, FlatChain flatChain) throws BlockException {
 		super();
-		logger = new Logger();
+		logger = new TissueLogger();
 		setCell(cell);
 		chain = new Hashtable<String, Block>();
 		parseChain(flatChain);
@@ -68,7 +68,7 @@ public class Chain {
 	 * Block logger
 	 *
 	 */
-	private Logger logger;
+	private TissueLogger logger;
 
 	/**
 	 * Return the Block identified by the BlockID parameter

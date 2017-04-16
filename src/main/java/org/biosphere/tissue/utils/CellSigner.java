@@ -75,7 +75,7 @@ public class CellSigner {
 	}
 
 	public static boolean verify(String cellName, Cell cell, String cellSignature) throws CMSException, CertificateException, OperatorCreationException {
-		Logger logger = new Logger();
+		TissueLogger logger = new TissueLogger();
 		boolean verified = false;
 		boolean rightSigner = false;
 		Security.addProvider(new BouncyCastleProvider());

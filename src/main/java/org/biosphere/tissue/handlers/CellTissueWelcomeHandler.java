@@ -16,7 +16,7 @@ import org.biosphere.tissue.cell.CellManager;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.protocol.TissueGreeting;
 import org.biosphere.tissue.protocol.TissueWelcome;
-import org.biosphere.tissue.utils.Logger;
+import org.biosphere.tissue.utils.TissueLogger;
 import org.biosphere.tissue.utils.RequestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,13 +24,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class CellTissueWelcomeHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
-	private Logger logger;
+	private TissueLogger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 
 	public CellTissueWelcomeHandler() {
-		logger = new Logger();
+		logger = new TissueLogger();
 	}
 
 	@Override

@@ -14,7 +14,7 @@ import org.biosphere.tissue.cell.CellManager;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.tissue.TissueManager;
-import org.biosphere.tissue.utils.Logger;
+import org.biosphere.tissue.utils.TissueLogger;
 
 import org.bouncycastle.operator.OperatorCreationException;
 
@@ -22,7 +22,7 @@ public class Cell {
 
 	private boolean tissueMember;
 	private DNACore cellDNA;
-	private Logger logger;
+	private TissueLogger logger;
 	private int tissuePort;
 	private String cellName;
 	private String cellNetworkName;
@@ -32,7 +32,7 @@ public class Cell {
 	private Chain chain;
 
 	public Cell() {
-		logger = new Logger();
+		logger = new TissueLogger();
 	}
 
 	public static void main(String[] args) {

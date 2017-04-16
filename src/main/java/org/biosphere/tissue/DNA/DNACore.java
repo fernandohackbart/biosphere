@@ -41,7 +41,7 @@ import org.biosphere.tissue.services.ServiceDefinition;
 import org.biosphere.tissue.tissue.TissueManager;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.utils.FileUtils;
-import org.biosphere.tissue.utils.Logger;
+import org.biosphere.tissue.utils.TissueLogger;
 
 import org.w3c.dom.Document;
 
@@ -51,10 +51,10 @@ import org.xml.sax.SAXException;
 public class DNACore {
 
 	public DNACore() {
-		logger = new Logger();
+		logger = new TissueLogger();
 	}
 
-	private Logger logger;
+	private TissueLogger logger;
 	private ArrayList<DNAEntry> dnaEntries;
 	private String DNACoreEntryName = "DNACore";
 	private String DNACoreEntryType = "DNADocument";

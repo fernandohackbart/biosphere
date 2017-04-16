@@ -19,7 +19,7 @@ import java.util.UUID;
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.protocol.FlatBlock;
 import org.biosphere.tissue.utils.CellSigner;
-import org.biosphere.tissue.utils.Logger;
+import org.biosphere.tissue.utils.TissueLogger;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.encoders.Base64;
@@ -89,7 +89,7 @@ public class Block {
 	 * Block logger
 	 * 
 	 */
-	private Logger logger;
+	private TissueLogger logger;
 
 	/**
 	 * Creates one instance of e Block based on one cell identifier and a flat
@@ -106,7 +106,7 @@ public class Block {
 	 */
 	Block(FlatBlock flatBlock, Chain chain,Cell cell) throws BlockException {
 		super();
-		logger = new Logger();
+		logger = new TissueLogger();
 		logger.debug("Block.Block()", "Creating new Block: cell(" + flatBlock.getCellID() + ") prev block ID("
 				+ flatBlock.getPrevBlockID() + ") block ID(" + flatBlock.getBlockID() + ")");
 		setChainPosition(flatBlock.getChainPosition());
@@ -141,7 +141,7 @@ public class Block {
 	 */
 	Block(Cell cell, String payload, String prevBlockID, Chain chain, boolean genesis) throws BlockException {
 		super();
-		logger = new Logger();
+		logger = new TissueLogger();
 		logger.debug("Block.Block()",
 				"Creating new Block:" + cellID + ":" + payload + ":" + prevBlockID + ":" + genesis);
 		setChain(chain);

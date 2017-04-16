@@ -16,19 +16,19 @@ import org.biosphere.tissue.DNA.CellInterface;
 import org.biosphere.tissue.cell.CellManager;
 import org.biosphere.tissue.services.ServiceManager;
 import org.biosphere.tissue.utils.KeystoreManager;
-import org.biosphere.tissue.utils.Logger;
+import org.biosphere.tissue.utils.TissueLogger;
 
 public class CellStatusHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
-	private Logger logger;
+	private TissueLogger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 
 	public CellStatusHandler() {
 		super();
-		logger = new Logger();
+		logger = new TissueLogger();
 	}
 
 	public void setCell(Cell cell) {

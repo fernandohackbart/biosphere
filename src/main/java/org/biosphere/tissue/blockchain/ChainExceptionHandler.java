@@ -1,6 +1,6 @@
 package org.biosphere.tissue.blockchain;
 
-import org.biosphere.tissue.utils.Logger;
+import org.biosphere.tissue.utils.TissueLogger;
 
 public class ChainExceptionHandler {
 	public ChainExceptionHandler() {
@@ -15,7 +15,7 @@ public class ChainExceptionHandler {
 	}
 
 	public static void handleGenericException(Exception e, String module, String message) {
-		Logger logger = new Logger();
+		TissueLogger logger = new TissueLogger();
 		logger.exception(module, message + " Exception message(" + e.getMessage() + ")");
 		e.printStackTrace();
 	}

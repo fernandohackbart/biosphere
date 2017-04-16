@@ -12,7 +12,7 @@ import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.blockchain.ChainExceptionHandler;
 import org.biosphere.tissue.protocol.BlockAddRequest;
 import org.biosphere.tissue.protocol.BlockAddResponse;
-import org.biosphere.tissue.utils.Logger;
+import org.biosphere.tissue.utils.TissueLogger;
 import org.biosphere.tissue.utils.RequestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,14 +20,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ChainAddBlockHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
-	private Logger logger;
+	private TissueLogger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 
 	public ChainAddBlockHandler() {
 		super();
-		logger = new Logger();
+		logger = new TissueLogger();
 	}
 
 	public void setCell(Cell cell) {

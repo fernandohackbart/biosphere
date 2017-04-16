@@ -2,8 +2,8 @@ package org.biosphere.tissue.utils;
 
 import java.util.Date;
 
-public class Logger {
-	public Logger() {
+public class TissueLogger {
+	public TissueLogger() {
 		super();
 	}
 

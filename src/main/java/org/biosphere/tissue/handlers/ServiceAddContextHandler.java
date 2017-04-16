@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.services.ServiceManager;
 import org.biosphere.tissue.services.ServletHandlerDefinition;
-import org.biosphere.tissue.utils.Logger;
+import org.biosphere.tissue.utils.TissueLogger;
 import org.biosphere.tissue.utils.RequestUtils;
 import org.biosphere.tissue.protocol.ServiceServletContext;
 import org.biosphere.tissue.protocol.ServiceServletContextURI;
@@ -19,13 +19,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ServiceAddContextHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
-	private Logger logger;
+	private TissueLogger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 	
 	public ServiceAddContextHandler() {
-		logger = new Logger();
+		logger = new TissueLogger();
 	}
 
 	public void setCell(Cell cell) {

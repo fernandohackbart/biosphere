@@ -16,7 +16,7 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.protocol.FatBlockAppendRequest;
-import org.biosphere.tissue.utils.Logger;
+import org.biosphere.tissue.utils.TissueLogger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -24,7 +24,7 @@ public class ChainNotifyCell implements Runnable {
 	public ChainNotifyCell(String hostname, int port, Block block, String remoteCellName, String localCellName,
 			boolean accepted) {
 		super();
-		logger = new Logger();
+		logger = new TissueLogger();
 		setHostname(hostname);
 		setPort(port);
 		setBlock(block);
@@ -34,7 +34,7 @@ public class ChainNotifyCell implements Runnable {
 		setRemoteAccepted(false);
 	}
 
-	private Logger logger;
+	private TissueLogger logger;
 	private String hostname;
 	private int port;
 	private Block block;
