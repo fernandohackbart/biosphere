@@ -1,6 +1,7 @@
 package org.biosphere.tissue.blockchain;
 
 public class ChainException extends Exception {
+	@SuppressWarnings("compatibility:1513698579894150770")
 	private static final long serialVersionUID = 1L;
 
 	public ChainException() {

@@ -92,7 +92,6 @@ public class Cell {
 		logger.info("Cell.start() ####################################################################################");
 		logger.info("Cell.start() Cell " + getCellName() + " is running!  Tissue listener at:" + getCellNetworkName()
 		+ ":" + getTissuePort());
-		logger.info("Cell.start() Log level: trace="+logger.isTraceEnabled()+" debug="+logger.isDebugEnabled()+" info="+logger.isInfoEnabled()+" warn="+logger.isWarnEnabled()+" error="+logger.isErrorEnabled());
 		logger.info("Cell.start() ####################################################################################");
 	}
 

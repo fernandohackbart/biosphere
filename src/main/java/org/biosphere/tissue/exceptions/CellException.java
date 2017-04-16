@@ -1,6 +1,7 @@
 package org.biosphere.tissue.exceptions;
 
 public class CellException extends Exception {
+	@SuppressWarnings("compatibility:4464245575984505440")
 	private static final long serialVersionUID = 1L;
 
 	public CellException(Throwable throwable) {

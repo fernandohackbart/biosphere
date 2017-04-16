@@ -51,8 +51,6 @@ import org.bouncycastle.util.io.pem.PemWriter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.impl.SimpleLogger;
-
 
 public class CellManager {
 	public CellManager() {
@@ -60,10 +58,6 @@ public class CellManager {
 	}
 
 	public final static void setupCell(Cell cell) {
-		//https://www.slf4j.org/api/org/slf4j/impl/SimpleLogger.html
-		System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY,TissueManager.logLevel);
-		System.setProperty(SimpleLogger.SHOW_DATE_TIME_KEY,TissueManager.logShowDateTime);
-		
 		cell.setCellName(generateCellName());
 		cell.setCellNetworkName(getCellNetworkName());
 		cell.setTissueMember(false);
@@ -73,6 +67,7 @@ public class CellManager {
 
 	private static String generateCellName() {
 		return generateCellRandomName();
+		// return generateCellNetName();
 	}
 
 	private static String generateCellRandomName() {

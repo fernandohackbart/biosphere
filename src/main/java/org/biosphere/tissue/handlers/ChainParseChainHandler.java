@@ -12,6 +12,7 @@ import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.blockchain.Chain;
 import org.biosphere.tissue.blockchain.ChainExceptionHandler;
 import org.biosphere.tissue.protocol.FlatChain;
+import org.biosphere.tissue.protocol.TissueGreeting;
 import org.biosphere.tissue.utils.RequestUtils;
 
 import org.slf4j.Logger;
