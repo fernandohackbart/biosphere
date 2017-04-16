@@ -14,7 +14,6 @@ import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.blockchain.Chain;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
-import org.biosphere.tissue.protocol.ServiceServletContext;
 import org.biosphere.tissue.protocol.TissueJoin;
 
 import org.slf4j.Logger;
@@ -42,6 +41,9 @@ public class TissueManager {
 	public final static int defaultSerialNumber = 1;
 	public final static Long monitorInterval = 240000L;
 	public final static int portJumpFactor = 20;
+	//https://www.slf4j.org/api/org/slf4j/impl/SimpleLogger.html
+	public final static String logLevel = "trace";
+	public final static String logShowDateTime = "true";
 
 	public final static void createTissue(Cell cell) throws CellException {
 		Logger logger = LoggerFactory.getLogger(TissueManager.class);

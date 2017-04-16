@@ -1,6 +1,5 @@
 package org.biosphere.tissue.blockchain;
 
-import org.biosphere.tissue.Cell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

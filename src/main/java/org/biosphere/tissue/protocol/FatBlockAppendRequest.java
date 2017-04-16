@@ -3,8 +3,6 @@ package org.biosphere.tissue.protocol;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Date;
-
 import org.biosphere.tissue.protocol.FlatBlock;
 
 public class FatBlockAppendRequest extends FlatBlock{
