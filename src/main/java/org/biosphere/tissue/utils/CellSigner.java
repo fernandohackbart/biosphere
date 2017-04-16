@@ -21,7 +21,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaCertStore;
@@ -42,6 +41,9 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.bouncycastle.util.Store;
 import org.bouncycastle.util.encoders.Base64;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CellSigner {
 
@@ -75,7 +77,7 @@ public class CellSigner {
 	}
 
 	public static boolean verify(String cellName, Cell cell, String cellSignature) throws CMSException, CertificateException, OperatorCreationException {
-		TissueLogger logger = new TissueLogger();
+		Logger logger = LoggerFactory.getLogger(CellSigner.class);
 		boolean verified = false;
 		boolean rightSigner = false;
 		Security.addProvider(new BouncyCastleProvider());

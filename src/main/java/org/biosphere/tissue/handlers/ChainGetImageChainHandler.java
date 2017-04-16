@@ -12,19 +12,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.utils.TissueLogger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ChainGetImageChainHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
-	private TissueLogger logger;
+	private Logger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 
 	public ChainGetImageChainHandler() {
 		super();
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(ChainGetImageChainHandler.class);
 	}
 
 	public void setCell(Cell cell) {
@@ -57,7 +59,7 @@ public class ChainGetImageChainHandler extends HttpServlet implements CellServle
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
-		logger.debug("ChainGetImageChain.handle()", "Request from: " + partnerCell);
+		logger.debug("ChainGetImageChain.handle() Request from: " + partnerCell);
 		byte[] responseBytes = generateRandomImage();
 		// byte[] response = generateGraphImage(cell.getChain().toFlat());
 		response.setContentType(getContentType());

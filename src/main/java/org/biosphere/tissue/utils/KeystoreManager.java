@@ -41,8 +41,6 @@ import javax.net.ssl.SSLEngine;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.tissue.TissueManager;
 
-import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.Extension;
@@ -66,13 +64,16 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.bouncycastle.util.io.pem.PemWriter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class KeystoreManager {
 	public KeystoreManager() {
 		super();
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(KeystoreManager.class);
 	}
 
-	private TissueLogger logger;
+	private Logger logger;
 
 	public KeyStore getKeyStore(String cellName, String subjectName, String keyStorePass)
 			throws NoSuchAlgorithmException, InvalidKeySpecException, OperatorCreationException, IOException,
@@ -169,7 +170,7 @@ public class KeystoreManager {
 		X500Name subject = new X500Name(subjectDN);
 		PKCS10CertificationRequestBuilder p10Builder = new JcaPKCS10CertificationRequestBuilder(subject, pubKey);
 		
-		logger.debug("KeystoreManager.generateRequest()", "subjectDN: " + cellNameASN);
+		logger.debug("KeystoreManager.generateRequest() subjectDN: " + cellNameASN);
 		ExtensionsGenerator extGen = new ExtensionsGenerator();
 		extGen.addExtension(Extension.subjectAlternativeName, false,
 				new GeneralNames(new GeneralName(GeneralName.dNSName, cellNameASN)));
@@ -225,7 +226,7 @@ public class KeystoreManager {
 	}
 
 	public String dumpKeystore(KeyStore ks, String password, String cellName) {
-		logger.debug("KeystoreManager.dumpKeystore()", "Dumping in memory keystore:");
+		logger.debug("KeystoreManager.dumpKeystore() Dumping in memory keystore:");
 
 		StringBuffer output = new StringBuffer();
 		try {
@@ -254,10 +255,9 @@ public class KeystoreManager {
 					}
 					output.append("  Certificate: \n" + getCertificate(ks, alias) + "\n");
 				} catch (IOException f) {
-					logger.error("KeystoreManager.dumpKeystore()", "IOException:" + f.getLocalizedMessage());
+					logger.error("KeystoreManager.dumpKeystore() IOException:" + f.getLocalizedMessage());
 				} catch (CertificateParsingException f) {
-					logger.error("KeystoreManager.dumpKeystore()",
-							"CertificateParsingException:" + f.getLocalizedMessage());
+					logger.error("KeystoreManager.dumpKeystore() CertificateParsingException:" + f.getLocalizedMessage());
 				}
 			}
 		} catch (NoSuchAlgorithmException | KeyStoreException e) {
@@ -294,7 +294,7 @@ public class KeystoreManager {
 
 	public String getKey(KeyStore ks, String password, String keyAlias)
 			throws KeyStoreException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
-		logger.info("KeystoreManager.getKey()", "KeyAlias:" + keyAlias);
+		logger.info("KeystoreManager.getKey() KeyAlias:" + keyAlias);
 		Key key = ks.getKey(keyAlias, password.toCharArray());
 		StringWriter sw = new StringWriter();
 		PemWriter pw = new PemWriter(sw);
@@ -302,12 +302,12 @@ public class KeystoreManager {
 		pw.flush();
 		pw.close();
 		String pemEncodedCert = sw.toString();
-		logger.debug("KeystoreManager.getKey()", "\n" + pemEncodedCert);
+		logger.debug("KeystoreManager.getKey() \n" + pemEncodedCert);
 		return pemEncodedCert;
 	}
 
 	public String getCertificate(KeyStore ks, String certAlias) throws KeyStoreException, IOException {
-		logger.info("KeystoreManager.getCertificate()", "CertAlias:" + certAlias);
+		logger.info("KeystoreManager.getCertificate() CertAlias:" + certAlias);
 		Certificate cert = ks.getCertificate(certAlias);
 		StringWriter sw = new StringWriter();
 		PemWriter pw = new PemWriter(sw);
@@ -315,7 +315,7 @@ public class KeystoreManager {
 		pw.flush();
 		pw.close();
 		String pemEncodedCert = sw.toString();
-		logger.debug("KeystoreManager.getCertificate()", "\n" + pemEncodedCert);
+		logger.debug("KeystoreManager.getCertificate() \n" + pemEncodedCert);
 		return pemEncodedCert;
 	}
 	
@@ -326,17 +326,17 @@ public class KeystoreManager {
 		pw.flush();
 		pw.close();
 		String pemEncodedCert = sw.toString();
-		logger.debug("KeystoreManager.formatRequest()", "\n" + pemEncodedCert);
+		logger.debug("KeystoreManager.formatRequest() \n" + pemEncodedCert);
 		return pemEncodedCert;
 	}
 
 	private String getCellDN(String subjectName) {
-		logger.info("KeystoreManager.getCellDN()", "Cell DN: CN=" + subjectName + TissueManager.OUDN);
+		logger.info("KeystoreManager.getCellDN() Cell DN: CN=" + subjectName + TissueManager.OUDN);
 		return "CN=" + subjectName + TissueManager.OUDN;
 	}
 
 	private String getCellCADN(String subjectName) {
-		logger.info("KeystoreManager.getCellCADN()", "Cell CA DN: CN=" + subjectName + "-CA" + TissueManager.OUDN);
+		logger.info("KeystoreManager.getCellCADN() Cell CA DN: CN=" + subjectName + "-CA" + TissueManager.OUDN);
 		return "CN=" + subjectName + "-CA" + TissueManager.OUDN;
 	}
 	

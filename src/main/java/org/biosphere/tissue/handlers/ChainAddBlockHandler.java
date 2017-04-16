@@ -12,22 +12,24 @@ import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.blockchain.ChainExceptionHandler;
 import org.biosphere.tissue.protocol.BlockAddRequest;
 import org.biosphere.tissue.protocol.BlockAddResponse;
-import org.biosphere.tissue.utils.TissueLogger;
 import org.biosphere.tissue.utils.RequestUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ChainAddBlockHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
-	private TissueLogger logger;
+	private Logger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 
 	public ChainAddBlockHandler() {
 		super();
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(ChainAddBlockHandler.class);
 	}
 
 	public void setCell(Cell cell) {
@@ -61,12 +63,10 @@ public class ChainAddBlockHandler extends HttpServlet implements CellServletHand
 			throws ServletException, IOException {
 		try {
 			String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
-			logger.debugAddBlock("ChainAddBlockHandler.doPost()",
-					"##############################################################################");
-			logger.debugAddBlock("ChainAddBlockHandler.doPost()",
-					"Cell " + cell.getCellName() + " request from: " + partnerCell);
+			logger.debug("ChainAddBlockHandler.doPost() ##############################################################################");
+			logger.debug("ChainAddBlockHandler.doPost() Cell " + cell.getCellName() + " request from: " + partnerCell);
 			String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
-			logger.debugAddBlock("ChainAddBlockHandler.doPost()", "Payload to be added to the block:" + requestPayload);
+			logger.debug("ChainAddBlockHandler.doPost() Payload to be added to the block:" + requestPayload);
 			ObjectMapper mapper = new ObjectMapper();
 			BlockAddRequest bare = mapper.readValue(requestPayload.getBytes(),BlockAddRequest.class);
 			BlockAddResponse bar = cell.getChain().addBlock(bare);
@@ -77,7 +77,7 @@ public class ChainAddBlockHandler extends HttpServlet implements CellServletHand
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.getWriter().println(responseString);
 			response.flushBuffer();
-			logger.debugAddBlock("ChainAddBlockHandler.doPost()", responseString);
+			logger.debug("ChainAddBlockHandler.doPost() "+responseString);
 		} catch (BlockException e) {
 			ChainExceptionHandler.handleGenericException(e, "ChainAddBlockHandler.doPost()", "BlockException:");
 		}

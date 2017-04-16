@@ -7,18 +7,20 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.utils.TissueLogger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServiceSampleHandler extends HttpServlet implements CellServletHandlerInterface {
 	
 	private static final long serialVersionUID = 1L;
-	private TissueLogger logger;
+	private Logger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 	
 	public ServiceSampleHandler() {
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(ServiceSampleHandler.class);
 	}
 
 	public void setCell(Cell cell) {
@@ -55,7 +57,7 @@ public class ServiceSampleHandler extends HttpServlet implements CellServletHand
 		response.setCharacterEncoding(getContentEncoding());
 		response.setContentLength(responseString.getBytes().length);
 		response.setStatus(HttpServletResponse.SC_OK);
-		logger.debug("ServiceSampleHandler.doPost()"," Request from "+partnerCell);
+		logger.debug("ServiceSampleHandler.doPost() Request from "+partnerCell);
 		response.getWriter().println(responseString);		
 		response.flushBuffer();
 	}

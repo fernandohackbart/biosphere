@@ -13,11 +13,12 @@ import org.biosphere.tissue.protocol.BlockAddResponse;
 import org.biosphere.tissue.protocol.FatBlockAppendRequest;
 import org.biosphere.tissue.protocol.FlatBlock;
 import org.biosphere.tissue.protocol.FlatChain;
-import org.biosphere.tissue.utils.TissueLogger;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Chain {
 	/**
@@ -28,7 +29,7 @@ public class Chain {
 	 */
 	public Chain(String cellID, Cell cell) throws BlockException {
 		super();
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(Chain.class);
 		setCell(cell);
 		chain = new Hashtable<String, Block>();
 		Block genesisBlock = new Block(getCell(), "GENESIS", "GENESIS", this, true);
@@ -48,7 +49,7 @@ public class Chain {
 	 */
 	public Chain(String cellID, Cell cell, FlatChain flatChain) throws BlockException {
 		super();
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(Chain.class);
 		setCell(cell);
 		chain = new Hashtable<String, Block>();
 		parseChain(flatChain);
@@ -68,7 +69,7 @@ public class Chain {
 	 * Block logger
 	 *
 	 */
-	private TissueLogger logger;
+	private Logger logger;
 
 	/**
 	 * Return the Block identified by the BlockID parameter
@@ -125,17 +126,17 @@ public class Chain {
 		Enumeration blockKeys = chain.keys();
 		while (blockKeys.hasMoreElements()) {
 			Block block = getBlock((String) blockKeys.nextElement());
-			logger.debugAddBlock("Chain.getNextBlockID()", "Checking block ID(" + block.getBlockID() + ")");
+			logger.debug("Chain.getNextBlockID() Checking block ID(" + block.getBlockID() + ")");
 			if (block.isAccepted(tissueSize)) {
 				if ((block.getChainPosition() > highestPosition)) {
-					logger.debugAddBlock("Chain.getNextBlockID()", "Found new high position ("
+					logger.debug("Chain.getNextBlockID() Found new high position ("
 							+ block.getChainPosition() + ") block ID(" + block.getBlockID() + ")");
 					candidates = new ArrayList<String>();
 					candidates.add(block.getBlockID());
 					highestPosition = block.getChainPosition();
 				}
 				if ((block.getChainPosition() == highestPosition)) {
-					logger.debugAddBlock("Chain.getNextBlockID()", "Found another high position ("
+					logger.debug("Chain.getNextBlockID() Found another high position ("
 							+ block.getChainPosition() + ") block ID(" + block.getBlockID() + ")");
 					candidates.add(block.getBlockID());
 				}
@@ -145,13 +146,12 @@ public class Chain {
 			boolean nextBlockIDSet = false;
 			for (String candidate : candidates) {
 				if (!nextBlockIDSet) {
-					logger.debugAddBlock("Chain.getNextBlockID()", "Choosing first block ID(" + candidate + ")");
+					logger.debug("Chain.getNextBlockID() Choosing first block ID(" + candidate + ")");
 					nextBlockID = candidate;
 					nextBlockIDSet = true;
 				} else {
 					if (getBlock(candidate).getTimestamp().before(getBlock(nextBlockID).getTimestamp())) {
-						logger.debugAddBlock("Chain.getNextBlockID()",
-								"Block ID(" + candidate + ") is older than ID(" + candidate + "), replacing.");
+						logger.debug("Chain.getNextBlockID() Block ID(" + candidate + ") is older than ID(" + candidate + "), replacing.");
 						nextBlockID = candidate;
 					}
 				}
@@ -178,11 +178,10 @@ public class Chain {
 	 *            the payload of the block to be added
 	 */
 	public synchronized BlockAddResponse addBlock(BlockAddRequest blockAddRequest) throws BlockException {
-		logger.debugAddBlock("Chain.addBlock()", "Adding block with payload:" + blockAddRequest.getPayload());
+		logger.debug("Chain.addBlock() Adding block with payload:" + blockAddRequest.getPayload());
 		Block nextBlock = getNextBlock();
 		Block newBlock = new Block(getCell(), blockAddRequest.getPayload(), nextBlock.getBlockID(), this, false);
-		logger.debugAddBlock("Chain.addBlock()",
-				"Block (" + newBlock.getBlockID() + ") extending block (" + nextBlock.getBlockID() + ")!");
+		logger.debug("Chain.addBlock() Block (" + newBlock.getBlockID() + ") extending block (" + nextBlock.getBlockID() + ")!");
 		boolean accepted = appendBlock(newBlock, getCell().getCellName(), true);
 		BlockAddResponse bar = new BlockAddResponse();
 		bar.setAccepted(accepted);
@@ -221,16 +220,16 @@ public class Chain {
 		boolean blockAdded = false;
 		if (!chain.containsKey(block.getBlockID())) {
 			if ((chain.containsKey(block.getPrevBlockID()))) {
-				logger.debug("Chain.addBlockToChain()", "Adding block to chain: " + block.getBlockID());
+				logger.debug("Chain.addBlockToChain() Adding block to chain: " + block.getBlockID());
 				chain.put(block.getBlockID(), block);
 				blockAdded = true;
 			} else {
 				if (block.getBlockID().equals("GENESIS")) {
-					logger.debug("Chain.addBlockToChain()", "Adding GENESIS block to chain: " + block.getBlockID());
+					logger.debug("Chain.addBlockToChain() Adding GENESIS block to chain: " + block.getBlockID());
 					chain.put(block.getBlockID(), block);
 					blockAdded = true;
 				} else {
-					logger.error("Chain.addBlockToChain()", "Adding block to be added: " + block.getBlockID()
+					logger.error("Chain.addBlockToChain() Adding block to be added: " + block.getBlockID()
 							+ " previous block: " + block.getPrevBlockID() + " not present in the chain!");
 				}
 			}
@@ -254,11 +253,10 @@ public class Chain {
 				if (addBlockToChain(block)) {
 					requestVotes(block, accepted, notifyingCell, notifyingCellAccepted);
 				} else {
-					logger.warn("Chain.appendBlock()", "Block (" + block.getBlockID() + " not added to the chain!");
+					logger.warn("Chain.appendBlock() Block (" + block.getBlockID() + " not added to the chain!");
 				}
 			} else {
-				logger.debugAppBlock("Chain.appendBlock()",
-						" Block ID(" + block.getBlockID() + ") not valid, rejecting...");
+				logger.debug("Chain.appendBlock() Block ID(" + block.getBlockID() + ") not valid, rejecting...");
 				accepted = false;
 			}
 		} catch (BlockException e) {
@@ -283,49 +281,46 @@ public class Chain {
 	 */
 	private void requestVotes(Block block, boolean accepted, String notifyingCell, boolean notifyingCellAccepted) {
 		if (!block.cellVoted(getCell().getCellName())) {
-			logger.debug("Chain.sendConsensusVotes()", "Adding local (" + getCell().getCellName() + ") vote ("
+			logger.debug("Chain.sendConsensusVotes() Adding local (" + getCell().getCellName() + ") vote ("
 					+ accepted + ") for block " + block.getBlockID());
 			block.addVote(new Vote(getCell().getCellName(), accepted));
 		}
 		if (!block.cellVoted(notifyingCell)) {
-			logger.debug("Chain.sendConsensusVotes()", "Adding remote " + notifyingCell + " vote ("
+			logger.debug("Chain.sendConsensusVotes() Adding remote " + notifyingCell + " vote ("
 					+ notifyingCellAccepted + ") for block " + block.getBlockID());
 			block.addVote(new Vote(notifyingCell, notifyingCellAccepted));
 		}
 		if (block.getCellID().equals(notifyingCell)) {
-			logger.debug("Chain.sendConsensusVotes()",
-					"Sending consensus vote (" + accepted + ") for block " + block.getBlockID() + " to the tissue");
-			logger.debug("Chain.sendConsensusVotes()", "Getting the list of the cells from the DNA");
+			logger.debug("Chain.sendConsensusVotes() Sending consensus vote (" + accepted + ") for block " + block.getBlockID() + " to the tissue");
+			logger.debug("Chain.sendConsensusVotes() Getting the list of the cells from the DNA");
 			List<CellInterface> celIterfaces = getCell().getCellDNA().getTissueCellsInterfaces();
 			Iterator cellsIfIterator = celIterfaces.iterator();
 			while (cellsIfIterator.hasNext()) {
 				CellInterface cellInterface = (CellInterface) cellsIfIterator.next();
 				if ((!cellInterface.getCellName().equals(getCell().getCellName()))
 						&& (!cellInterface.getCellName().equals(block.getCellID()))) {
-					logger.debug("Chain.sendConsensusVotes()",
-							"Cell " + cellInterface.getCellName() + " elegible for notification ");
+					logger.debug("Chain.sendConsensusVotes() Cell " + cellInterface.getCellName() + " elegible for notification ");
 					if (!block.cellVoted(cellInterface.getCellName())) {
-						logger.debug("Chain.sendConsensusVotes()", "Notifying cell: " + cellInterface.getCellName()
+						logger.debug("Chain.sendConsensusVotes() Notifying cell: " + cellInterface.getCellName()
 								+ ":" + cellInterface.getCellNetworkName() + ":" + cellInterface.getPort());
 						ChainNotifyCell cnc = new ChainNotifyCell(cellInterface.getCellNetworkName(),
 								cellInterface.getPort(), block, cellInterface.getCellName(), getCell().getCellName(),
 								accepted);
 						(new Thread(cnc)).start();
 					} else {
-						logger.debug("Chain.sendConsensusVotes()",
-								"Cell " + cellInterface.getCellName() + " already voted, skipping...");
+						logger.debug("Chain.sendConsensusVotes() Cell " + cellInterface.getCellName() + " already voted, skipping...");
 					}
 				} else {
 					if ((cellInterface.getCellName().equals(getCell().getCellName()))) {
-						logger.debug("Chain.sendConsensusVotes()", "Cell " + cellInterface.getCellName()
+						logger.debug("Chain.sendConsensusVotes() Cell " + cellInterface.getCellName()
 								+ " NOT elegible for notification as it is local (" + getCell().getCellName() + ")");
 					}
 					if ((cellInterface.getCellName().equals(block.getCellID()))) {
-						logger.debug("Chain.sendConsensusVotes()", "Cell " + cellInterface.getCellName()
+						logger.debug("Chain.sendConsensusVotes() Cell " + cellInterface.getCellName()
 								+ " NOT elegible for notification as it is creator (" + getCell().getCellName() + ")");
 					}
 					if ((cellInterface.getCellName().equals(notifyingCell))) {
-						logger.debug("Chain.sendConsensusVotes()", "Cell " + cellInterface.getCellName()
+						logger.debug("Chain.sendConsensusVotes() Cell " + cellInterface.getCellName()
 								+ " NOT elegible for notification as it is notifyingCell (" + notifyingCell + ")");
 					}
 				}
@@ -344,13 +339,13 @@ public class Chain {
 	 * @return the chain hashtable
 	 */
 	private void parseChain(FlatChain flatChain) throws BlockException {
-		logger.debug("Chain.parseChain()", "Parsing flatChain");
+		logger.debug("Chain.parseChain() Parsing flatChain");
 		for (FlatBlock flatBlock : flatChain.getBlocks()) {
 			Block tmpBlock = new Block(flatBlock, this,getCell());
-			logger.debug("Chain.parseChain()", "Adding block ID: " + tmpBlock.getBlockID());
+			logger.debug("Chain.parseChain() Adding block ID: " + tmpBlock.getBlockID());
 			addBlockToChain(tmpBlock);
 		}
-		logger.debug("Chain.parseChain()", "chain size after parse: " + chain.size());
+		logger.debug("Chain.parseChain() chain size after parse: " + chain.size());
 	}
 	
 	/**

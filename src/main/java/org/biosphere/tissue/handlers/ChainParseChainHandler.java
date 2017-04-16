@@ -13,22 +13,24 @@ import org.biosphere.tissue.blockchain.Chain;
 import org.biosphere.tissue.blockchain.ChainExceptionHandler;
 import org.biosphere.tissue.protocol.FlatChain;
 import org.biosphere.tissue.protocol.TissueGreeting;
-import org.biosphere.tissue.utils.TissueLogger;
 import org.biosphere.tissue.utils.RequestUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ChainParseChainHandler extends HttpServlet implements CellServletHandlerInterface {
 	
 	private static final long serialVersionUID = 1L;
-	private TissueLogger logger;
+	private Logger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 
 	public ChainParseChainHandler() {
 		super();
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(ChainParseChainHandler.class);
 	}
 
 	public void setCell(Cell cell) {
@@ -62,13 +64,13 @@ public class ChainParseChainHandler extends HttpServlet implements CellServletHa
 			throws ServletException, IOException {
 		try {
 			String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
-			logger.debug("ChainParseChainHandler.doPost()", "Request from: " + partnerCell);
+			logger.debug("ChainParseChainHandler.doPost() equest from: " + partnerCell);
 			String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
 			String responseString = getCell().getCellName() + " failed to parse chain!";
 			ObjectMapper mapper = new ObjectMapper();
 			FlatChain fc = mapper.readValue(requestPayload.getBytes(), FlatChain.class);
 			Chain tmpChain = new Chain(getCell().getCellName(), cell, fc);
-			logger.debug("ChainParseChainHandler.doPost()", "Parsed flatChain: \n" + tmpChain.toJSON());
+			logger.debug("ChainParseChainHandler.doPost() Parsed flatChain: \n" + tmpChain.toJSON());
 			getCell().setChain(tmpChain);
 			responseString = "Chain parsed successfully";
 			response.setContentType(getContentType());
@@ -77,7 +79,7 @@ public class ChainParseChainHandler extends HttpServlet implements CellServletHa
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.getWriter().println(responseString);
 			response.flushBuffer();
-			logger.info("ChainParseChainHandler.doPost()", responseString);
+			logger.info("ChainParseChainHandler.doPost()" + responseString);
 		} catch (BlockException e) {
 			ChainExceptionHandler.handleGenericException(e, "ChainAddBlockHandler.doPost()", "BlockException:");
 		}

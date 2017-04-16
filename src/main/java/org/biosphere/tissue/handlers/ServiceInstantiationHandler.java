@@ -8,18 +8,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.utils.TissueLogger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServiceInstantiationHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
-	private TissueLogger logger;
+	private Logger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 
 	public ServiceInstantiationHandler() {
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(ServiceInstantiationHandler.class);
 	}
 
 	public void setCell(Cell cell) {
@@ -47,7 +49,7 @@ public class ServiceInstantiationHandler extends HttpServlet implements CellServ
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 		String clientAddress = request.getRemoteHost() + ":" + request.getRemotePort();
-		logger.debug("CellSeviceInstantiationHandler.handle()", "Request from: " + clientAddress);
+		logger.debug("CellSeviceInstantiationHandler.handle() Request from: " + clientAddress);
 		String responseString = "<h1>CellSeviceInstantiationHandler.handle()</h1> Hello: " + clientAddress;	
 		response.setContentType(getContentType());
 		response.setCharacterEncoding(getContentEncoding());

@@ -41,7 +41,9 @@ import org.biosphere.tissue.services.ServiceDefinition;
 import org.biosphere.tissue.tissue.TissueManager;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.utils.FileUtils;
-import org.biosphere.tissue.utils.TissueLogger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.w3c.dom.Document;
 
@@ -51,10 +53,10 @@ import org.xml.sax.SAXException;
 public class DNACore {
 
 	public DNACore() {
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(DNACore.class);
 	}
 
-	private TissueLogger logger;
+	private Logger logger;
 	private ArrayList<DNAEntry> dnaEntries;
 	private String DNACoreEntryName = "DNACore";
 	private String DNACoreEntryType = "DNADocument";
@@ -95,23 +97,22 @@ public class DNACore {
 	}
 
 	private void addDNACoreEntry(Document doc) {
-		logger.debug("DNACore.addDNACoreEntry()",
-				"Add the DNA Core document to the DNA cache: " + DNACoreEntryName + " (" + DNACoreEntryType + ")");
+		logger.debug("DNACore.addDNACoreEntry() Add the DNA Core document to the DNA cache: " + DNACoreEntryName + " (" + DNACoreEntryType + ")");
 		DNAEntry entry = new DNAEntry();
 		entry.setEntryName(DNACoreEntryName);
 		entry.setEntryType(DNACoreEntryType);
 		if (doc == null) {
-			logger.debug("DNACore.addDNACoreEntry()", "Doc is null!");
+			logger.debug("DNACore.addDNACoreEntry() Doc is null!");
 		}
 		entry.setEntryValue(doc);
-		logger.debug("DNACore.addDNACoreEntry()", "Creating new ArrayList<DNAEntry>()!");
+		logger.debug("DNACore.addDNACoreEntry() Creating new ArrayList<DNAEntry>()!");
 		dnaEntries = new ArrayList<DNAEntry>();
 		dnaEntries.add(entry);
 	}
 
 	private DNAEntry getDNAEntry(String entryName, String EntryType) {
 		if (this.dnaEntries.isEmpty()) {
-			logger.debug("DNACore.getDNAEntry()", "dnaEntries.isEmpty()");
+			logger.debug("DNACore.getDNAEntry() dnaEntries.isEmpty()");
 			return null;
 		}
 		for (int i = 0; i < this.dnaEntries.size(); i++) {
@@ -119,13 +120,13 @@ public class DNACore {
 				return dnaEntries.get(i);
 			}
 		}
-		logger.debug("DNACore.getDNAEntry()", "Entry " + entryName + " (" + EntryType + ") not found");
+		logger.debug("DNACore.getDNAEntry() Entry " + entryName + " (" + EntryType + ") not found");
 		return null;
 	}
 
 	private void updateDNACoreEntry(Document doc) {
 		if (this.dnaEntries.isEmpty()) {
-			logger.debug("DNACore.updateDNACoreEntry()", "dnaEntries.isEmpty()");
+			logger.debug("DNACore.updateDNACoreEntry() dnaEntries.isEmpty()");
 		} else {
 			for (int i = 0; i < this.dnaEntries.size(); i++) {
 				if ((dnaEntries.get(i).getEntryName() == DNACoreEntryName)
@@ -133,14 +134,12 @@ public class DNACore {
 					DNAEntry entry = dnaEntries.get(i);
 					entry.setEntryValue(doc);
 					dnaEntries.set(i, entry);
-					logger.debug("DNACore.updateDNACoreEntry()",
-							"Updated DNACoreEntry: " + DNACoreEntryName + " (" + DNACoreEntryType + ")");
+					logger.debug("DNACore.updateDNACoreEntry() Updated DNACoreEntry: " + DNACoreEntryName + " (" + DNACoreEntryType + ")");
 					return;
 				}
 			}
 		}
-		logger.debug("DNACore.updateDNACoreEntry()",
-				"Entry " + DNACoreEntryName + " (" + DNACoreEntryType + ") not found");
+		logger.debug("DNACore.updateDNACoreEntry() Entry " + DNACoreEntryName + " (" + DNACoreEntryType + ") not found");
 	}
 
 	private Document getDNACoreAsDocument() {
@@ -153,9 +152,9 @@ public class DNACore {
 		try {
 			TransformerFactory.newInstance().newTransformer().transform(new DOMSource(doc), new StreamResult(writer));
 		} catch (TransformerConfigurationException e) {
-			logger.exception("DNACore.getDNACoreAsString()", "TransformerConfigurationException: " + e.getMessage());
+			logger.error("DNACore.getDNACoreAsString()", "TransformerConfigurationException: " + e.getLocalizedMessage(),e);
 		} catch (TransformerException e) {
-			logger.exception("DNACore.incept()", "TransformerException: " + e.getMessage());
+			logger.error("DNACore.incept() TransformerException: " + e.getLocalizedMessage(),e);
 		}
 		return writer.toString();
 	}
@@ -229,7 +228,7 @@ public class DNACore {
 
 	public void incept() {
 		try {
-			logger.debug("DNACore.incept()", "Creating DNA!");
+			logger.debug("DNACore.incept() Creating DNA!");
 			Tissue tissue = new Tissue();
 			tissue.setDNAversion(1);
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -255,7 +254,7 @@ public class DNACore {
 		String response = "ERROR: TissueName not found!";
 		Tissue tissue = unmarshallDNACore();
 		response = tissue.getTissuename();
-		logger.debug("DNACore.getTissueName()", "Tissue.getTissueName()=\"" + response + "\"");
+		logger.debug("DNACore.getTissueName() Tissue.getTissueName()=\"" + response + "\"");
 		return response;
 	}
 
@@ -263,20 +262,19 @@ public class DNACore {
 		Tissue tissue = unmarshallDNACore();
 		tissue.setTissuename(tissueName);
 		updateDNACoreEntry(marshallDNACore(tissue));
-		logger.debug("DNACore.setTissueName()", "Tissue.setTissuename(\"" + tissueName + "\")");
+		logger.debug("DNACore.setTissueName() Tissue.setTissuename(\"" + tissueName + "\")");
 	}
 
 	public List<CellInterface> getTissueCellsInterfaces() {
 		List<CellInterface> interfacesList = new ArrayList<CellInterface>();
-		logger.debug("DNACore.getTissueCellsInterfaces()", "Getting the list of the cells from the DNA");
+		logger.debug("DNACore.getTissueCellsInterfaces() Getting the list of the cells from the DNA");
 		// get the list of the cells
 		Tissue.Tissuecells cells = getCells();
 		Iterator cellsIterator = cells.getCell().iterator();
 		while (cellsIterator.hasNext()) {
 			Celltype DNAcell = (Celltype) cellsIterator.next();
 			for (int i = 0; i < DNAcell.getCellinterface().getCelladdresses().getCelladdress().size(); i++) {
-				logger.debug("DNACore.getTissueCellsInterfaces()",
-						"Adding cell: " + DNAcell.getCellname() + " ("
+				logger.debug("DNACore.getTissueCellsInterfaces() Adding cell: " + DNAcell.getCellname() + " ("
 								+ DNAcell.getCellinterface().getCelladdresses().getCelladdress().get(i) + ":"
 								+ DNAcell.getCellinterface().getCellport().intValue() + ") to the list");
 				interfacesList.add(new CellInterface(DNAcell.getCellname(),
@@ -289,21 +287,20 @@ public class DNACore {
 
 	public int getTissueSize() {
 
-		logger.debug("DNACore.getTissueSize()",
-				"Getting the size of the tissue from the DNA: " + getCells().getCell().size());
+		logger.debug("DNACore.getTissueSize() Getting the size of the tissue from the DNA: " + getCells().getCell().size());
 		return getCells().getCell().size();
 	}
 
 	private boolean contains(String cellName) {
 		boolean cellPresent = false;
-		logger.debug("DNACore.contains()", "Getting the list of the cells from the DNA");
+		logger.debug("DNACore.contains() Getting the list of the cells from the DNA");
 		// get the list of the cells
 		Tissue.Tissuecells cells = getCells();
 		Iterator cellsIterator = cells.getCell().iterator();
 		while (cellsIterator.hasNext()) {
 			Celltype DNAcell = (Celltype) cellsIterator.next();
 			if ((DNAcell.getCellname().equals(cellName))) {
-				logger.debug("DNACore.contains()", "Cell: " + cellName + " present in the local DNA!");
+				logger.debug("DNACore.contains() Cell: " + cellName + " present in the local DNA!");
 				cellPresent = true;
 			}
 		}
@@ -314,7 +311,7 @@ public class DNACore {
 		Tissue tissue = unmarshallDNACore();
 		Tissue.Tissuecells cells = tissue.getTissuecells();
 		if (cells == null) {
-			logger.debug("DNACore.ensureTissueCells()", "Adding new Tissue.Tissuecells to the local DNA!");
+			logger.debug("DNACore.ensureTissueCells() Adding new Tissue.Tissuecells to the local DNA!");
 			cells = new Tissue.Tissuecells();
 			tissue.setTissuecells(cells);
 			updateDNACoreEntry(marshallDNACore(tissue));
@@ -327,8 +324,7 @@ public class DNACore {
 		Tissue.Tissuecells cells = tissue.getTissuecells();
 		List<Celltype> cellsList = cells.getCell();
 		if (!contains(cellName)) {
-			logger.debug("DNACore.addCell()",
-					" Adding Cell: (\"" + cellName + "\",\"" + cellNetworkName + "\"," + cellTissuePort + ")");
+			logger.debug("DNACore.addCell() Adding Cell: (\"" + cellName + "\",\"" + cellNetworkName + "\"," + cellTissuePort + ")");
 			Celltype addingCell = new Celltype();
 			addingCell.setCellname(cellName);
 			addingCell.setCellpublickey(cellpublickey);
@@ -344,7 +340,7 @@ public class DNACore {
 			tissue.setTissuecells(cells);
 			updateDNACoreEntry(marshallDNACore(tissue));
 		} else {
-			logger.warn("DNACore.addCell()", " Adding Cell: (\"" + cellName + "\",\"" + cellNetworkName + "\","
+			logger.warn("DNACore.addCell() Adding Cell: (\"" + cellName + "\",\"" + cellNetworkName + "\","
 					+ cellTissuePort + ") already present in the DNA!");
 		}
 	}
@@ -352,7 +348,7 @@ public class DNACore {
 	public Tissue.Tissuecells getCells() {
 		Tissue tissue = unmarshallDNACore();
 		Tissue.Tissuecells cells = tissue.getTissuecells();
-		logger.debug("DNACore.getCells()", "Tissue.getCells()");
+		logger.debug("DNACore.getCells() Tissue.getCells()");
 		return cells;
 	}
 
@@ -386,10 +382,9 @@ public class DNACore {
 			servicesList.add(addingService);
 			tissue.setTissueservices(services);
 			updateDNACoreEntry(marshallDNACore(tissue));
-			logger.debug("DNACore.addService()",
-					"DNACore.addService(\"" + serviceDefinition.getServiceDefinitionName() + "\")");
+			logger.debug("DNACore.addService() DNACore.addService(\"" + serviceDefinition.getServiceDefinitionName() + "\")");
 		} else {
-			logger.debug("DNACore.addService()", "DNACore.addService(\"" + serviceDefinition.getServiceDefinitionName()
+			logger.debug("DNACore.addService() DNACore.addService(\"" + serviceDefinition.getServiceDefinitionName()
 					+ "\") already added, skipping operation!");
 		}
 	}
@@ -398,10 +393,9 @@ public class DNACore {
 		Tissue tissue = unmarshallDNACore();
 		Tissue.Tissueservices services = tissue.getTissueservices();
 		if (services != null) {
-			logger.debug("DNACore.getServices()",
-					"DNACore.getServices() returned " + services.tissueservice.size() + " services");
+			logger.debug("DNACore.getServices() DNACore.getServices() returned " + services.tissueservice.size() + " services");
 		} else {
-			logger.debug("DNACore.getServices()", "DNACore.getServices() no services added!");
+			logger.debug("DNACore.getServices() DNACore.getServices() no services added!");
 		}
 		return services;
 	}
@@ -414,7 +408,7 @@ public class DNACore {
 			while (servicesIterator.hasNext()) {
 				Tissueservicetype service = (Tissueservicetype) servicesIterator.next();
 				if (service.getServicename().equals(serviceName)) {
-					logger.debug("DNACore.serviceAdded()", "Service " + service.getServicename() + " present in DNA");
+					logger.debug("DNACore.serviceAdded() Service " + service.getServicename() + " present in DNA");
 					servicePresent = true;
 					break;
 				}
@@ -470,7 +464,7 @@ public class DNACore {
 
 	public void load(String DNACoreURL, int DNAContentServerPort) {
 		try {
-			logger.debug("DNACore.load()", "Loading DNACore from: " + DNACoreURL);
+			logger.debug("DNACore.load() Loading DNACore from: " + DNACoreURL);
 			DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
 			builderFactory.setNamespaceAware(true);
 			DocumentBuilder parser = builderFactory.newDocumentBuilder();
@@ -493,7 +487,7 @@ public class DNACore {
 
 	private void validateFile(String schemaFileName, Document document) {
 		try {
-			logger.debug("DNACore.validateFile()", "Encoding of the XML file: " + document.getXmlEncoding());
+			logger.debug("DNACore.validateFile() Encoding of the XML file: " + document.getXmlEncoding());
 			SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
 			// To get the schema from inside one jar in the CLASSPATH using a

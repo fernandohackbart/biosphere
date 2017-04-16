@@ -9,23 +9,25 @@ import javax.servlet.http.HttpServletResponse;
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.services.ServiceManager;
 import org.biosphere.tissue.services.ServletHandlerDefinition;
-import org.biosphere.tissue.utils.TissueLogger;
 import org.biosphere.tissue.utils.RequestUtils;
 import org.biosphere.tissue.protocol.ServiceServletContext;
 import org.biosphere.tissue.protocol.ServiceServletContextURI;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ServiceAddContextHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
-	private TissueLogger logger;
+	private Logger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 	
 	public ServiceAddContextHandler() {
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(ServiceAddContextHandler.class);
 	}
 
 	public void setCell(Cell cell) {
@@ -73,7 +75,7 @@ public class ServiceAddContextHandler extends HttpServlet implements CellServlet
 		cellSampleServiceSHD.setContexts(chainParseChainContexts);
 		ServiceManager.addServletContext(ssc.getServiceName(),cellSampleServiceSHD, cell);
 
-		logger.debug("ServiceContextManagerHandler.doPost()", "Request from: " + partnerCell);
+		logger.debug("ServiceContextManagerHandler.doPost() Request from: " + partnerCell);
 		String responseString = "<h1>ServiceContextManagerHandler.doPost()</h> "+ ssc.getClassName()+ " from " + partnerCell;
      	response.setContentType(getContentType());
      	response.setCharacterEncoding(getContentEncoding());

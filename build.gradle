@@ -37,8 +37,9 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.0.pr2'
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.9.0.pr2'
     implementation 'org.slf4j:slf4j-api:1.7.25'
+    implementation 'org.slf4j:slf4j-simple:1.7.25'
     //implementation 'org.springframework:spring-web:4.3.7.RELEASE'
-    
+   
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
 }

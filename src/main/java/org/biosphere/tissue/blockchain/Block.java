@@ -19,10 +19,12 @@ import java.util.UUID;
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.protocol.FlatBlock;
 import org.biosphere.tissue.utils.CellSigner;
-import org.biosphere.tissue.utils.TissueLogger;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.encoders.Base64;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Block {
 	/**
@@ -89,7 +91,7 @@ public class Block {
 	 * Block logger
 	 * 
 	 */
-	private TissueLogger logger;
+	private Logger logger;
 
 	/**
 	 * Creates one instance of e Block based on one cell identifier and a flat
@@ -106,8 +108,8 @@ public class Block {
 	 */
 	Block(FlatBlock flatBlock, Chain chain,Cell cell) throws BlockException {
 		super();
-		logger = new TissueLogger();
-		logger.debug("Block.Block()", "Creating new Block: cell(" + flatBlock.getCellID() + ") prev block ID("
+		logger = LoggerFactory.getLogger(Block.class);
+		logger.debug("Block.Block() Creating new Block: cell(" + flatBlock.getCellID() + ") prev block ID("
 				+ flatBlock.getPrevBlockID() + ") block ID(" + flatBlock.getBlockID() + ")");
 		setChainPosition(flatBlock.getChainPosition());
 		setTimestamp(flatBlock.getTimestamp());
@@ -141,9 +143,8 @@ public class Block {
 	 */
 	Block(Cell cell, String payload, String prevBlockID, Chain chain, boolean genesis) throws BlockException {
 		super();
-		logger = new TissueLogger();
-		logger.debug("Block.Block()",
-				"Creating new Block:" + cellID + ":" + payload + ":" + prevBlockID + ":" + genesis);
+		logger = LoggerFactory.getLogger(Block.class);
+		logger.debug("Block.Block() Creating new Block:" + cellID + ":" + payload + ":" + prevBlockID + ":" + genesis);
 		setChain(chain);
 		setAcceptanceVotes(new ArrayList<Vote>());
 		setNextBlockIDs(new ArrayList<String>());
@@ -191,12 +192,11 @@ public class Block {
 	 */
 	public synchronized void addVote(Vote vote) {
 		if (!acceptanceVotes.contains(vote)) {
-			logger.debug("Block.addVote()", "Adding vote: " + vote.getCellID() + " voted: (" + vote.isAccepted()
+			logger.debug("Block.addVote() Adding vote: " + vote.getCellID() + " voted: (" + vote.isAccepted()
 					+ ") for block " + getBlockID());
 			acceptanceVotes.add(vote);
 		} else {
-			logger.debug("Block.addVote()",
-					"Adding vote: " + vote.getCellID() + " already voted for block " + getBlockID());
+			logger.debug("Block.addVote() Adding vote: " + vote.getCellID() + " already voted for block " + getBlockID());
 		}
 	}
 
@@ -216,7 +216,7 @@ public class Block {
 			}
 			break;
 		}
-		logger.debug("Block.cellVoted()", "Cell: " + cellName + " vote present: " + voted);
+		logger.debug("Block.cellVoted() Cell: " + cellName + " vote present: " + voted);
 		return voted;
 	}
 
@@ -227,7 +227,7 @@ public class Block {
 	 */
 	public boolean isAccepted(int tissueSize) {
 		int totalVotes = acceptanceVotes.size();
-		logger.debug("Block.accepted()", "Block: " + getBlockID() + " total votes " + totalVotes);
+		logger.debug("Block.accepted() Block: " + getBlockID() + " total votes " + totalVotes);
 		int totalAccepted = 0;
 		boolean acceptance = false;
 		if (!getBlockID().equals("GENESIS")) {
@@ -239,18 +239,18 @@ public class Block {
 						totalAccepted++;
 					}
 				}
-				logger.debug("Block.accepted()", "Block: " + getBlockID() + " total accepted votes " + totalAccepted);
+				logger.debug("Block.accepted() Block: " + getBlockID() + " total accepted votes " + totalAccepted);
 				if (totalAccepted > (totalVotes / 2)) {
 					acceptance = true;
 				}
 			} else {
-				logger.debug("Block.accepted()", "Block: " + getBlockID() + " no enought votes " + totalVotes);
+				logger.debug("Block.accepted() Block: " + getBlockID() + " no enought votes " + totalVotes);
 			}
 		} else {
-			logger.debug("Block.accepted()", "Block: " + getBlockID() + " always accepted.");
+			logger.debug("Block.accepted() Block: " + getBlockID() + " always accepted.");
 			acceptance = true;
 		}
-		logger.debug("Block.accepted()", "Block: " + getBlockID() + " accepted: " + acceptance);
+		logger.debug("Block.accepted() Block: " + getBlockID() + " accepted: " + acceptance);
 		return acceptance;
 	}
 
@@ -262,7 +262,7 @@ public class Block {
 	public long acceptanceRate() {
 		long acceptangeRate = 0;
 		int totalVotes = acceptanceVotes.size();
-		logger.debug("Block.acceptanceRate()", "Block: " + getBlockID() + " total votes " + totalVotes);
+		logger.debug("Block.acceptanceRate() Block: " + getBlockID() + " total votes " + totalVotes);
 		int totalAccepted = 0;
 		Iterator itAccept = acceptanceVotes.iterator();
 		while (itAccept.hasNext()) {
@@ -271,9 +271,9 @@ public class Block {
 				totalAccepted++;
 			}
 		}
-		logger.debug("Block.acceptanceRate()", "Block: " + getBlockID() + " total accepted votes " + totalAccepted);
+		logger.debug("Block.acceptanceRate() Block: " + getBlockID() + " total accepted votes " + totalAccepted);
 		acceptangeRate = ((totalAccepted * 100) / totalVotes);
-		logger.debug("Block.acceptanceRate()", "Block: " + getBlockID() + " accepted rate " + acceptangeRate + " %");
+		logger.debug("Block.acceptanceRate() Block: " + getBlockID() + " accepted rate " + acceptangeRate + " %");
 		return acceptangeRate;
 	}
 
@@ -418,7 +418,7 @@ public class Block {
 				byte[] digest = digest = md.digest();
 				digestHexa = String.format("%064x", new java.math.BigInteger(1, digest));
 			} else {
-				logger.error("Block.calculateBlockHash()", "Previous hash is empty");
+				logger.error("Block.calculateBlockHash() Previous hash is empty");
 			}
 		} catch (NoSuchAlgorithmException e) {
 			ChainExceptionHandler.handleUnrecoverableGenericException(e, "Block.calculateBlockHash()",
@@ -466,13 +466,13 @@ public class Block {
 		boolean valid = true;
 		if (!calculateBlockHash().equals(getBlockHash())) {
 			//throw new BlockException("The block hash does not match the prevBlockHash+payload calculation");
-			logger.debug("Block.isValid()", "Block: " + getBlockID() + " hashes does not match");
+			logger.debug("Block.isValid() Block: " + getBlockID() + " hashes does not match");
 			valid = false;
 		}
 		try {
 			if (!CellSigner.verify(getCellID(), cell, getCellSignature()))
 			{
-				logger.debug("Block.isValid()", "Block: " + getBlockID() + " signature does not match");
+				logger.debug("Block.isValid() Block: " + getBlockID() + " signature does not match");
 				valid=false;
 			}
 		} catch (CertificateException | OperatorCreationException | CMSException e) {

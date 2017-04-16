@@ -10,20 +10,22 @@ import javax.servlet.http.HttpServletResponse;
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
-import org.biosphere.tissue.utils.TissueLogger;
 import org.biosphere.tissue.utils.RequestUtils;
 import org.biosphere.tissue.services.ServiceManager;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServiceThreadStopHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
-	private TissueLogger logger;
+	private Logger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 
 	public ServiceThreadStopHandler() {
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(ServiceThreadStopHandler.class);
 	}
 
 	@Override
@@ -53,7 +55,7 @@ public class ServiceThreadStopHandler extends HttpServlet implements CellServlet
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
 		String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
-		logger.debug("ServiceStopHandler.doPost()", "Request from: " + partnerCell);
+		logger.debug("ServiceStopHandler.doPost() Request from: " + partnerCell);
 		String responseString = "<h1>ServiceStopHandler.handle()</h1> Cell stop request from: " + partnerCell;
 		try {
 			ServiceManager.stop("THREAD", requestPayload);

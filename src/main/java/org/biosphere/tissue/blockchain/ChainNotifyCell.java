@@ -16,7 +16,9 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.protocol.FatBlockAppendRequest;
-import org.biosphere.tissue.utils.TissueLogger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -24,7 +26,7 @@ public class ChainNotifyCell implements Runnable {
 	public ChainNotifyCell(String hostname, int port, Block block, String remoteCellName, String localCellName,
 			boolean accepted) {
 		super();
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(ChainNotifyCell.class);
 		setHostname(hostname);
 		setPort(port);
 		setBlock(block);
@@ -34,7 +36,7 @@ public class ChainNotifyCell implements Runnable {
 		setRemoteAccepted(false);
 	}
 
-	private TissueLogger logger;
+	private Logger logger;
 	private String hostname;
 	private int port;
 	private Block block;
@@ -47,7 +49,7 @@ public class ChainNotifyCell implements Runnable {
 	public void run() {
 		try {
 			String peerURL = "https://" + getHostname() + ":" + getPort() + "/org/biosphere/cell/chain/append/block";
-			logger.debug("ChainNotifyCell.run()", "Notifying " + peerURL);
+			logger.debug("ChainNotifyCell.run() Notifying " + peerURL);
 			
 			FatBlockAppendRequest fbar = new FatBlockAppendRequest();
 			fbar.setAccepted(isAccepted());
@@ -74,10 +76,9 @@ public class ChainNotifyCell implements Runnable {
 			BufferedReader buffer = new BufferedReader(new InputStreamReader(connNotification.getInputStream()));
 			String responsePayload = buffer.lines().collect(Collectors.joining("\n"));
 			connNotification.disconnect();
-			logger.debug("ChainNotifyCell.run()", "Notification response: " + responsePayload);
+			logger.debug("ChainNotifyCell.run() Notification response: " + responsePayload);
 			setRemoteAccepted(Boolean.parseBoolean(responsePayload.split(":")[1]));
-			logger.debug("ChainNotifyCell.run()",
-					"Cell " + responsePayload.split(":")[0] + " response: " + responsePayload.split(":")[1]);
+			logger.debug("ChainNotifyCell.run() Cell " + responsePayload.split(":")[0] + " response: " + responsePayload.split(":")[1]);
 			getBlock().addVote(new Vote(getRemoteCellName(), isRemoteAccepted()));
 		} catch (MalformedURLException e) {
 			TissueExceptionHandler.handleGenericException(e, "ChainNotifyCell.run()", "Failed to notify tissue.");

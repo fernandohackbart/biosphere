@@ -16,7 +16,9 @@ import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.protocol.ServiceServletContext;
 import org.biosphere.tissue.protocol.TissueJoin;
-import org.biosphere.tissue.utils.TissueLogger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -42,8 +44,8 @@ public class TissueManager {
 	public final static int portJumpFactor = 20;
 
 	public final static void createTissue(Cell cell) throws CellException {
-		TissueLogger logger = new TissueLogger();
-		logger.info("TissueManager.createTissue()", " Creating tissue!");
+		Logger logger = LoggerFactory.getLogger(TissueManager.class);
+		logger.info("TissueManager.createTissue() Creating tissue!");
 		DNACore dna = new DNACore();
 		cell.setCellDNA(dna);
 		try {
@@ -58,7 +60,7 @@ public class TissueManager {
 	}
 
 	public final static void joinTissue(Cell cell) throws CellException {
-		TissueLogger logger = new TissueLogger();
+		Logger logger = LoggerFactory.getLogger(TissueManager.class);
 		int tryCount = 0;
 		DatagramSocket socket = null;
 		while (!cell.isTissueMember()) {
@@ -72,22 +74,21 @@ public class TissueManager {
 				ObjectMapper mapper = new ObjectMapper();
 				String tissueJoinString = mapper.writeValueAsString(tj);
 				byte[] buf = (tissueJoinString).getBytes();
-				logger.debug("TissueManager.joinTissue()","TissueJoinString as byteArray size = "+buf.length+" bytes");
+				logger.debug("TissueManager.joinTissue() TissueJoinString as byteArray size = "+buf.length+" bytes");
 				socket = new DatagramSocket();
 				DatagramPacket packet = new DatagramPacket(buf, buf.length);
 				packet.setAddress(InetAddress.getByName(announceAddress));
 				packet.setPort(Integer.parseInt(announcePort));
-				logger.info("TissueManager.joinTissue()", " Announcing: (" + tj.getCellName()+") "+tj.getCellNetworkName()+":"+tj.getTissuePort());
+				logger.info("TissueManager.joinTissue() Announcing: (" + tj.getCellName()+") "+tj.getCellNetworkName()+":"+tj.getTissuePort());
 				socket.send(packet);
 				tryCount++;
 				try {
 					Thread.sleep(Long.parseLong(joinPollInternval));
 				} catch (InterruptedException e) {
-					logger.info("TissueManager.joinTissue()", e.getMessage());
+					logger.info("TissueManager.joinTissue()"+ e.getMessage());
 				}
 				if ((tryCount == Integer.parseInt(joinMaxRetries)) && (!cell.isTissueMember())) {
-					logger.info("TissueManager.joinTissue()",
-							" No tissue found to join after " + tryCount + " attempts, creating a new tissue!");
+					logger.info("TissueManager.joinTissue() No tissue found to join after " + tryCount + " attempts, creating a new tissue!");
 					TissueManager.createTissue(cell);
 				}
 			} catch (CellException e) {
@@ -106,10 +107,10 @@ public class TissueManager {
 	}
 
 	public static String generateTissueName() {
-		TissueLogger logger = new TissueLogger();
+		Logger logger = LoggerFactory.getLogger(TissueManager.class);
 		String tissueName = generateRandomTissueName();
 		// String tissueName = generateDateTissueName();
-		logger.info("TissueManager.generateTissueName()", "Tissue name: " + tissueName);
+		logger.info("TissueManager.generateTissueName() Tissue name: " + tissueName);
 		return tissueName;
 	}
 

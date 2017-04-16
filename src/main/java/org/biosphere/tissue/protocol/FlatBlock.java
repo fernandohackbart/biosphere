@@ -1,8 +1,6 @@
 package org.biosphere.tissue.protocol;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import org.bouncycastle.util.encoders.Base64;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;

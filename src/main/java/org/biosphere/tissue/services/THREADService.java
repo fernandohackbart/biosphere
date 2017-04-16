@@ -3,15 +3,17 @@ package org.biosphere.tissue.services;
 import java.util.Hashtable;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.utils.TissueLogger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class THREADService extends Thread implements ServiceInterface {
 	public THREADService() {
 		super();
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(THREADService.class);
 	}
 
-	protected TissueLogger logger;
+	protected Logger logger;
 	protected Cell cell;
 	protected Hashtable<String, Object> serviceParameters;
 

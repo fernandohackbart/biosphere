@@ -22,10 +22,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 
-import java.text.SimpleDateFormat;
-
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.UUID;
 
@@ -44,7 +41,6 @@ import org.biosphere.tissue.services.ServiceManager;
 import org.biosphere.tissue.services.ServletHandlerDefinition;
 import org.biosphere.tissue.tissue.TissueManager;
 import org.biosphere.tissue.utils.KeystoreManager;
-import org.biosphere.tissue.utils.TissueLogger;
 import org.biosphere.tissue.utils.RelaxedTrustManager;
 
 import org.bouncycastle.openssl.jcajce.JcaMiscPEMGenerator;
@@ -52,6 +48,9 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CellManager {
 	public CellManager() {
@@ -72,36 +71,21 @@ public class CellManager {
 	}
 
 	private static String generateCellRandomName() {
-		TissueLogger logger = new TissueLogger();
+		Logger logger;
+		logger = LoggerFactory.getLogger(CellManager.class);
 		String cellName = UUID.randomUUID().toString();
-		logger.info("CellManager.generateCellName()", "Cell name: " + cellName);
-		return cellName;
-	}
-
-	private static String generateCellNetName() {
-		TissueLogger logger = new TissueLogger();
-		String cellName = "NotDefined!";
-		try {
-			String networkName = InetAddress.getLocalHost().getHostName();
-			SimpleDateFormat sdfDate = new SimpleDateFormat("yyyyMMddHHmmss");
-			Date now = new Date();
-			String strDate = sdfDate.format(now);
-			cellName = networkName + "-" + strDate;
-			logger.info("CellManager.generateCellName()", "Cell name: " + cellName);
-		} catch (UnknownHostException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellManager.generateCellName()",
-					"Failed to generate Cell name due to UnknowHost Exception!");
-		}
+		logger.info("CellManager.generateCellName() Cell name: " + cellName);
 		return cellName;
 	}
 
 	public static String getCellNetworkName() {
-		TissueLogger logger = new TissueLogger();
+		Logger logger;
+		logger = LoggerFactory.getLogger(CellManager.class);
 		String cellName = "localhost";
 		try {
 			String networkName = InetAddress.getLocalHost().getHostName();
 			cellName = networkName;
-			logger.info("CellManager.generateCellName()", "Cell network name: " + cellName);
+			logger.info("CellManager.generateCellName() Cell network name: " + cellName);
 		} catch (UnknownHostException e) {
 			TissueExceptionHandler.handleGenericException(e, "CellManager.gatCellNetworkName()",
 					"Failed to generate Cell name due to UnknowHost Exception!");
@@ -323,27 +307,29 @@ public class CellManager {
 	}
 
 	public static final void loadServicesDNA(Cell cell) {
-		TissueLogger logger = new TissueLogger();
-		logger.debug("CellManager.addServicesDNA()", "Adding CellMonitor definition to DNA");
+		Logger logger;
+		logger = LoggerFactory.getLogger(CellManager.class);
+		logger.debug("CellManager.addServicesDNA() Adding CellMonitor definition to DNA");
 		cell.getCellDNA().addService(getCellMonitorDefinition());
-		logger.debug("CellManager.addServicesDNA()", "Adding CellAnnounceListener definition to DNA");
+		logger.debug("CellManager.addServicesDNA() Adding CellAnnounceListener definition to DNA");
 		cell.getCellDNA().addService(getCellAnnounceListenerDefinition());
-		logger.debug("CellManager.addServicesDNA()", "Adding CellTissueListener definition to DNA");
+		logger.debug("CellManager.addServicesDNA() Adding CellTissueListener definition to DNA");
 		cell.getCellDNA().addService(getCellTissueServletListenerDefinition());
 		// logger.debug("CellManager.addServicesDNA()","Adding CellACS
 		// definition to DNA");
 		// cell.getCellDNA().addService(getCellACSDefinition());
-		logger.debug("CellManager.addServicesDNA()", "Adding CellServiceListener definition to DNA");
+		logger.debug("CellManager.addServicesDNA() Adding CellServiceListener definition to DNA");
 		cell.getCellDNA().addService(getCellServiceListenerDefinition());
 	}
 
 	public static final void startServicesDNA(Cell cell) {
-		TissueLogger logger = new TissueLogger();
+		Logger logger;
+		logger = LoggerFactory.getLogger(CellManager.class);
 		Tissue.Tissueservices services = cell.getCellDNA().getServices();
 		Iterator<Tissueservicetype> servicesIterator = services.getTissueservice().iterator();
 		while (servicesIterator.hasNext()) {
 			Tissueservicetype service = (Tissueservicetype) servicesIterator.next();
-			logger.debug("CellManager.startServicesDNA()", "Starting " + service.getServicename() + " from DNA");
+			logger.debug("CellManager.startServicesDNA() Starting " + service.getServicename() + " from DNA");
 			ServiceManager.start(service.getServicename(), cell);
 		}
 	}
@@ -361,8 +347,9 @@ public class CellManager {
 	}
 
 	public static final void setDefaultSSLSocketFactory(Cell cell) {
-		TissueLogger logger = new TissueLogger();
-		logger.info("CellManager.setDefaultSSLSocketFactory()", "CellName:" + cell.getCellName());
+		Logger logger;
+		logger = LoggerFactory.getLogger(CellManager.class);
+		logger.info("CellManager.setDefaultSSLSocketFactory() CellName:" + cell.getCellName());
 		try {
 			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 			tmf.init(cell.getCellKeystore());
@@ -383,8 +370,9 @@ public class CellManager {
 	}
 
 	public static final void setRelaxedSSLSocketFactory(Cell cell) {
-		TissueLogger logger = new TissueLogger();
-		logger.info("CellManager.setRelaxedSSLSocketFactory()", "CellName:" + cell.getCellName());
+		Logger logger;
+		logger = LoggerFactory.getLogger(CellManager.class);
+		logger.info("CellManager.setRelaxedSSLSocketFactory() CellName:" + cell.getCellName());
 		try {
 			TrustManager[] trustAllCerts = new TrustManager[1];
 			trustAllCerts[0] = new RelaxedTrustManager();
@@ -402,9 +390,10 @@ public class CellManager {
 
 	public static final String getCellCertificateFromKeystore(Cell cell)
 			throws KeyStoreException, CertificateEncodingException, IOException {
-		TissueLogger logger = new TissueLogger();
+		Logger logger;
+		logger = LoggerFactory.getLogger(CellManager.class);
 		KeyStore ks = cell.getCellKeystore();
-		logger.info("CellManager.getCellCertificateFromKeystore()", "CellName:" + cell.getCellName());
+		logger.info("CellManager.getCellCertificateFromKeystore() CellName:" + cell.getCellName());
 		Certificate cert = ks.getCertificate(cell.getCellName());
 		StringWriter sw = new StringWriter();
 		PemWriter pw = new PemWriter(sw);
@@ -412,16 +401,16 @@ public class CellManager {
 		pw.flush();
 		pw.close();
 		String pemEncodedCert = sw.toString();
-		logger.debug("CellManager.getCellCertificateFromKeystore()", "\n" + pemEncodedCert);
+		logger.debug("CellManager.getCellCertificateFromKeystore() \n" + pemEncodedCert);
 		return pemEncodedCert;
 	}
 
 	public static final synchronized void addCellTrustKeystore(String cellName, String certPem, Cell cell)
 			throws KeyStoreException, CertificateEncodingException, IOException, CertificateException {
-		TissueLogger logger = new TissueLogger();
-		logger.info("CellManager.addCellTrustKeystore()",
-				"CellName:" + cell.getCellName() + " remote CellName:" + cellName);
-		logger.info("CellManager.addCellTrustKeystore()", "Certificate:\n" + certPem);
+		Logger logger;
+		logger = LoggerFactory.getLogger(CellManager.class);
+		logger.info("CellManager.addCellTrustKeystore() CellName:" + cell.getCellName() + " remote CellName:" + cellName);
+		logger.debug("CellManager.addCellTrustKeystore() Certificate:\n" + certPem);
 		PemReader pr = new PemReader(new StringReader(certPem));
 		PemObject pem = pr.readPemObject();
 		pr.close();

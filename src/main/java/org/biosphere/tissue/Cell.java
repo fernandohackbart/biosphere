@@ -14,15 +14,17 @@ import org.biosphere.tissue.cell.CellManager;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.tissue.TissueManager;
-import org.biosphere.tissue.utils.TissueLogger;
 
 import org.bouncycastle.operator.OperatorCreationException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Cell {
 
 	private boolean tissueMember;
 	private DNACore cellDNA;
-	private TissueLogger logger;
+	private Logger logger;
 	private int tissuePort;
 	private String cellName;
 	private String cellNetworkName;
@@ -32,7 +34,7 @@ public class Cell {
 	private Chain chain;
 
 	public Cell() {
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(Cell.class);
 	}
 
 	public static void main(String[] args) {
@@ -87,12 +89,10 @@ public class Cell {
 		}
 		CellManager.loadServicesDNA(this);
 		CellManager.startServicesDNA(this);
-		logger.info("Cell.start()",
-				"####################################################################################");
-		logger.info("Cell.start()", "Cell " + getCellName() + " is running!  Tissue listener at:" + getCellNetworkName()
-				+ ":" + getTissuePort());
-		logger.info("Cell.start()",
-				"####################################################################################");
+		logger.info("Cell.start() ####################################################################################");
+		logger.info("Cell.start() Cell " + getCellName() + " is running!  Tissue listener at:" + getCellNetworkName()
+		+ ":" + getTissuePort());
+		logger.info("Cell.start() ####################################################################################");
 	}
 
 	public final void setCellKeystorePWD(String cellKeystorePWD) {

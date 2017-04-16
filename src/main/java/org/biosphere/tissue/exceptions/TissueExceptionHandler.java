@@ -1,6 +1,7 @@
 package org.biosphere.tissue.exceptions;
 
-import org.biosphere.tissue.utils.TissueLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TissueExceptionHandler {
 	public TissueExceptionHandler() {
@@ -15,8 +16,8 @@ public class TissueExceptionHandler {
 	}
 
 	public static void handleGenericException(Exception e, String module, String message) {
-		TissueLogger logger = new TissueLogger();
-		logger.exception(module, message + " Exception message(" + e.getMessage() + ")");
-		e.printStackTrace();
+		Logger logger = LoggerFactory.getLogger(TissueExceptionHandler.class);
+		logger.error(module+" "+ message + " Exception message(" + e.getLocalizedMessage() + ")",e);
+		//e.printStackTrace();
 	}
 }

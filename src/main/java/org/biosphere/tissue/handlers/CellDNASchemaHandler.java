@@ -11,18 +11,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.utils.TissueLogger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CellDNASchemaHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
-	private TissueLogger logger;
+	private Logger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 
 	public CellDNASchemaHandler() {
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(CellDNASchemaHandler.class);
 	}
 
 	public void setCell(Cell cell) {
@@ -51,7 +53,7 @@ public class CellDNASchemaHandler extends HttpServlet implements CellServletHand
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 		String fileName = request.getServletPath().substring(1);
 		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
-		logger.debug("CellDNASchemaHandler.doPost()", "Request for: " + fileName + " from " + partnerCell);
+		logger.debug("CellDNASchemaHandler.doPost() Request for: " + fileName + " from " + partnerCell);
 		InputStream is = getClass().getClassLoader().getResourceAsStream(fileName);
 		if (is != null) {
 			int fileSize = is.available();
@@ -67,7 +69,7 @@ public class CellDNASchemaHandler extends HttpServlet implements CellServletHand
 			os.close();
 			is.close();
 			response.flushBuffer();
-			logger.info("CellDNASchemaHandler.doPost()", "Served: " + fileName + " size:" + fileSize);
+			logger.info("CellDNASchemaHandler.doPost() Served: " + fileName + " size:" + fileSize);
 		} else {
 			String responseString = "<h1>404 Not Found</h1> Resource: " + fileName + " not found.";
 			response.setContentType(getContentType());
@@ -75,7 +77,7 @@ public class CellDNASchemaHandler extends HttpServlet implements CellServletHand
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			response.getWriter().println(responseString);
 			response.flushBuffer();
-			logger.debug("CellDNASchemaHandler.doPost()", "Resource: " + fileName + " not found.");
+			logger.debug("CellDNASchemaHandler.doPost() Resource: " + fileName + " not found.");
 		}
 	}
 	

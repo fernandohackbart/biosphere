@@ -16,21 +16,23 @@ import org.biosphere.tissue.cell.CellManager;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.protocol.TissueGreeting;
 import org.biosphere.tissue.protocol.TissueWelcome;
-import org.biosphere.tissue.utils.TissueLogger;
 import org.biosphere.tissue.utils.RequestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CellTissueWelcomeHandler extends HttpServlet implements CellServletHandlerInterface {
 
 	private static final long serialVersionUID = 1L;
-	private TissueLogger logger;
+	private Logger logger;
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
 
 	public CellTissueWelcomeHandler() {
-		logger = new TissueLogger();
+		logger = LoggerFactory.getLogger(CellTissueWelcomeHandler.class);
 	}
 
 	@Override
@@ -63,12 +65,11 @@ public class CellTissueWelcomeHandler extends HttpServlet implements CellServlet
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
-		logger.debug("CellTissueWelcomeHandler.doPost()", "Request from: " + partnerCell);
+		logger.debug("CellTissueWelcomeHandler.doPost() Request from: " + partnerCell);
 		String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
 		ObjectMapper mapper = new ObjectMapper();
 		TissueWelcome tw = mapper.readValue(requestPayload.getBytes(), TissueWelcome.class);
-		logger.debug("CellTissueWelcomeHandler.doPost()",
-				"Welcome request to tissue " + tw.getTissueName() + " from cell:" + tw.getCellName());
+		logger.debug("CellTissueWelcomeHandler.doPost() Welcome request to tissue " + tw.getTissueName() + " from cell:" + tw.getCellName());
 		try {
 			CellManager.addCellTrustKeystore(tw.getCellName(), tw.getCellCertificate(), getCell());
 		} catch (CertificateEncodingException | KeyStoreException e) {
