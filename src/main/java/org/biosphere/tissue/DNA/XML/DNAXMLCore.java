@@ -50,10 +50,10 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-public class DNACore {
+public class DNAXMLCore {
 
-	public DNACore() {
-		logger = LoggerFactory.getLogger(DNACore.class);
+	public DNAXMLCore() {
+		logger = LoggerFactory.getLogger(DNAXMLCore.class);
 	}
 
 	private Logger logger;

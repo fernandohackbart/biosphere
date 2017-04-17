@@ -59,7 +59,7 @@ public class CellDNACoreHandler extends HttpServlet implements CellServletHandle
 		logger.debug("CellDNACoreHandler.doPost() Request for: " + fileName + " from " + partnerCell);
 		String dnaCore = null;
 		try {
-			dnaCore = getCell().getCellDNA().getDNACoreAsString();
+			dnaCore = getCell().getCellXMLDNA().getDNACoreAsString();
 		} catch (NullPointerException e) {
 			TissueExceptionHandler.handleGenericException(e, "CellDNACoreHandler.doPost()",
 					"getCell().getCellDNA().getDNACoreAsString() NullPointerException :");

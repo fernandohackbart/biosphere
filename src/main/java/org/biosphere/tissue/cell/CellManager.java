@@ -32,8 +32,8 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.DNA.Tissue;
-import org.biosphere.tissue.DNA.Tissueservicetype;
+import org.biosphere.tissue.DNA.XML.Tissue;
+import org.biosphere.tissue.DNA.XML.Tissueservicetype;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.services.ServiceDefinition;
@@ -51,8 +51,6 @@ import org.bouncycastle.util.io.pem.PemWriter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.impl.SimpleLogger;
-
 
 public class CellManager {
 	public CellManager() {
@@ -60,10 +58,12 @@ public class CellManager {
 	}
 
 	public final static void setupCell(Cell cell) {
-		//https://www.slf4j.org/api/org/slf4j/impl/SimpleLogger.html
-		System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY,TissueManager.logLevel);
-		System.setProperty(SimpleLogger.SHOW_DATE_TIME_KEY,TissueManager.logShowDateTime);
-		
+		System.setProperty(TissueManager.logLevelParameter,TissueManager.logLevelValue);
+		System.setProperty(TissueManager.logOutputParameter,TissueManager.logOutputValue);
+		System.setProperty(TissueManager.logShowDateTimeParameter,TissueManager.logShowDateTimeValue);
+		System.setProperty(TissueManager.logDateFormatParameter,TissueManager.logDateFormatValue);
+		System.setProperty(TissueManager.jettLogLevelParameter,TissueManager.jettLogLevelValue);
+		System.setProperty(TissueManager.jettLogOutputParameter,TissueManager.jettLogOutputValue);
 		cell.setCellName(generateCellName());
 		cell.setCellNetworkName(getCellNetworkName());
 		cell.setTissueMember(false);
@@ -315,22 +315,22 @@ public class CellManager {
 		Logger logger;
 		logger = LoggerFactory.getLogger(CellManager.class);
 		logger.debug("CellManager.addServicesDNA() Adding CellMonitor definition to DNA");
-		cell.getCellDNA().addService(getCellMonitorDefinition());
+		cell.getCellXMLDNA().addService(getCellMonitorDefinition());
 		logger.debug("CellManager.addServicesDNA() Adding CellAnnounceListener definition to DNA");
-		cell.getCellDNA().addService(getCellAnnounceListenerDefinition());
+		cell.getCellXMLDNA().addService(getCellAnnounceListenerDefinition());
 		logger.debug("CellManager.addServicesDNA() Adding CellTissueListener definition to DNA");
-		cell.getCellDNA().addService(getCellTissueServletListenerDefinition());
+		cell.getCellXMLDNA().addService(getCellTissueServletListenerDefinition());
 		// logger.debug("CellManager.addServicesDNA()","Adding CellACS
 		// definition to DNA");
 		// cell.getCellDNA().addService(getCellACSDefinition());
 		logger.debug("CellManager.addServicesDNA() Adding CellServiceListener definition to DNA");
-		cell.getCellDNA().addService(getCellServiceListenerDefinition());
+		cell.getCellXMLDNA().addService(getCellServiceListenerDefinition());
 	}
 
 	public static final void startServicesDNA(Cell cell) {
 		Logger logger;
 		logger = LoggerFactory.getLogger(CellManager.class);
-		Tissue.Tissueservices services = cell.getCellDNA().getServices();
+		Tissue.Tissueservices services = cell.getCellXMLDNA().getServices();
 		Iterator<Tissueservicetype> servicesIterator = services.getTissueservice().iterator();
 		while (servicesIterator.hasNext()) {
 			Tissueservicetype service = (Tissueservicetype) servicesIterator.next();
@@ -414,7 +414,7 @@ public class CellManager {
 			throws KeyStoreException, CertificateEncodingException, IOException, CertificateException {
 		Logger logger;
 		logger = LoggerFactory.getLogger(CellManager.class);
-		logger.info("CellManager.addCellTrustKeystore() CellName:" + cell.getCellName() + " remote CellName:" + cellName);
+		logger.info("CellManager.addCellTrustKeystore() Adding certificate with alias:" + cellName);
 		logger.debug("CellManager.addCellTrustKeystore() Certificate:\n" + certPem);
 		PemReader pr = new PemReader(new StringReader(certPem));
 		PemObject pem = pr.readPemObject();

@@ -9,7 +9,7 @@ import java.net.InetAddress;
 import java.util.UUID;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.DNA.XML.DNACore;
+import org.biosphere.tissue.DNA.XML.DNAXMLCore;
 import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.blockchain.Chain;
 import org.biosphere.tissue.exceptions.CellException;
@@ -61,8 +61,8 @@ public class TissueManager {
 	public final static void createTissue(Cell cell) throws CellException {
 		Logger logger = LoggerFactory.getLogger(TissueManager.class);
 		logger.info("TissueManager.createTissue() Creating tissue!");
-		DNACore dna = new DNACore();
-		cell.setCellDNA(dna);
+		DNAXMLCore dna = new DNAXMLCore();
+		cell.setCellXMLDNA(dna);
 		try {
 			cell.setChain(new Chain(cell.getCellName(), cell));
 		} catch (BlockException e) {

@@ -71,11 +71,11 @@ public class CellStatusHandler extends HttpServlet implements CellServletHandler
 		responseSB.append("Cell tissue port: " + getCell().getTissuePort() + "\n");
 		responseSB.append("Cell tissue certificate: \n" + getCell().getCellCertificate());
 		responseSB.append("##############################################################################\n");
-		responseSB.append("Tissue name: " + getCell().getCellDNA().getTissueName() + "\n");
-		responseSB.append("Tissue size: " + getCell().getCellDNA().getTissueSize() + "\n");
+		responseSB.append("Tissue name: " + getCell().getCellXMLDNA().getTissueName() + "\n");
+		responseSB.append("Tissue size: " + getCell().getCellXMLDNA().getTissueSize() + "\n");
 		responseSB.append("##############################################################################\n");
 		responseSB.append("Tissue cells: \n");
-		List<CellInterface> celIterfaces = getCell().getCellDNA().getTissueCellsInterfaces();
+		List<CellInterface> celIterfaces = getCell().getCellXMLDNA().getTissueCellsInterfaces();
 		Iterator cellsIfIterator = celIterfaces.iterator();
 		while (cellsIfIterator.hasNext()) {
 			CellInterface cellInterface = (CellInterface) cellsIfIterator.next();

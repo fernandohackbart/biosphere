@@ -96,7 +96,7 @@ public class CellAnnounceListener extends THREADService {
 			}
 
 			TissueWelcome tw = new TissueWelcome();
-			tw.setTissueName(cell.getCellDNA().getTissueName());
+			tw.setTissueName(cell.getCellXMLDNA().getTissueName());
 			tw.setCellName(cell.getCellName());
 			tw.setCellCertificate(cell.getCellCertificate());
 			String requestWelcome = mapper.writeValueAsString(tw);
@@ -167,7 +167,7 @@ public class CellAnnounceListener extends THREADService {
 				logger.debug("CellAnnounceListener.adoptCell() Chain send response: " + responseChain);
 
 				logger.debug("CellAnnounceListener.adoptCell() Adding adopted cell to the local DNA!");
-				cell.getCellDNA().addCell(tg.getCellName(), tj.getCellCertificate(), tj.getCellNetworkName(),
+				cell.getCellXMLDNA().addCell(tg.getCellName(), tj.getCellCertificate(), tj.getCellNetworkName(),
 						tj.getTissuePort());
 			}
 		} catch (UnknownHostException e) {

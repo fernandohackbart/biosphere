@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.DNA.XML.DNACore;
+import org.biosphere.tissue.DNA.XML.DNAXMLCore;
 import org.biosphere.tissue.utils.RequestUtils;
 
 import org.slf4j.Logger;
@@ -60,8 +60,8 @@ public class CellTissueJoinHandler extends HttpServlet implements CellServletHan
 		String remoteCell = requestPayload.substring(0, requestPayload.indexOf("\n"));
 		//String remoteCertificate = requestPayload.substring(requestPayload.indexOf("\n") + 1);
 		logger.info("CellTissueJoinHandler.doPost() Creatting new DNA for this cell");
-		DNACore dna = new DNACore();
-		getCell().setCellDNA(dna);
+		DNAXMLCore dna = new DNAXMLCore();
+		getCell().setCellXMLDNA(dna);
 		logger.info("CellTissueJoinHandler.doPost() DNACore URL received: " + remoteCell);
 		dna.load(remoteCell, getCell().getTissuePort());
 		logger.info("CellTissueJoinHandler.doPost() Adding local cell to the local DNA (just in case the adopter forgot)");
@@ -74,7 +74,7 @@ public class CellTissueJoinHandler extends HttpServlet implements CellServletHan
 		response.setContentLength(responseString.getBytes().length);
 		response.getWriter().println(responseString);	
 		response.flushBuffer();
-		logger.info("CellTissueJoinHandler.doPost() Joined tissue: " + getCell().getCellDNA().getTissueName() + " from: " + partnerCell);
+		logger.info("CellTissueJoinHandler.doPost() Joined tissue: " + getCell().getCellXMLDNA().getTissueName() + " from: " + partnerCell);
 	}
 	
 	@Override

@@ -218,7 +218,7 @@ public final class ServiceManager {
 	
 	public static synchronized void start(String serviceName, Cell cell) {
 		Logger logger = LoggerFactory.getLogger(ServiceManager.class);
-		ServiceDefinition sd = cell.getCellDNA().getServiceDefinition(serviceName);
+		ServiceDefinition sd = cell.getCellXMLDNA().getServiceDefinition(serviceName);
 		try {
 			logger.info("ServiceManager.start() Starting " + sd.getServiceDefinitionType() + " service " + sd.getServiceDefinitionName());
 			startServiceDefinition(sd, cell);

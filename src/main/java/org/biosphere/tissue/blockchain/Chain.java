@@ -115,7 +115,7 @@ public class Chain {
 	 * @return String the current block ID
 	 */
 	public final String getNextBlockID() {
-		int tissueSize = getCell().getCellDNA().getTissueSize();
+		int tissueSize = getCell().getCellXMLDNA().getTissueSize();
 		int highestPosition = getBlock("GENESIS").getChainPosition();
 		String nextBlockID = "GENESIS";
 		ArrayList<String> candidates = new ArrayList<String>();
@@ -293,7 +293,7 @@ public class Chain {
 		if (block.getCellID().equals(notifyingCell)) {
 			logger.debug("Chain.sendConsensusVotes() Sending consensus vote (" + accepted + ") for block " + block.getBlockID() + " to the tissue");
 			logger.debug("Chain.sendConsensusVotes() Getting the list of the cells from the DNA");
-			List<CellInterface> celIterfaces = getCell().getCellDNA().getTissueCellsInterfaces();
+			List<CellInterface> celIterfaces = getCell().getCellXMLDNA().getTissueCellsInterfaces();
 			Iterator cellsIfIterator = celIterfaces.iterator();
 			while (cellsIfIterator.hasNext()) {
 				CellInterface cellInterface = (CellInterface) cellsIfIterator.next();
