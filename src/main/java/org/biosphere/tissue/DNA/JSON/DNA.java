@@ -90,7 +90,7 @@ public class DNA {
 
 	public List<CellInterface> getTissueCellsInterfaces() {
 		List<CellInterface> interfacesList = new ArrayList<CellInterface>();
-		logger.info("DNA.getTissueCellsInterfaces() Getting the list of the cells from the DNA");
+		logger.trace("DNA.getTissueCellsInterfaces() Getting the list of the cells from the DNA");
 		for (Cell cell : tissue.getCells()) {
 			for (CellNetworkInterface cni : cell.getInterfaces()) {
 				interfacesList.add(new CellInterface(cell.getName(), cni.getHostname(), cell.getTissuePort()));

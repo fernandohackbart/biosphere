@@ -10,7 +10,7 @@ import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.protocol.BlockAddRequest;
 import org.biosphere.tissue.protocol.BlockAddResponse;
 import org.biosphere.tissue.protocol.CellInterface;
-import org.biosphere.tissue.protocol.FatBlockAppendRequest;
+import org.biosphere.tissue.protocol.BlockAppendRequest;
 import org.biosphere.tissue.protocol.FlatBlock;
 import org.biosphere.tissue.protocol.FlatChain;
 
@@ -198,7 +198,7 @@ public class Chain {
 	 *            the block to be appended to the chain
 	 * @return boolean true if the block was accepted
 	 */
-	public synchronized boolean appendBlock(FatBlockAppendRequest flatBlock) throws ChainException {
+	public synchronized boolean appendBlock(BlockAppendRequest flatBlock) throws ChainException {
 		boolean accepted = false;
 		try {
 			Block block = new Block(flatBlock,this,getCell());
@@ -396,12 +396,6 @@ public class Chain {
 					+ getBlock(blockID).getChainPosition() + ") PREV(" + getBlock(blockID).getPrevBlockID() + ") ID("
 					+ getBlock(blockID).getBlockID() + ")");
 		}
-		/*
-		String[] chainArray = toFlat().split("\n");
-		for (String chainBlock : chainArray) {
-			dumpChain.append("\nChain.dumpChain(" + getCell().getCellName() + ") CHAIN " + chainBlock);
-		}
-		*/
 		return dumpChain.toString();
 	}
 }

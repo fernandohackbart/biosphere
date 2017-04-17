@@ -2,7 +2,7 @@ package org.biosphere.tissue.protocol;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class FlatBlockAppendResponse {
+public class BlockAppendResponse {
 	@JsonProperty("cellName")
 	String cellName;
 	@JsonProperty("accepted")

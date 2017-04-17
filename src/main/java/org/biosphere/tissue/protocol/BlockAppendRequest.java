@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.biosphere.tissue.protocol.FlatBlock;
 
-public class FatBlockAppendRequest extends FlatBlock{
+public class BlockAppendRequest extends FlatBlock{
 	
 	@JsonProperty("notifyingCell")
 	String notifyingCell;

@@ -10,8 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.blockchain.ChainException;
 import org.biosphere.tissue.blockchain.ChainExceptionHandler;
-import org.biosphere.tissue.protocol.FatBlockAppendRequest;
-import org.biosphere.tissue.protocol.FlatBlockAppendResponse;
+import org.biosphere.tissue.protocol.BlockAppendRequest;
+import org.biosphere.tissue.protocol.BlockAppendResponse;
 import org.biosphere.tissue.utils.RequestUtils;
 
 import org.slf4j.Logger;
@@ -68,12 +68,12 @@ public class ChainAppendBlockHandler extends HttpServlet implements CellServletH
 			String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
 			
 			ObjectMapper mapper = new ObjectMapper();
-			FatBlockAppendRequest fbar = mapper.readValue(requestPayload.getBytes(),FatBlockAppendRequest.class);
+			BlockAppendRequest fbar = mapper.readValue(requestPayload.getBytes(),BlockAppendRequest.class);
 			
 			boolean accepted = cell.getChain().appendBlock(fbar);
 			logger.debug("ChainAppendBlockHandler.doPost() Block accepted by " + cell.getCellName() + ":" + accepted);
 			
-			FlatBlockAppendResponse fbr = new FlatBlockAppendResponse();
+			BlockAppendResponse fbr = new BlockAppendResponse();
 			fbr.setAccepted(accepted);
 			fbr.setCellName(getCell().getCellName());
 			String responseString = mapper.writeValueAsString(fbr);
