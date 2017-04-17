@@ -42,8 +42,21 @@ public class TissueManager {
 	public final static Long monitorInterval = 240000L;
 	public final static int portJumpFactor = 20;
 	//https://www.slf4j.org/api/org/slf4j/impl/SimpleLogger.html
-	public final static String logLevel = "trace";
-	public final static String logShowDateTime = "true";
+	public final static String logLevelParameter = "org.slf4j.simpleLogger.defaultLogLevel";
+	public final static String logLevelValue = "trace";
+	public final static String logShowDateTimeParameter = "org.slf4j.simpleLogger.showDateTime";
+	public final static String logShowDateTimeValue = "true";
+	public final static String logOutputParameter = "org.slf4j.simpleLogger.logFile";
+	public final static String logOutputValue = "System.out";
+	public final static String logDateFormatParameter = "org.slf4j.simpleLogger.dateTimeFormat";
+	public final static String logDateFormatValue = "yyyy-MM-dd_HH:mm:ss:SSS";
+	public final static String jettLogLevelParameter = "org.eclipse.jetty.LEVEL";
+	public final static String jettLogLevelValue = "ALL";
+	public final static String jettLogOutputParameter = "org.eclipse.jetty.util.log.class";
+	public final static String jettLogOutputValue = "org.eclipse.jetty.util.log.Slf4jLog";
+	//public final static String jettLogOutputValue = "org.eclipse.jetty.util.log.StdErrLog";
+	private static boolean onWelcomeProcess = false;
+	
 
 	public final static void createTissue(Cell cell) throws CellException {
 		Logger logger = LoggerFactory.getLogger(TissueManager.class);
@@ -119,5 +132,13 @@ public class TissueManager {
 	private static String generateRandomTissueName() {
 		String tissueName = "Biosphere-" + UUID.randomUUID().toString();
 		return tissueName;
+	}
+
+	public static final boolean isOnWelcomeProcess() {
+		return onWelcomeProcess;
+	}
+
+	public static synchronized final void setOnWelcomeProcess(boolean onWelcomeProcess) {
+		TissueManager.onWelcomeProcess = onWelcomeProcess;
 	}
 }
