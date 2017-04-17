@@ -1,4 +1,4 @@
-package org.biosphere.tissue.DNA.JSON;
+package org.biosphere.tissue.DNA;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

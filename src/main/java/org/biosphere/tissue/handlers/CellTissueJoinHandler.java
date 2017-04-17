@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.DNA.JSON.DNA;
+import org.biosphere.tissue.DNA.DNA;
 import org.biosphere.tissue.protocol.TissueDNALocator;
 import org.biosphere.tissue.protocol.TissueJoinResponse;
 import org.biosphere.tissue.utils.RequestUtils;
