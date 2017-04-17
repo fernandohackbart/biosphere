@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.DNA.CellInterface;
+import org.biosphere.tissue.DNA.XML.CellInterface;
 import org.biosphere.tissue.protocol.BlockAddRequest;
 import org.biosphere.tissue.protocol.BlockAddResponse;
 import org.biosphere.tissue.protocol.FatBlockAppendRequest;

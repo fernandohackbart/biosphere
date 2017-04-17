@@ -1,5 +1,5 @@
 
-package org.biosphere.tissue.DNA;
+package org.biosphere.tissue.DNA.XML;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

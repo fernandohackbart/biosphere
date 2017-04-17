@@ -9,7 +9,7 @@ import java.net.InetAddress;
 import java.util.UUID;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.DNA.DNACore;
+import org.biosphere.tissue.DNA.XML.DNACore;
 import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.blockchain.Chain;
 import org.biosphere.tissue.exceptions.CellException;

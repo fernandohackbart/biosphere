@@ -1,4 +1,4 @@
-package org.biosphere.tissue.DNA;
+package org.biosphere.tissue.DNA.XML;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

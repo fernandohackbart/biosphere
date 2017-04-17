@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.DNA.DNACore;
+import org.biosphere.tissue.DNA.XML.DNACore;
 import org.biosphere.tissue.utils.RequestUtils;
 
 import org.slf4j.Logger;

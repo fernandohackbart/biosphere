@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.DNA.CellInterface;
+import org.biosphere.tissue.DNA.XML.CellInterface;
 import org.biosphere.tissue.services.ServiceManager;
 import org.biosphere.tissue.utils.KeystoreManager;
 
