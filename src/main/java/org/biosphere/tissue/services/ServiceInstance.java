@@ -25,11 +25,11 @@ public class ServiceInstance extends ServiceDefinition {
 	private Hashtable<String, Object> serviceInstanceParameters;
 
 	public final void loadDefinition(ServiceDefinition serviceDefinition) {
-		this.setServiceDefinitionName(serviceDefinition.getServiceDefinitionName());
-		this.setServiceDefinitionType(serviceDefinition.getServiceDefinitionType());
-		this.setServiceDefinitionDaemon(serviceDefinition.isServiceDefinitionDaemon());
-		this.setServiceDefinitionClass(serviceDefinition.getServiceDefinitionClass());
-		this.setServiceDefinitionParameters(serviceDefinition.getServiceDefinitionParameters());
+		this.setName(serviceDefinition.getName());
+		this.setType(serviceDefinition.getType());
+		this.setDaemon(serviceDefinition.isDaemon());
+		this.setClassName(serviceDefinition.getClassName());
+		this.setParameters(serviceDefinition.getParameters());
 	}
 
 	public final void addServiceInstanceParameter(String key, Object value) {

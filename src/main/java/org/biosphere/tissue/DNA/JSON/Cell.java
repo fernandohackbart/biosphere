@@ -5,12 +5,18 @@ import java.util.ArrayList;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Cell {
+	
+	public Cell() {
+		super();
+		interfaces = new ArrayList<CellNetworkInterface>();
+	}
+	
 	@JsonProperty("name")
 	String name;
 	@JsonProperty("publicKey")
 	String publicKey;
 	@JsonProperty("tissuePort")
-	String tissuePort;
+	int tissuePort;
 	@JsonProperty("interfaces")
 	ArrayList<CellNetworkInterface> interfaces;
 	@JsonProperty("name")
@@ -30,11 +36,11 @@ public class Cell {
 		this.publicKey = publicKey;
 	}
 	@JsonProperty("tissuePort")
-	final String getTissuePort() {
+	final int getTissuePort() {
 		return tissuePort;
 	}
 	@JsonProperty("tissuePort")
-	final void setTissuePort(String tissuePort) {
+	final void setTissuePort(int tissuePort) {
 		this.tissuePort = tissuePort;
 	}
 	@JsonProperty("interfaces")

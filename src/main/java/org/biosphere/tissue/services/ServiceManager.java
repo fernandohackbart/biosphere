@@ -38,7 +38,7 @@ public final class ServiceManager {
 	public static synchronized boolean isRunning(String serviceName) {
 		boolean isRunning = false;
 		if (cellServiceInstances.containsKey(serviceName)) {
-			String serviceType = cellServiceInstances.get(serviceName).getServiceDefinitionType();
+			String serviceType = cellServiceInstances.get(serviceName).getType();
 			switch (serviceType) {
 			case "THREAD":
 				isRunning = cellServiceInstances.get(serviceName).getThreadService().isAlive();
@@ -54,7 +54,7 @@ public final class ServiceManager {
 	public static synchronized boolean isLoaded(String serviceName) {
 		boolean isLoaded = false;
 		if (cellServiceInstances.containsKey(serviceName)) {
-			String serviceType = cellServiceInstances.get(serviceName).getServiceDefinitionType();
+			String serviceType = cellServiceInstances.get(serviceName).getType();
 			switch (serviceType) {
 			case "THREAD":
 				isLoaded = cellServiceInstances.containsKey(serviceName);
@@ -72,7 +72,7 @@ public final class ServiceManager {
 		Enumeration<String> serviceList = cellServiceInstances.keys();
 		while (serviceList.hasMoreElements()) {
 			String serviceName = (String) serviceList.nextElement();
-			String serviceType = cellServiceInstances.get(serviceName).getServiceDefinitionType();
+			String serviceType = cellServiceInstances.get(serviceName).getType();
 			switch (serviceType) {
 			case "THREAD":
 				statusTable.put(serviceName,
@@ -90,7 +90,7 @@ public final class ServiceManager {
 
 	public static StringBuffer getServletStatus(String serviceName) {
 		StringBuffer statusTable = new StringBuffer();
-     	if(cellServiceInstances.get(serviceName).getServiceDefinitionType().equals("SERVLET"))
+     	if(cellServiceInstances.get(serviceName).getType().equals("SERVLET"))
      	{
 			try {
 				cellServiceInstances.get(serviceName).getJettyServer().dump(statusTable);
@@ -117,9 +117,9 @@ public final class ServiceManager {
 
 	private static void load(ServiceDefinition serviceDefinition, Cell cell) throws CellException {
 		Logger logger = LoggerFactory.getLogger(ServiceManager.class);
-		logger.debug("ServiceManager.load() Loading " + serviceDefinition.getServiceDefinitionType() + " service "
-				+ serviceDefinition.getServiceDefinitionName());
-		switch (serviceDefinition.getServiceDefinitionType()) {
+		logger.debug("ServiceManager.load() Loading " + serviceDefinition.getType() + " service "
+				+ serviceDefinition.getName());
+		switch (serviceDefinition.getType()) {
 		case "THREAD":
 			loadTHREAD(serviceDefinition, cell);
 			break;
@@ -131,25 +131,25 @@ public final class ServiceManager {
 
 	private static void loadTHREAD(ServiceDefinition sd, Cell cell) {
 		try {
-			Class<?> toStartServiceClass = loadClass(sd.getServiceDefinitionClass());
+			Class<?> toStartServiceClass = loadClass(sd.getClassName());
 			THREADService toStartService = (THREADService) toStartServiceClass.newInstance();
 			toStartService.setCell(cell);
-			toStartService.setName(sd.getServiceDefinitionName());
-			toStartService.setParameters(sd.getServiceDefinitionParameters());
-			toStartService.setDaemon(sd.isServiceDefinitionDaemon());
+			toStartService.setName(sd.getName());
+			toStartService.setParameters(sd.getParameters());
+			toStartService.setDaemon(sd.isDaemon());
 			// cellTHREADServiceInstances.put(serviceDefinition.getServiceDefinitionName(),toStartService);
 			ServiceInstance serviceInstance = new ServiceInstance(sd);
 			serviceInstance.setThreadService(toStartService);
-			cellServiceInstances.put(sd.getServiceDefinitionName(), serviceInstance);
+			cellServiceInstances.put(sd.getName(), serviceInstance);
 		} catch (CellException e) {
 			TissueExceptionHandler.handleGenericException(e, "ServiceManager.loadService()",
-					"Could not instantiate ServiceInterface " + sd.getServiceDefinitionClass());
+					"Could not instantiate ServiceInterface " + sd.getClassName());
 		} catch (IllegalAccessException e) {
 			TissueExceptionHandler.handleGenericException(e, "ServiceManager.loadService()",
-					"Could not instantiate ServiceInterface " + sd.getServiceDefinitionClass());
+					"Could not instantiate ServiceInterface " + sd.getClassName());
 		} catch (InstantiationException e) {
 			TissueExceptionHandler.handleGenericException(e, "ServiceManager.loadService()",
-					"Could not instantiate ServiceInterface " + sd.getServiceDefinitionClass());
+					"Could not instantiate ServiceInterface " + sd.getClassName());
 		}
 	}
 
@@ -159,9 +159,7 @@ public final class ServiceManager {
         try {
 			Server server = new Server();
      		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-			@SuppressWarnings("unchecked")
-			ArrayList<ServletHandlerDefinition> cellTissueListenerHandlers = (ArrayList<ServletHandlerDefinition>) sd
-					.getServiceDefinitionParameters().get("Handlers");			
+			ArrayList<ServletHandlerDefinition> cellTissueListenerHandlers = (ArrayList<ServletHandlerDefinition>) sd.getParameters().get("Handlers");			
 			for (ServletHandlerDefinition cellTissueListenerHandler : cellTissueListenerHandlers)
 			{
 				Class<?> handlerClass = loadClass(cellTissueListenerHandler.getClassName());
@@ -173,7 +171,7 @@ public final class ServiceManager {
 				for (String contextURI : handlerContexts) {
 					context.addServlet(new ServletHolder((Servlet)toStartHandler), contextURI);
 					logger.debug("ServiceManager.loadServlet()" +
-							sd.getServiceDefinitionName() + " handler " + cellTissueListenerHandler.getClassName() + " added context: (" +cellTissueListenerHandler.getContentType()+") "+ contextURI);
+							sd.getName() + " handler " + cellTissueListenerHandler.getClassName() + " added context: (" +cellTissueListenerHandler.getContentType()+") "+ contextURI);
 				}				
 			}
 			ContextHandlerCollection contexts = new ContextHandlerCollection(); 
@@ -181,7 +179,7 @@ public final class ServiceManager {
 			contexts.addHandler(new DefaultHandler());
 			server.setHandler(contexts);
 			
-			HTTPPort = (Integer) sd.getServiceDefinitionParameters().get("DefaultHTTPPort");
+			HTTPPort = (Integer) sd.getParameters().get("DefaultHTTPPort");
 			
 	        SslContextFactory sslContextFactory = new SslContextFactory();
 	        sslContextFactory.setKeyStore(cell.getCellKeystore());
@@ -210,7 +208,7 @@ public final class ServiceManager {
 			serviceInstance.setJettyServer(server);
 			serviceInstance.setJettyServerConnector(httpsConnector);
 			serviceInstance.setJettyContexts(contexts);
-			cellServiceInstances.put(sd.getServiceDefinitionName(), serviceInstance);
+			cellServiceInstances.put(sd.getName(), serviceInstance);
 		} catch (Exception e) {
 			TissueExceptionHandler.handleGenericException(e, "CellManager.loadServlet()","Exception:");
 		}
@@ -218,11 +216,13 @@ public final class ServiceManager {
 	
 	public static synchronized void start(String serviceName, Cell cell) {
 		Logger logger = LoggerFactory.getLogger(ServiceManager.class);
-		ServiceDefinition sd = cell.getCellXMLDNA().getServiceDefinition(serviceName);
+		//TODO replace by the JSON DNA
+		//ServiceDefinition sd = cell.getCellXMLDNA().getServiceDefinition(serviceName);
+		ServiceDefinition sd = cell.getDna().getService(serviceName);
 		try {
-			logger.info("ServiceManager.start() Starting " + sd.getServiceDefinitionType() + " service " + sd.getServiceDefinitionName());
+			logger.info("ServiceManager.start() Starting " + sd.getType() + " service " + sd.getName());
 			startServiceDefinition(sd, cell);
-			if (sd.getServiceDefinitionType().equals("SERVLET")) {
+			if (sd.getType().equals("SERVLET")) {
 				// TODO add HTTPPort to the DNA service parameters
 			}
 		} catch (CellException e) {
@@ -235,19 +235,19 @@ public final class ServiceManager {
 		int HTTPPort = 0;
 		Logger logger = LoggerFactory.getLogger(ServiceManager.class);
 		if (sd instanceof ServiceDefinition) {
-			if (isRunning(sd.getServiceDefinitionName())) {
-				logger.info("ServiceManager.startServiceDefinition()"+sd.getServiceDefinitionType() + " service "
-						+ sd.getServiceDefinitionName() + " already running");
+			if (isRunning(sd.getName())) {
+				logger.info("ServiceManager.startServiceDefinition()"+sd.getType() + " service "
+						+ sd.getName() + " already running");
 			} else {
 				try {
-					if (!isLoaded(sd.getServiceDefinitionName())) {
+					if (!isLoaded(sd.getName())) {
 						load(sd, cell);
 					}
-					HTTPPort = startServiceInstance(sd.getServiceDefinitionName());
+					HTTPPort = startServiceInstance(sd.getName());
 				} catch (Exception e) {
 					TissueExceptionHandler.handleGenericException(e, "ServiceManager.startServiceDefinition()",
-							"Could not start " + sd.getServiceDefinitionType() + " service "
-									+ sd.getServiceDefinitionName());
+							"Could not start " + sd.getType() + " service "
+									+ sd.getName());
 				}
 			}
 		} else {
@@ -261,7 +261,7 @@ public final class ServiceManager {
 		Logger logger = LoggerFactory.getLogger(ServiceManager.class);
 		int HTTPPort = 0;
 		if (cellServiceInstances.containsKey(serviceName)) {
-			String serviceType = cellServiceInstances.get(serviceName).getServiceDefinitionType();
+			String serviceType = cellServiceInstances.get(serviceName).getType();
 			logger.debug("ServiceManager.startServiceInstance() Starting " + serviceType + " service " + serviceName + "!");
 			switch (serviceType) {
 			case "THREAD":
@@ -290,7 +290,7 @@ public final class ServiceManager {
 					serviceInstance.getJettyServerConnector().setPort(HTTPPort);
 					serviceInstance.getJettyServer().start();
 			        //serviceInstance.getJettyServer().join();
-					logger.info(serviceInstance.getServiceDefinitionName()+ "listening at " + HTTPPort + "!");
+					logger.info(serviceInstance.getName()+ "listening at " + HTTPPort + "!");
 					listening = true;
 				} catch (java.net.BindException e) {
 					logger.debug("ServiceManager.startServlet() Port: " +  HTTPPort + " is used incrementing by 1 and retrying!");
@@ -305,7 +305,7 @@ public final class ServiceManager {
 		}
 		catch (Exception e)
 		{
-			TissueExceptionHandler.handleGenericException(e, "ServiceManager.startServlet", "Excpetion in service "+serviceInstance.getServiceDefinitionName());
+			TissueExceptionHandler.handleGenericException(e, "ServiceManager.startServlet", "Excpetion in service "+serviceInstance.getName());
 		}
 		return HTTPPort;
 	}
@@ -361,7 +361,7 @@ public final class ServiceManager {
 		Enumeration<String> servletServiceList = cellServiceInstances.keys();
 		while (servletServiceList.hasMoreElements()) {
 			String serviceName = (String) servletServiceList.nextElement();
-			String serviceType = cellServiceInstances.get(serviceName).getServiceDefinitionType();
+			String serviceType = cellServiceInstances.get(serviceName).getType();
 			switch (serviceType) {
 			case "SERVLET":
 				try {

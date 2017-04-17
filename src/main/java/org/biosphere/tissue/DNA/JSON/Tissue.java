@@ -5,16 +5,23 @@ import java.util.ArrayList;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Tissue {
+	
+	public Tissue() {
+		super();
+	    cells = new ArrayList<Cell>(); 
+	    services = new ArrayList<Service>();
+	}
+	
 	@JsonProperty("name")
 	String name;
 	@JsonProperty("dnaVersion")
 	String dnaVersion;
-	@JsonProperty("defaultMulticastGroup")
-	String defaultMulticastGroup;
+	@JsonProperty("defaultMulticastPort")
+	String defaultMulticastPort;
 	@JsonProperty("defaultMulticastAddress")
 	String defaultMulticastAddress;
 	@JsonProperty("defaultListenerPort")
-	String defaultListenerPort;
+	int defaultListenerPort;
 	@JsonProperty("cells")
 	ArrayList<Cell> cells;	
 	@JsonProperty("services")
@@ -35,13 +42,13 @@ public class Tissue {
 	final void setDnaVersion(String dnaVersion) {
 		this.dnaVersion = dnaVersion;
 	}
-	@JsonProperty("defaultMulticastGroup")
-	final String getDefaultMulticastGroup() {
-		return defaultMulticastGroup;
+	@JsonProperty("defaultMulticastPort")
+	final String getDefaultMulticastPort() {
+		return defaultMulticastPort;
 	}
-	@JsonProperty("defaultMulticastGroup")
-	final void setDefaultMulticastGroup(String defaultMulticastGroup) {
-		this.defaultMulticastGroup = defaultMulticastGroup;
+	@JsonProperty("defaultMulticastPort")
+	final void setDefaultMulticastPort(String defaultMulticastPort) {
+		this.defaultMulticastPort = defaultMulticastPort;
 	}
 	@JsonProperty("defaultMulticastAddress")
 	final String getDefaultMulticastAddress() {
@@ -52,11 +59,11 @@ public class Tissue {
 		this.defaultMulticastAddress = defaultMulticastAddress;
 	}
 	@JsonProperty("defaultListenerPort")
-	final String getDefaultListenerPort() {
+	final int getDefaultListenerPort() {
 		return defaultListenerPort;
 	}
 	@JsonProperty("defaultListenerPort")
-	final void setDefaultListenerPort(String defaultListenerPort) {
+	final void setDefaultListenerPort(int defaultListenerPort) {
 		this.defaultListenerPort = defaultListenerPort;
 	}
 	@JsonProperty("cells")

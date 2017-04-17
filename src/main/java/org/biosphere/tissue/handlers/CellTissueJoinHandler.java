@@ -8,11 +8,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.DNA.XML.DNAXMLCore;
+import org.biosphere.tissue.DNA.JSON.DNA;
+import org.biosphere.tissue.protocol.TissueDNALocator;
+import org.biosphere.tissue.protocol.TissueJoinResponse;
 import org.biosphere.tissue.utils.RequestUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class CellTissueJoinHandler extends HttpServlet implements CellServletHandlerInterface {
 
@@ -56,25 +60,31 @@ public class CellTissueJoinHandler extends HttpServlet implements CellServletHan
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
 		logger.debug("CellTissueJoinHandler.doPost() Request from: " + partnerCell);
+		
 		String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
-		String remoteCell = requestPayload.substring(0, requestPayload.indexOf("\n"));
-		//String remoteCertificate = requestPayload.substring(requestPayload.indexOf("\n") + 1);
-		logger.info("CellTissueJoinHandler.doPost() Creatting new DNA for this cell");
-		DNAXMLCore dna = new DNAXMLCore();
-		getCell().setCellXMLDNA(dna);
-		logger.info("CellTissueJoinHandler.doPost() DNACore URL received: " + remoteCell);
-		dna.load(remoteCell, getCell().getTissuePort());
+		ObjectMapper mapper = new ObjectMapper();
+		TissueDNALocator tdl= mapper.readValue(requestPayload.getBytes(), TissueDNALocator.class);
+		logger.info("CellTissueJoinHandler.doPost() Creating new DNA for this cell");
+		DNA dna = new DNA("TemporaryFrom-"+tdl.getJsonDNAURL());
+		getCell().setDna(dna);
+		dna.fromJSON(tdl.getJsonDNAURL());
 		logger.info("CellTissueJoinHandler.doPost() Adding local cell to the local DNA (just in case the adopter forgot)");
-		dna.addCell(getCell().getCellName(), getCell().getCellCertificate(), getCell().getCellNetworkName(), getCell().getTissuePort());
+		dna.addCell(getCell().getCellName(), getCell().getCellCertificate(), getCell().getCellNetworkName(), getCell().getTissuePort());		
+		
 		getCell().setTissueMember(true);
-		String responseString = getCell().getCellName() + " sucessfull joined the tissue!";
+		
+		TissueJoinResponse tjr = new TissueJoinResponse();
+		tjr.setCellName(getCell().getCellName());
+		tjr.setMessage(getCell().getCellName() + " sucessfull joined the tissue!");
+		
+		String responseString = mapper.writeValueAsString(tjr);
 		response.setContentType(getContentType());
 		response.setCharacterEncoding(getContentEncoding());
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentLength(responseString.getBytes().length);
 		response.getWriter().println(responseString);	
 		response.flushBuffer();
-		logger.info("CellTissueJoinHandler.doPost() Joined tissue: " + getCell().getCellXMLDNA().getTissueName() + " from: " + partnerCell);
+		logger.info("CellTissueJoinHandler.doPost() Joined tissue JSON: " + getCell().getDna().getTissueName() + " from: " + partnerCell);
 	}
 	
 	@Override

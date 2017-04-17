@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.DNA.XML.CellInterface;
+import org.biosphere.tissue.protocol.CellInterface;
 import org.biosphere.tissue.services.ServiceManager;
 import org.biosphere.tissue.utils.KeystoreManager;
 
@@ -65,22 +65,30 @@ public class CellStatusHandler extends HttpServlet implements CellServletHandler
 		logger.debug("CellStatus.doPost() Cell " + cell.getCellName() + " request from: " + partnerCell);
 		
 		StringBuffer responseSB = new StringBuffer();
+		responseSB.append("##############################################################################\n");
+		Runtime runtime = Runtime.getRuntime();
+		long maxMemory = runtime.maxMemory();
+		long allocatedMemory = runtime.totalMemory();
+		long freeMemory = runtime.freeMemory();
+		responseSB.append("free memory: " + freeMemory / 1024+"\n");
+		responseSB.append("allocated memory: " + allocatedMemory / 1024+"\n");
+		responseSB.append("max memory: " + maxMemory / 1024+"\n");
+		responseSB.append("total free memory: " + (freeMemory + (maxMemory - allocatedMemory)) / 1024+"\n");
 		responseSB.append("##############################################################################\n");		
 		responseSB.append("Cell status page for cell " + getCell().getCellName() + "\n");
 		responseSB.append("Cell network name: " + getCell().getCellNetworkName() + "\n");
 		responseSB.append("Cell tissue port: " + getCell().getTissuePort() + "\n");
 		responseSB.append("Cell tissue certificate: \n" + getCell().getCellCertificate());
 		responseSB.append("##############################################################################\n");
-		responseSB.append("Tissue name: " + getCell().getCellXMLDNA().getTissueName() + "\n");
-		responseSB.append("Tissue size: " + getCell().getCellXMLDNA().getTissueSize() + "\n");
+		responseSB.append("Tissue name JSON: " + getCell().getDna().getTissueName() + "\n");
+		responseSB.append("Tissue size JSON: " + getCell().getDna().getTissueSize() + "\n");
 		responseSB.append("##############################################################################\n");
-		responseSB.append("Tissue cells: \n");
-		List<CellInterface> celIterfaces = getCell().getCellXMLDNA().getTissueCellsInterfaces();
-		Iterator cellsIfIterator = celIterfaces.iterator();
-		while (cellsIfIterator.hasNext()) {
-			CellInterface cellInterface = (CellInterface) cellsIfIterator.next();
-			responseSB.append("  Tissue cell: " + cellInterface.getCellName() + "("
-					+ cellInterface.getCellNetworkName() + ":" + cellInterface.getPort() + ")\n");
+		responseSB.append("Tissue cells JSON: \n");
+		List<CellInterface> cellInterfaces = getCell().getDna().getTissueCellsInterfaces();
+		Iterator ciitJSON = cellInterfaces.iterator();
+		while (ciitJSON.hasNext()) {
+			CellInterface cif = (CellInterface) ciitJSON.next();
+			responseSB.append("  Tissue cell: " + cif.getCellName() + "(" + cif.getCellNetworkName() + ":" + cif.getPort() + ")\n");
 		}
 		responseSB.append("##############################################################################\n");
 		responseSB.append("Chain dump: " + getCell().getChain().dumpChain() + "\n");
@@ -91,8 +99,7 @@ public class CellStatusHandler extends HttpServlet implements CellServletHandler
 		// response.append("Keystore algorithms: \n"+new
 		// KeystoreManager().showAlgorithm()+"\n");
 		responseSB.append("##############################################################################\n");
-		// response.append("Tissue DNA:
-		// \n"+getCell().getCellDNA().getDNACoreAsPrettyString()+"\n");
+		responseSB.append("Tissue DNA JSON: \n"+getCell().getDna().toJSON()+"\n");
 		responseSB.append("##############################################################################\n");
 		Hashtable<String, String> statusTable = new Hashtable<String, String>();
 		statusTable = ServiceManager.getStatus();
@@ -100,7 +107,7 @@ public class CellStatusHandler extends HttpServlet implements CellServletHandler
 		while (serviceList.hasMoreElements()) {
 			String serviceName = (String) serviceList.nextElement();
 			responseSB.append("Service: " + serviceName + " Status: " + statusTable.get(serviceName)+"\n");
-			responseSB.append("Service: " + serviceName + " dump: \n" + ServiceManager.getServletStatus(serviceName).toString()+"\n");
+			//responseSB.append("Service: " + serviceName + " dump: \n" + ServiceManager.getServletStatus(serviceName).toString()+"\n");
 			responseSB.append("##############################################################################\n");
 		}
 		String responseString = responseSB.toString();

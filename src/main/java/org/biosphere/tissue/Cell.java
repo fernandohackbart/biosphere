@@ -8,7 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
-import org.biosphere.tissue.DNA.XML.DNAXMLCore;
+import org.biosphere.tissue.DNA.JSON.DNA;
 import org.biosphere.tissue.blockchain.Chain;
 import org.biosphere.tissue.cell.CellManager;
 import org.biosphere.tissue.exceptions.CellException;
@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 public class Cell {
 
 	private boolean tissueMember;
-	private DNAXMLCore cellDNAXML;
+	private DNA dna;
 	private Logger logger;
 	private int tissuePort;
 	private String cellName;
@@ -49,13 +49,13 @@ public class Cell {
 	public boolean isTissueMember() {
 		return tissueMember;
 	}
-
-	public synchronized void setCellXMLDNA(DNAXMLCore cellDNA) {
-		this.cellDNAXML = cellDNA;
+	
+	public final DNA getDna() {
+		return dna;
 	}
 
-	public synchronized DNAXMLCore getCellXMLDNA() {
-		return cellDNAXML;
+	public final void setDna(DNA dna) {
+		this.dna = dna;
 	}
 
 	public void setCellName(String cellName) {

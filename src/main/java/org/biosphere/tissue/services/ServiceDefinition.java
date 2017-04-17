@@ -3,71 +3,71 @@ package org.biosphere.tissue.services;
 import java.util.Hashtable;
 
 public class ServiceDefinition {
-	private String serviceDefinitionName;
-	private String serviceDefinitionClass;
-	private String serviceDefinitionType;
-	private boolean serviceDefinitionDaemon = true;
-	private String serviceDefinitionVersion;
-	private Hashtable<String, Object> serviceDefinitionParameters;
+	private String name;
+	private String className;
+	private String type;
+	private boolean daemon = true;
+	private String version;
+	private Hashtable<String, Object> parameters;
 
 	public ServiceDefinition() {
 		super();
-		serviceDefinitionParameters = new Hashtable<String, Object>();
+		parameters = new Hashtable<String, Object>();
 	}
 
-	public final void addServiceDefinitionParameter(String key, Object value) {
-		serviceDefinitionParameters.put(key, value);
+	public final void addParameter(String key, Object value) {
+		parameters.put(key, value);
 	}
 
-	public final void removeServiceDefinitionParameter(String key) {
-		serviceDefinitionParameters.remove(key);
+	public final void removeParameter(String key) {
+		parameters.remove(key);
 	}
 
-	public final Hashtable<String, Object> getServiceDefinitionParameters() {
-		return serviceDefinitionParameters;
+	public final Hashtable<String, Object> getParameters() {
+		return parameters;
 	}
 
-	public void setServiceDefinitionParameters(Hashtable<String, Object> serviceDefinitionParameters) {
-		this.serviceDefinitionParameters = serviceDefinitionParameters;
+	public void setParameters(Hashtable<String, Object> parameters) {
+		this.parameters = parameters;
 	}
 
-	public final void setServiceDefinitionName(String serviceDefinitionName) {
-		this.serviceDefinitionName = serviceDefinitionName;
+	public final void setName(String name) {
+		this.name = name;
 	}
 
-	public final String getServiceDefinitionName() {
-		return serviceDefinitionName;
+	public final String getName() {
+		return name;
 	}
 
-	public final void setServiceDefinitionClass(String serviceDefinitionClass) {
-		this.serviceDefinitionClass = serviceDefinitionClass;
+	public final void setClassName(String className) {
+		this.className = className;
 	}
 
-	public final String getServiceDefinitionClass() {
-		return serviceDefinitionClass;
+	public final String getClassName() {
+		return className;
 	}
 
-	public final void setServiceDefinitionType(String serviceDefinitionType) {
-		this.serviceDefinitionType = serviceDefinitionType;
+	public final void setType(String type) {
+		this.type = type;
 	}
 
-	public final String getServiceDefinitionType() {
-		return serviceDefinitionType;
+	public final String getType() {
+		return type;
 	}
 
-	public final void setServiceDefinitionVersion(String serviceDefinitionVersion) {
-		this.serviceDefinitionVersion = serviceDefinitionVersion;
+	public final void setVersion(String version) {
+		this.version = version;
 	}
 
-	public final String getServiceDefinitionVersion() {
-		return serviceDefinitionVersion;
+	public final String getVersion() {
+		return version;
 	}
 
-	public final void setServiceDefinitionDaemon(boolean serviceDefinitionDaemon) {
-		this.serviceDefinitionDaemon = serviceDefinitionDaemon;
+	public final void setDaemon(boolean daemon) {
+		this.daemon = daemon;
 	}
 
-	public final boolean isServiceDefinitionDaemon() {
-		return serviceDefinitionDaemon;
+	public final boolean isDaemon() {
+		return daemon;
 	}
 }

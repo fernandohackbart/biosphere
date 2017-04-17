@@ -9,12 +9,12 @@ import java.net.InetAddress;
 import java.util.UUID;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.DNA.XML.DNAXMLCore;
+import org.biosphere.tissue.DNA.JSON.DNA;
 import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.blockchain.Chain;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
-import org.biosphere.tissue.protocol.TissueJoin;
+import org.biosphere.tissue.protocol.TissueJoinRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,15 +61,14 @@ public class TissueManager {
 	public final static void createTissue(Cell cell) throws CellException {
 		Logger logger = LoggerFactory.getLogger(TissueManager.class);
 		logger.info("TissueManager.createTissue() Creating tissue!");
-		DNAXMLCore dna = new DNAXMLCore();
-		cell.setCellXMLDNA(dna);
+		DNA dna = new DNA();
+		cell.setDna(dna);
 		try {
 			cell.setChain(new Chain(cell.getCellName(), cell));
 		} catch (BlockException e) {
 			TissueExceptionHandler.handleUnrecoverableGenericException(e, "TissueManager.createTissue()",
 					"Failed to set chain");
 		}
-		dna.incept();
 		dna.addCell(cell.getCellName(), cell.getCellCertificate(), cell.getCellNetworkName(), cell.getTissuePort());
 		cell.setTissueMember(true);
 	}
@@ -81,7 +80,7 @@ public class TissueManager {
 		while (!cell.isTissueMember()) {
 			try {
 				Thread.sleep(Long.parseLong(joinPollInternval));
-				TissueJoin tj = new TissueJoin();
+				TissueJoinRequest tj = new TissueJoinRequest();
 				tj.setCellName(cell.getCellName());
 				tj.setCellNetworkName(cell.getCellNetworkName());
 				tj.setTissuePort(cell.getTissuePort());
@@ -124,7 +123,6 @@ public class TissueManager {
 	public static String generateTissueName() {
 		Logger logger = LoggerFactory.getLogger(TissueManager.class);
 		String tissueName = generateRandomTissueName();
-		// String tissueName = generateDateTissueName();
 		logger.info("TissueManager.generateTissueName() Tissue name: " + tissueName);
 		return tissueName;
 	}

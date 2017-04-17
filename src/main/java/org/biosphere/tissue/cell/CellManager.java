@@ -23,7 +23,6 @@ import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.UUID;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -32,8 +31,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.DNA.XML.Tissue;
-import org.biosphere.tissue.DNA.XML.Tissueservicetype;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.services.ServiceDefinition;
@@ -58,12 +55,12 @@ public class CellManager {
 	}
 
 	public final static void setupCell(Cell cell) {
-		System.setProperty(TissueManager.logLevelParameter,TissueManager.logLevelValue);
-		System.setProperty(TissueManager.logOutputParameter,TissueManager.logOutputValue);
-		System.setProperty(TissueManager.logShowDateTimeParameter,TissueManager.logShowDateTimeValue);
-		System.setProperty(TissueManager.logDateFormatParameter,TissueManager.logDateFormatValue);
-		System.setProperty(TissueManager.jettLogLevelParameter,TissueManager.jettLogLevelValue);
-		System.setProperty(TissueManager.jettLogOutputParameter,TissueManager.jettLogOutputValue);
+		System.setProperty(TissueManager.logLevelParameter, TissueManager.logLevelValue);
+		System.setProperty(TissueManager.logOutputParameter, TissueManager.logOutputValue);
+		System.setProperty(TissueManager.logShowDateTimeParameter, TissueManager.logShowDateTimeValue);
+		System.setProperty(TissueManager.logDateFormatParameter, TissueManager.logDateFormatValue);
+		System.setProperty(TissueManager.jettLogLevelParameter, TissueManager.jettLogLevelValue);
+		System.setProperty(TissueManager.jettLogOutputParameter, TissueManager.jettLogOutputValue);
 		cell.setCellName(generateCellName());
 		cell.setCellNetworkName(getCellNetworkName());
 		cell.setTissueMember(false);
@@ -108,60 +105,48 @@ public class CellManager {
 
 	public final static ServiceDefinition getCellMonitorDefinition() {
 		ServiceDefinition sdCellMonitor = new ServiceDefinition();
-		sdCellMonitor.setServiceDefinitionName("CellMonitor");
-		sdCellMonitor.setServiceDefinitionType("THREAD");
-		sdCellMonitor.setServiceDefinitionVersion("0.1");
-		sdCellMonitor.setServiceDefinitionDaemon(false);
-		sdCellMonitor.setServiceDefinitionClass("org.biosphere.tissue.services.CellMonitor");
-		sdCellMonitor.addServiceDefinitionParameter("Interval", TissueManager.monitorInterval);
+		sdCellMonitor.setName("CellMonitor");
+		sdCellMonitor.setType("THREAD");
+		sdCellMonitor.setVersion("0.1");
+		sdCellMonitor.setDaemon(false);
+		sdCellMonitor.setClassName("org.biosphere.tissue.services.CellMonitor");
+		sdCellMonitor.addParameter("Interval", TissueManager.monitorInterval);
 		return sdCellMonitor;
 	}
 
 	public final static ServiceDefinition getCellAnnounceListenerDefinition() {
 		ServiceDefinition sdCellAnnounceListener = new ServiceDefinition();
-		sdCellAnnounceListener.setServiceDefinitionName("CellAnnounceListener");
-		sdCellAnnounceListener.setServiceDefinitionType("THREAD");
-		sdCellAnnounceListener.setServiceDefinitionVersion("0.1");
-		sdCellAnnounceListener.setServiceDefinitionClass("org.biosphere.tissue.services.CellAnnounceListener");
-		sdCellAnnounceListener.addServiceDefinitionParameter("AnnouncePort", TissueManager.announcePort);
-		sdCellAnnounceListener.addServiceDefinitionParameter("AnnounceAddress", TissueManager.announceAddress);
+		sdCellAnnounceListener.setName("CellAnnounceListener");
+		sdCellAnnounceListener.setType("THREAD");
+		sdCellAnnounceListener.setVersion("0.1");
+		sdCellAnnounceListener.setClassName("org.biosphere.tissue.services.CellAnnounceListener");
+		sdCellAnnounceListener.addParameter("AnnouncePort", TissueManager.announcePort);
+		sdCellAnnounceListener.addParameter("AnnounceAddress", TissueManager.announceAddress);
 		return sdCellAnnounceListener;
 	}
 
 	public final static ServiceDefinition getCellACSDefinition() {
 		ServiceDefinition sdCellACS = new ServiceDefinition();
-		sdCellACS.setServiceDefinitionName("CellAdministrationConsole");
-		sdCellACS.setServiceDefinitionType("THREAD");
-		sdCellACS.setServiceDefinitionVersion("0.1");
-		sdCellACS.setServiceDefinitionClass("org.biosphere.tissue.services.CellAdministrationConsole");
-		sdCellACS.addServiceDefinitionParameter("ListenPort", TissueManager.announcePort);
+		sdCellACS.setName("CellAdministrationConsole");
+		sdCellACS.setType("THREAD");
+		sdCellACS.setVersion("0.1");
+		sdCellACS.setClassName("org.biosphere.tissue.services.CellAdministrationConsole");
+		sdCellACS.addParameter("ListenPort", TissueManager.announcePort);
 		return sdCellACS;
 	}
-	
+
 	public final static ServiceDefinition getCellTissueServletListenerDefinition() {
 		ArrayList<ServletHandlerDefinition> cellTissueListenerHandlers = new ArrayList<ServletHandlerDefinition>();
-		
-		ServletHandlerDefinition cellDNACoreSHD = new ServletHandlerDefinition();
-		cellDNACoreSHD.setClassName("org.biosphere.tissue.handlers.CellDNACoreHandler");
-		cellDNACoreSHD.setContentType("application/xml");
-		cellDNACoreSHD.setContentEncoding("utf-8");
-		ArrayList<String> cellDNACoreContexts = new ArrayList<String>();
-		cellDNACoreContexts.add("/org/biosphere/tissue/DNA/DNACore.xml");
-		cellDNACoreSHD.setContexts(cellDNACoreContexts);
-		cellTissueListenerHandlers.add(cellDNACoreSHD);
-		
-		ServletHandlerDefinition cellDNASchemaSHD = new ServletHandlerDefinition();
-		cellDNASchemaSHD.setClassName("org.biosphere.tissue.handlers.CellDNASchemaHandler");
-		cellDNASchemaSHD.setContentType("application/xml");
-		cellDNASchemaSHD.setContentEncoding("utf-8");
-		ArrayList<String> cellDNASchemaContexts = new ArrayList<String>();
-		cellDNASchemaContexts.add("/org/biosphere/tissue/DNA/TissueCell-1.0.xsd");
-		cellDNASchemaContexts.add("/org/biosphere/tissue/DNA/TissueCellInterface-1.0.xsd");
-		cellDNASchemaContexts.add("/org/biosphere/tissue/DNA/TissueDNA-1.0.xsd");
-		cellDNASchemaContexts.add("/org/biosphere/tissue/DNA/TissueService-1.0.xsd");
-		cellDNASchemaSHD.setContexts(cellDNASchemaContexts);
-		cellTissueListenerHandlers.add(cellDNASchemaSHD);
-		
+
+		ServletHandlerDefinition cellDNASHD = new ServletHandlerDefinition();
+		cellDNASHD.setClassName("org.biosphere.tissue.handlers.CellDNAHandler");
+		cellDNASHD.setContentType("application/json");
+		cellDNASHD.setContentEncoding("utf-8");
+		ArrayList<String> cellDNAContexts = new ArrayList<String>();
+		cellDNAContexts.add("/org/biosphere/tissue/DNA");
+		cellDNASHD.setContexts(cellDNAContexts);
+		cellTissueListenerHandlers.add(cellDNASHD);
+
 		ServletHandlerDefinition cellTissueWelcomeSHD = new ServletHandlerDefinition();
 		cellTissueWelcomeSHD.setClassName("org.biosphere.tissue.handlers.CellTissueWelcomeHandler");
 		cellTissueWelcomeSHD.setContentType("application/json");
@@ -170,7 +155,7 @@ public class CellManager {
 		cellTissueWelcomeContexts.add("/org/biosphere/tissue/welcome");
 		cellTissueWelcomeSHD.setContexts(cellTissueWelcomeContexts);
 		cellTissueListenerHandlers.add(cellTissueWelcomeSHD);
-		
+
 		ServletHandlerDefinition cellTissueJoinSHD = new ServletHandlerDefinition();
 		cellTissueJoinSHD.setClassName("org.biosphere.tissue.handlers.CellTissueJoinHandler");
 		cellTissueJoinSHD.setContentType("application/json");
@@ -179,7 +164,7 @@ public class CellManager {
 		cellTissueJoinContexts.add("/org/biosphere/tissue/join");
 		cellTissueJoinSHD.setContexts(cellTissueJoinContexts);
 		cellTissueListenerHandlers.add(cellTissueJoinSHD);
-	
+
 		ServletHandlerDefinition cellStopSHD = new ServletHandlerDefinition();
 		cellStopSHD.setClassName("org.biosphere.tissue.handlers.CellStopHandler");
 		cellStopSHD.setContentType("text/html");
@@ -188,7 +173,7 @@ public class CellManager {
 		cellStopContexts.add("/org/biosphere/cell/stop");
 		cellStopSHD.setContexts(cellStopContexts);
 		cellTissueListenerHandlers.add(cellStopSHD);
-		
+
 		ServletHandlerDefinition serviceStopSHD = new ServletHandlerDefinition();
 		serviceStopSHD.setClassName("org.biosphere.tissue.handlers.ServiceThreadStopHandler");
 		serviceStopSHD.setContentType("text/html");
@@ -197,7 +182,7 @@ public class CellManager {
 		serviceStopContexts.add("/org/biosphere/cell/service/thread/stop");
 		serviceStopSHD.setContexts(serviceStopContexts);
 		cellTissueListenerHandlers.add(serviceStopSHD);
-		
+
 		ServletHandlerDefinition httpServiceStopSHD = new ServletHandlerDefinition();
 		httpServiceStopSHD.setClassName("org.biosphere.tissue.handlers.ServiceServletStopHandler");
 		httpServiceStopSHD.setContentType("text/html");
@@ -233,7 +218,7 @@ public class CellManager {
 		chainAppendBlockContexts.add("/org/biosphere/cell/chain/append/block");
 		chainAppendBlockSHD.setContexts(chainAppendBlockContexts);
 		cellTissueListenerHandlers.add(chainAppendBlockSHD);
-		
+
 		ServletHandlerDefinition chainParseChainSHD = new ServletHandlerDefinition();
 		chainParseChainSHD.setClassName("org.biosphere.tissue.handlers.ChainParseChainHandler");
 		chainParseChainSHD.setContentType("application/json");
@@ -242,7 +227,7 @@ public class CellManager {
 		chainParseChainContexts.add("/org/biosphere/cell/chain/parse/chain");
 		chainParseChainSHD.setContexts(chainParseChainContexts);
 		cellTissueListenerHandlers.add(chainParseChainSHD);
-		
+
 		ServletHandlerDefinition chainGetChainSHD = new ServletHandlerDefinition();
 		chainGetChainSHD.setClassName("org.biosphere.tissue.handlers.ChainGetFlatChainHandler");
 		chainGetChainSHD.setContentType("application/json");
@@ -251,7 +236,7 @@ public class CellManager {
 		chainGetChainContexts.add("/org/biosphere/cell/chain/get/chain");
 		chainGetChainSHD.setContexts(chainGetChainContexts);
 		cellTissueListenerHandlers.add(chainGetChainSHD);
-		
+
 		ServletHandlerDefinition chainGetImageChainSHD = new ServletHandlerDefinition();
 		chainGetImageChainSHD.setClassName("org.biosphere.tissue.handlers.ChainGetImageChainHandler");
 		chainGetImageChainSHD.setContentType("image/png");
@@ -260,25 +245,25 @@ public class CellManager {
 		chainGetImageChainContexts.add("/org/biosphere/cell/chain/get/chainimage");
 		chainGetImageChainSHD.setContexts(chainGetImageChainContexts);
 		cellTissueListenerHandlers.add(chainGetImageChainSHD);
-		//#################################################################################################
-		
+		// #################################################################################################
+
 		ServiceDefinition sdCellTissueListener = new ServiceDefinition();
-		sdCellTissueListener.setServiceDefinitionName("CellTissueListener");
-		sdCellTissueListener.setServiceDefinitionType("SERVLET");
-		sdCellTissueListener.setServiceDefinitionVersion("0.1");
-		sdCellTissueListener.setServiceDefinitionClass("org.eclipse.jetty.server.Server");
-		sdCellTissueListener.addServiceDefinitionParameter("Handlers", cellTissueListenerHandlers);
-		sdCellTissueListener.addServiceDefinitionParameter("DefaultHTTPPort", TissueManager.defaultTissuePort);
+		sdCellTissueListener.setName("CellTissueListener");
+		sdCellTissueListener.setType("SERVLET");
+		sdCellTissueListener.setVersion("0.1");
+		sdCellTissueListener.setClassName("org.eclipse.jetty.server.Server");
+		sdCellTissueListener.addParameter("Handlers", cellTissueListenerHandlers);
+		sdCellTissueListener.addParameter("DefaultHTTPPort", TissueManager.defaultTissuePort);
 		return sdCellTissueListener;
 	}
-	
+
 	public final static ServiceDefinition getCellServiceListenerDefinition() {
 		// all those parameters should be placed inside the DNA and the consumed
 		// from there when starting the service
-		
+
 		ArrayList<ServletHandlerDefinition> cellServiceListenerHandlers = new ArrayList<ServletHandlerDefinition>();
 		ServletHandlerDefinition cellServiceListenerSHD = new ServletHandlerDefinition();
-		
+
 		ServletHandlerDefinition cellHTTPContextAddSHD = new ServletHandlerDefinition();
 		cellHTTPContextAddSHD.setClassName("org.biosphere.tissue.handlers.ServiceAddContextHandler");
 		cellHTTPContextAddSHD.setContentType("text/plain");
@@ -286,8 +271,8 @@ public class CellManager {
 		ArrayList<String> cellHTTPContextAddContexts = new ArrayList<String>();
 		cellHTTPContextAddContexts.add("/org/biosphere/cell/service/context/add");
 		cellHTTPContextAddSHD.setContexts(cellHTTPContextAddContexts);
-		cellServiceListenerHandlers.add(cellHTTPContextAddSHD);	
-		
+		cellServiceListenerHandlers.add(cellHTTPContextAddSHD);
+
 		cellServiceListenerSHD.setClassName("org.biosphere.tissue.handlers.ServiceInstantiationHandler");
 		cellServiceListenerSHD.setContentType("text/plain");
 		cellServiceListenerSHD.setContentEncoding("utf-8");
@@ -297,12 +282,12 @@ public class CellManager {
 		cellServiceListenerHandlers.add(cellServiceListenerSHD);
 
 		ServiceDefinition sdCellTissueListener = new ServiceDefinition();
-		sdCellTissueListener.setServiceDefinitionName("CellServiceListener");
-		sdCellTissueListener.setServiceDefinitionType("SERVLET");
-		sdCellTissueListener.setServiceDefinitionVersion("0.1");
-		sdCellTissueListener.setServiceDefinitionClass("org.eclipse.jetty.server.Server");
-		sdCellTissueListener.addServiceDefinitionParameter("Handlers", cellServiceListenerHandlers);
-		sdCellTissueListener.addServiceDefinitionParameter("DefaultHTTPPort",
+		sdCellTissueListener.setName("CellServiceListener");
+		sdCellTissueListener.setType("SERVLET");
+		sdCellTissueListener.setVersion("0.1");
+		sdCellTissueListener.setClassName("org.eclipse.jetty.server.Server");
+		sdCellTissueListener.addParameter("Handlers", cellServiceListenerHandlers);
+		sdCellTissueListener.addParameter("DefaultHTTPPort",
 				TissueManager.defaultTissuePort + TissueManager.portJumpFactor);
 		return sdCellTissueListener;
 	}
@@ -315,27 +300,40 @@ public class CellManager {
 		Logger logger;
 		logger = LoggerFactory.getLogger(CellManager.class);
 		logger.debug("CellManager.addServicesDNA() Adding CellMonitor definition to DNA");
-		cell.getCellXMLDNA().addService(getCellMonitorDefinition());
+		try {
+			cell.getDna().addService(getCellMonitorDefinition());
+		} catch (IOException e) {
+			TissueExceptionHandler.handleGenericException(e, "CellManager.loadServicesDNA()", e.getLocalizedMessage());
+		}
 		logger.debug("CellManager.addServicesDNA() Adding CellAnnounceListener definition to DNA");
-		cell.getCellXMLDNA().addService(getCellAnnounceListenerDefinition());
+		try {
+			cell.getDna().addService(getCellAnnounceListenerDefinition());
+		} catch (IOException e) {
+			TissueExceptionHandler.handleGenericException(e, "CellManager.loadServicesDNA()", e.getLocalizedMessage());
+		}
 		logger.debug("CellManager.addServicesDNA() Adding CellTissueListener definition to DNA");
-		cell.getCellXMLDNA().addService(getCellTissueServletListenerDefinition());
-		// logger.debug("CellManager.addServicesDNA()","Adding CellACS
-		// definition to DNA");
-		// cell.getCellDNA().addService(getCellACSDefinition());
+		try {
+			cell.getDna().addService(getCellTissueServletListenerDefinition());
+		} catch (IOException e) {
+			TissueExceptionHandler.handleGenericException(e, "CellManager.loadServicesDNA()", e.getLocalizedMessage());
+		}
+		// logger.debug("CellManager.addServicesDNA()","Adding CellACS definition to DNA");
+		// cell.getDna().addService(getCellACSDefinition());
 		logger.debug("CellManager.addServicesDNA() Adding CellServiceListener definition to DNA");
-		cell.getCellXMLDNA().addService(getCellServiceListenerDefinition());
+		try {
+			cell.getDna().addService(getCellServiceListenerDefinition());
+		} catch (IOException e) {
+			TissueExceptionHandler.handleGenericException(e, "CellManager.loadServicesDNA()", e.getLocalizedMessage());
+		}
 	}
 
 	public static final void startServicesDNA(Cell cell) {
 		Logger logger;
 		logger = LoggerFactory.getLogger(CellManager.class);
-		Tissue.Tissueservices services = cell.getCellXMLDNA().getServices();
-		Iterator<Tissueservicetype> servicesIterator = services.getTissueservice().iterator();
-		while (servicesIterator.hasNext()) {
-			Tissueservicetype service = (Tissueservicetype) servicesIterator.next();
-			logger.debug("CellManager.startServicesDNA() Starting " + service.getServicename() + " from DNA");
-			ServiceManager.start(service.getServicename(), cell);
+		ArrayList<ServiceDefinition> sds = cell.getDna().getServices();
+		for (ServiceDefinition sd : sds) {
+			logger.info("CellManager.startServicesDNA() Starting " + sd.getName() + " from DNA");
+			ServiceManager.start(sd.getName(), cell);
 		}
 	}
 
@@ -354,7 +352,7 @@ public class CellManager {
 	public static final void setDefaultSSLSocketFactory(Cell cell) {
 		Logger logger;
 		logger = LoggerFactory.getLogger(CellManager.class);
-		logger.info("CellManager.setDefaultSSLSocketFactory() CellName:" + cell.getCellName());
+		logger.info("CellManager.setDefaultSSLSocketFactory() Setting in memory keystore as default!");
 		try {
 			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 			tmf.init(cell.getCellKeystore());

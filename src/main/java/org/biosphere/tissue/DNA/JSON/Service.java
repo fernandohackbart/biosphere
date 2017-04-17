@@ -5,6 +5,11 @@ import java.util.ArrayList;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Service {
+	
+	public Service() {
+		super();
+		parameters= new ArrayList<ServiceParameter>();
+	}
 	@JsonProperty("name")
 	String name;
 	@JsonProperty("version")

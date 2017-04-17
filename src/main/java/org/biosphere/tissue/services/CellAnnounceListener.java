@@ -24,8 +24,10 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.biosphere.tissue.cell.CellManager;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
+import org.biosphere.tissue.protocol.TissueDNALocator;
 import org.biosphere.tissue.protocol.TissueGreeting;
-import org.biosphere.tissue.protocol.TissueJoin;
+import org.biosphere.tissue.protocol.TissueJoinRequest;
+import org.biosphere.tissue.protocol.TissueJoinResponse;
 import org.biosphere.tissue.protocol.TissueWelcome;
 import org.biosphere.tissue.tissue.TissueManager;
 
@@ -81,7 +83,7 @@ public class CellAnnounceListener extends THREADService {
 	private void adoptCell(String tissueJoin) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			TissueJoin tj = mapper.readValue(tissueJoin.getBytes(), TissueJoin.class);
+			TissueJoinRequest tj = mapper.readValue(tissueJoin.getBytes(), TissueJoinRequest.class);
 
 			logger.debug("CellAnnounceListener.adoptCell() Adopting: (" + tj.getCellName() + ") "
 					+ tj.getCellNetworkName() + ":" + tj.getTissuePort());
@@ -96,7 +98,7 @@ public class CellAnnounceListener extends THREADService {
 			}
 
 			TissueWelcome tw = new TissueWelcome();
-			tw.setTissueName(cell.getCellXMLDNA().getTissueName());
+			tw.setTissueName(cell.getDna().getTissueName());
 			tw.setCellName(cell.getCellName());
 			tw.setCellCertificate(cell.getCellCertificate());
 			String requestWelcome = mapper.writeValueAsString(tw);
@@ -123,10 +125,12 @@ public class CellAnnounceListener extends THREADService {
 			logger.info("CellAnnounceListener.adoptCell() Greeting response: (" +tg.getCellName()+ ") " + tg.getMessage());
 
 			if (tg.getMessage().equals("Greetings")) {
-				String requestJoin = "https://" + cell.getCellNetworkName() + ":" + cell.getTissuePort()
-						+ "/org/biosphere/tissue/DNA/DNACore.xml\n" + cell.getCellCertificate();
-				URL urlJoin = new URL(
-						"https://" + tj.getCellNetworkName() + ":" + tj.getTissuePort() + "/org/biosphere/tissue/join");
+				
+				TissueDNALocator tdl = new TissueDNALocator();
+				tdl.setJsonDNAURL("https://" + cell.getCellNetworkName() + ":" + cell.getTissuePort()+"/org/biosphere/tissue/DNA");
+				tdl.setXmlDNAURL("https://" + cell.getCellNetworkName() + ":" + cell.getTissuePort()+"/org/biosphere/tissue/DNA/DNACore.xml");
+				String requestJoin = mapper.writeValueAsString(tdl);
+				URL urlJoin = new URL("https://" + tj.getCellNetworkName() + ":" + tj.getTissuePort() + "/org/biosphere/tissue/join");
 				logger.debug("CellAnnounceListener.adoptCell() Sending DNACore URL to: " + urlJoin.getProtocol() + "://"
 						+ urlJoin.getHost() + ":" + urlJoin.getPort() + "/org/biosphere/tissue/join");
 				HttpsURLConnection connJoin = (HttpsURLConnection) urlJoin.openConnection();
@@ -139,12 +143,12 @@ public class CellAnnounceListener extends THREADService {
 				connJoin.setUseCaches(false);
 				DataOutputStream wrJoin = new DataOutputStream(connJoin.getOutputStream());
 				wrJoin.write(requestJoin.getBytes());
-				
-				// TODO send all the possible interfaces
 				connJoin.connect();
 				String responseJoin = getResponseAsString(connJoin.getInputStream());
 				connJoin.disconnect();
-				logger.debug("CellAnnounceListener.adoptCell() Join response: " + responseJoin);
+				TissueJoinResponse tjr= mapper.readValue(responseJoin.getBytes(), TissueJoinResponse.class);
+				logger.debug("CellAnnounceListener.adoptCell() Join response: (" +tjr.getCellName()+") "+ tjr.getMessage());
+				
 				String requestChain = cell.getChain().toJSON();
 				URL urlChain = new URL("https://" + tj.getCellNetworkName() + ":" + tj.getTissuePort()
 						+ "/org/biosphere/cell/chain/parse/chain");
@@ -167,8 +171,7 @@ public class CellAnnounceListener extends THREADService {
 				logger.debug("CellAnnounceListener.adoptCell() Chain send response: " + responseChain);
 
 				logger.debug("CellAnnounceListener.adoptCell() Adding adopted cell to the local DNA!");
-				cell.getCellXMLDNA().addCell(tg.getCellName(), tj.getCellCertificate(), tj.getCellNetworkName(),
-						tj.getTissuePort());
+				cell.getDna().addCell(tg.getCellName(), tj.getCellCertificate(), tj.getCellNetworkName(),tj.getTissuePort());
 			}
 		} catch (UnknownHostException e) {
 			TissueExceptionHandler.handleGenericException(e, "CellAnnounceListener.adoptCell()",

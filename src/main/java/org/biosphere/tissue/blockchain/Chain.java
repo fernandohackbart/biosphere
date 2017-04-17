@@ -7,9 +7,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.biosphere.tissue.Cell;
-import org.biosphere.tissue.DNA.XML.CellInterface;
 import org.biosphere.tissue.protocol.BlockAddRequest;
 import org.biosphere.tissue.protocol.BlockAddResponse;
+import org.biosphere.tissue.protocol.CellInterface;
 import org.biosphere.tissue.protocol.FatBlockAppendRequest;
 import org.biosphere.tissue.protocol.FlatBlock;
 import org.biosphere.tissue.protocol.FlatChain;
@@ -115,7 +115,9 @@ public class Chain {
 	 * @return String the current block ID
 	 */
 	public final String getNextBlockID() {
-		int tissueSize = getCell().getCellXMLDNA().getTissueSize();
+		//TODO replace by the JSON DNA
+		//int tissueSize = getCell().getCellXMLDNA().getTissueSize();
+		int tissueSize = getCell().getDna().getTissueSize();
 		int highestPosition = getBlock("GENESIS").getChainPosition();
 		String nextBlockID = "GENESIS";
 		ArrayList<String> candidates = new ArrayList<String>();
@@ -293,10 +295,12 @@ public class Chain {
 		if (block.getCellID().equals(notifyingCell)) {
 			logger.debug("Chain.sendConsensusVotes() Sending consensus vote (" + accepted + ") for block " + block.getBlockID() + " to the tissue");
 			logger.debug("Chain.sendConsensusVotes() Getting the list of the cells from the DNA");
-			List<CellInterface> celIterfaces = getCell().getCellXMLDNA().getTissueCellsInterfaces();
-			Iterator cellsIfIterator = celIterfaces.iterator();
-			while (cellsIfIterator.hasNext()) {
-				CellInterface cellInterface = (CellInterface) cellsIfIterator.next();
+			//TODO replace by the JSON DNA
+			//List<CellInterface> celIterfaces = getCell().getCellXMLDNA().getTissueCellsInterfaces();
+			List<CellInterface> cellIFs = getCell().getDna().getTissueCellsInterfaces();
+			Iterator cellIFIterator = cellIFs.iterator();
+			while (cellIFIterator.hasNext()) {
+				CellInterface cellInterface = (CellInterface) cellIFIterator.next();
 				if ((!cellInterface.getCellName().equals(getCell().getCellName()))
 						&& (!cellInterface.getCellName().equals(block.getCellID()))) {
 					logger.debug("Chain.sendConsensusVotes() Cell " + cellInterface.getCellName() + " elegible for notification ");

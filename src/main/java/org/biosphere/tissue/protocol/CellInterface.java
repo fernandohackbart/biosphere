@@ -1,4 +1,4 @@
-package org.biosphere.tissue.DNA.XML;
+package org.biosphere.tissue.protocol;
 
 public class CellInterface {
 	public CellInterface() {
