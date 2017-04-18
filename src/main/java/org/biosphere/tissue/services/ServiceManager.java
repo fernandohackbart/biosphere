@@ -216,8 +216,6 @@ public final class ServiceManager {
 	
 	public static synchronized void start(String serviceName, Cell cell) {
 		Logger logger = LoggerFactory.getLogger(ServiceManager.class);
-		//TODO replace by the JSON DNA
-		//ServiceDefinition sd = cell.getCellXMLDNA().getServiceDefinition(serviceName);
 		ServiceDefinition sd = cell.getDna().getService(serviceName);
 		try {
 			logger.info("ServiceManager.start() Starting " + sd.getType() + " service " + sd.getName());

@@ -3,44 +3,34 @@ package org.biosphere.tissue.protocol;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TissueJoinRequest {
-	@JsonProperty("cellName")
-	String cellName;
-	@JsonProperty("cellNetworkName")
-	String cellNetworkName;
-	@JsonProperty("tissuePort")
-	int tissuePort;
-	@JsonProperty("cellCertificate")
-	String cellCertificate;
-	@JsonProperty("cellName")
-	public final String getCellName() {
-		return cellName;
+	@JsonProperty("jsonDNAURL")
+	String jsonDNAURL;
+	@JsonProperty("dna")
+	String dna;
+	@JsonProperty("chain")
+	String chain;
+	@JsonProperty("jsonDNAURL")
+	public final String getJsonDNAURL() {
+		return jsonDNAURL;
 	}
-	@JsonProperty("cellName")
-	public final void setCellName(String cellName) {
-		this.cellName = cellName;
+	@JsonProperty("jsonDNAURL")
+	public final void setJsonDNAURL(String jsonDNAURL) {
+		this.jsonDNAURL = jsonDNAURL;
 	}
-	@JsonProperty("cellNetworkName")
-	public final String getCellNetworkName() {
-		return cellNetworkName;
+	@JsonProperty("dna")
+	public final String getDna() {
+		return dna;
 	}
-	@JsonProperty("cellNetworkName")
-	public final void setCellNetworkName(String cellNetworkName) {
-		this.cellNetworkName = cellNetworkName;
+	@JsonProperty("dna")
+	public final void setDna(String dna) {
+		this.dna = dna;
 	}
-	@JsonProperty("tissuePort")
-	public final int getTissuePort() {
-		return tissuePort;
+	@JsonProperty("chain")
+	public final String getChain() {
+		return chain;
 	}
-	@JsonProperty("tissuePort")
-	public final void setTissuePort(int tissuePort) {
-		this.tissuePort = tissuePort;
-	}
-	@JsonProperty("cellCertificate")
-	public final String getCellCertificate() {
-		return cellCertificate;
-	}
-	@JsonProperty("cellCertificate")
-	public final void setCellCertificate(String cellCertificate) {
-		this.cellCertificate = cellCertificate;
+	@JsonProperty("chain")
+	public final void setChain(String chain) {
+		this.chain = chain;
 	}
 }

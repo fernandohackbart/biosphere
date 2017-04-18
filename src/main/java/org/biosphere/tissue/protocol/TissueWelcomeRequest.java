@@ -2,7 +2,7 @@ package org.biosphere.tissue.protocol;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class TissueWelcome {
+public class TissueWelcomeRequest {
 	@JsonProperty("tissueName")
 	String tissueName;
 	@JsonProperty("cellName")

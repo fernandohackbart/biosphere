@@ -14,8 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.cell.CellManager;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
-import org.biosphere.tissue.protocol.TissueGreeting;
-import org.biosphere.tissue.protocol.TissueWelcome;
+import org.biosphere.tissue.protocol.TissueWelcomeResponse;
+import org.biosphere.tissue.protocol.TissueWelcomeRequest;
 import org.biosphere.tissue.tissue.TissueManager;
 import org.biosphere.tissue.utils.RequestUtils;
 
@@ -68,15 +68,15 @@ public class CellTissueWelcomeHandler extends HttpServlet implements CellServlet
 		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
 		String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
 		ObjectMapper mapper = new ObjectMapper();
-		TissueWelcome tw = mapper.readValue(requestPayload.getBytes(), TissueWelcome.class);
-		logger.info("CellTissueWelcomeHandler.doPost() Welcome request to tissue " + tw.getTissueName() + " from cell (" + tw.getCellName()+") at "+ partnerCell);
+		TissueWelcomeRequest twr = mapper.readValue(requestPayload.getBytes(), TissueWelcomeRequest.class);
+		logger.info("CellTissueWelcomeHandler.doPost() Welcome request to tissue " + twr.getTissueName() + " from cell (" + twr.getCellName()+") at "+ partnerCell);
 		
-		TissueGreeting tg = new TissueGreeting();
+		TissueWelcomeResponse tg = new TissueWelcomeResponse();
 		if ((!TissueManager.isOnWelcomeProcess())&&(!getCell().isTissueMember()))
 		{
 			TissueManager.setOnWelcomeProcess(true);
 			try {
-				CellManager.addCellTrustKeystore(tw.getCellName(), tw.getCellCertificate(), getCell());
+				CellManager.addCellTrustKeystore(twr.getCellName(), twr.getCellCertificate(), getCell());
 			} catch (CertificateEncodingException | KeyStoreException e) {
 				TissueExceptionHandler.handleGenericException(e, "CellTissueWelcomeHandler.doPost()",
 						"CertificateEncodingException/KeyStoreException:");
@@ -85,12 +85,12 @@ public class CellTissueWelcomeHandler extends HttpServlet implements CellServlet
 						"CertificateException:");
 			}			
 			tg.setMessage("Greetings");
-			logger.info("CellTissueWelcomeHandler.doPost() Sending greetings to cell:" + tw.getCellName());
+			logger.info("CellTissueWelcomeHandler.doPost() Sending greetings to cell:" + twr.getCellName());
 		}
 		else
 		{
 			tg.setMessage("Busy");
-			logger.info("CellTissueWelcomeHandler.doPost() Sending busy to cell:" + tw.getCellName());
+			logger.info("CellTissueWelcomeHandler.doPost() Sending busy to cell:" + twr.getCellName());
 		}
 		tg.setCellName(getCell().getCellName());
 		String responseString = mapper.writeValueAsString(tg);

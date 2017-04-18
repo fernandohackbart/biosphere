@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DNA {
 
-	private static Tissue tissue;
+	private Tissue tissue;
 	private Logger logger;
 
 	public DNA() {
@@ -36,15 +36,10 @@ public class DNA {
 		tissue.setDefaultMulticastAddress(TissueManager.announceAddress);
 	}
 	
-	public DNA(String name) {
+	public DNA(Tissue tissue) {
 		super();
 		logger = LoggerFactory.getLogger(DNA.class);
-		tissue = new Tissue();
-		tissue.setDnaVersion("1.0");
-		tissue.setName(name);
-		tissue.setDefaultListenerPort(TissueManager.defaultTissuePort);
-		tissue.setDefaultMulticastPort(TissueManager.announcePort);
-		tissue.setDefaultMulticastAddress(TissueManager.announceAddress);
+		this.tissue=tissue;
 	}
 
 	public String getTissueName() {

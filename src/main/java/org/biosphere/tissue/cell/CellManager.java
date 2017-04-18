@@ -138,15 +138,6 @@ public class CellManager {
 	public final static ServiceDefinition getCellTissueServletListenerDefinition() {
 		ArrayList<ServletHandlerDefinition> cellTissueListenerHandlers = new ArrayList<ServletHandlerDefinition>();
 
-		ServletHandlerDefinition cellDNASHD = new ServletHandlerDefinition();
-		cellDNASHD.setClassName("org.biosphere.tissue.handlers.CellDNAHandler");
-		cellDNASHD.setContentType("application/json");
-		cellDNASHD.setContentEncoding("utf-8");
-		ArrayList<String> cellDNAContexts = new ArrayList<String>();
-		cellDNAContexts.add("/org/biosphere/tissue/DNA");
-		cellDNASHD.setContexts(cellDNAContexts);
-		cellTissueListenerHandlers.add(cellDNASHD);
-
 		ServletHandlerDefinition cellTissueWelcomeSHD = new ServletHandlerDefinition();
 		cellTissueWelcomeSHD.setClassName("org.biosphere.tissue.handlers.CellTissueWelcomeHandler");
 		cellTissueWelcomeSHD.setContentType("application/json");
@@ -218,24 +209,6 @@ public class CellManager {
 		chainAppendBlockContexts.add("/org/biosphere/cell/chain/append/block");
 		chainAppendBlockSHD.setContexts(chainAppendBlockContexts);
 		cellTissueListenerHandlers.add(chainAppendBlockSHD);
-
-		ServletHandlerDefinition chainParseChainSHD = new ServletHandlerDefinition();
-		chainParseChainSHD.setClassName("org.biosphere.tissue.handlers.ChainParseChainHandler");
-		chainParseChainSHD.setContentType("application/json");
-		chainParseChainSHD.setContentEncoding("utf-8");
-		ArrayList<String> chainParseChainContexts = new ArrayList<String>();
-		chainParseChainContexts.add("/org/biosphere/cell/chain/parse/chain");
-		chainParseChainSHD.setContexts(chainParseChainContexts);
-		cellTissueListenerHandlers.add(chainParseChainSHD);
-
-		ServletHandlerDefinition chainGetChainSHD = new ServletHandlerDefinition();
-		chainGetChainSHD.setClassName("org.biosphere.tissue.handlers.ChainGetFlatChainHandler");
-		chainGetChainSHD.setContentType("application/json");
-		chainGetChainSHD.setContentEncoding("utf-8");
-		ArrayList<String> chainGetChainContexts = new ArrayList<String>();
-		chainGetChainContexts.add("/org/biosphere/cell/chain/get/chain");
-		chainGetChainSHD.setContexts(chainGetChainContexts);
-		cellTissueListenerHandlers.add(chainGetChainSHD);
 
 		ServletHandlerDefinition chainGetImageChainSHD = new ServletHandlerDefinition();
 		chainGetImageChainSHD.setClassName("org.biosphere.tissue.handlers.ChainGetImageChainHandler");
