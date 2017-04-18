@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.protocol.CellInterface;
 import org.biosphere.tissue.services.ServiceManager;
+import org.biosphere.tissue.tissue.TissueManager;
 import org.biosphere.tissue.utils.KeystoreManager;
 
 import org.slf4j.Logger;
@@ -74,6 +75,11 @@ public class CellStatusHandler extends HttpServlet implements CellServletHandler
 		responseSB.append("allocated memory: " + allocatedMemory / 1024+"\n");
 		responseSB.append("max memory: " + maxMemory / 1024+"\n");
 		responseSB.append("total free memory: " + (freeMemory + (maxMemory - allocatedMemory)) / 1024+"\n");
+		responseSB.append("##############################################################################\n");
+		responseSB.append("Log level: trace="+logger.isTraceEnabled()+" debug="+logger.isDebugEnabled()+" info="+logger.isInfoEnabled()+" warn="+logger.isWarnEnabled()+" error="+logger.isErrorEnabled());
+		responseSB.append("Log level: "+TissueManager.logLevelParameter+"="+System.getProperty(TissueManager.logLevelParameter));
+		responseSB.append("Log level: "+TissueManager.logOutputParameter+"="+System.getProperty(TissueManager.logOutputParameter));
+		responseSB.append("Log level: "+TissueManager.logShowDateTimeParameter+"="+System.getProperty(TissueManager.logShowDateTimeParameter));
 		responseSB.append("##############################################################################\n");		
 		responseSB.append("Cell status page for cell " + getCell().getCellName() + "\n");
 		responseSB.append("Cell network name: " + getCell().getCellNetworkName() + "\n");
