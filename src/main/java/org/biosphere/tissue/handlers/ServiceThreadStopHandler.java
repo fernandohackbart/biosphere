@@ -36,10 +36,5 @@ public class ServiceThreadStopHandler extends AbstractHandler {
 		response.getWriter().println(responseString);	
 		response.flushBuffer();
 	}
-	
-	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		doPost(request, response);
-	}
+
 }

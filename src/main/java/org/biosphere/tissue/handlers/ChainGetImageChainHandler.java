@@ -31,12 +31,6 @@ public class ChainGetImageChainHandler extends AbstractHandler {
 		response.flushBuffer();
 	}
 
-	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		doPost(request, response);
-	}
-
 	private byte[] generateRandomImage() throws IOException {
 		int width = 640;
 		int height = 320;
