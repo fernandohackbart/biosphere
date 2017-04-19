@@ -37,10 +37,10 @@ public class CellStatusHandler extends AbstractHandler {
 		responseSB.append("max memory: " + maxMemory / 1024+"\n");
 		responseSB.append("total free memory: " + (freeMemory + (maxMemory - allocatedMemory)) / 1024+"\n");
 		responseSB.append("##############################################################################\n");
-		responseSB.append("Log level: trace="+getLogger().isTraceEnabled()+" debug="+getLogger().isDebugEnabled()+" info="+getLogger().isInfoEnabled()+" warn="+getLogger().isWarnEnabled()+" error="+getLogger().isErrorEnabled());
-		responseSB.append("Log level: "+TissueManager.logLevelParameter+"="+System.getProperty(TissueManager.logLevelParameter));
-		responseSB.append("Log level: "+TissueManager.logOutputParameter+"="+System.getProperty(TissueManager.logOutputParameter));
-		responseSB.append("Log level: "+TissueManager.logShowDateTimeParameter+"="+System.getProperty(TissueManager.logShowDateTimeParameter));
+		responseSB.append("Log level: trace="+getLogger().isTraceEnabled()+" debug="+getLogger().isDebugEnabled()+" info="+getLogger().isInfoEnabled()+" warn="+getLogger().isWarnEnabled()+" error="+getLogger().isErrorEnabled()+"\n");
+		responseSB.append("Log level: "+TissueManager.logLevelParameter+"="+System.getProperty(TissueManager.logLevelParameter)+"\n");
+		responseSB.append("Log level: "+TissueManager.logOutputParameter+"="+System.getProperty(TissueManager.logOutputParameter)+"\n");
+		responseSB.append("Log level: "+TissueManager.logShowDateTimeParameter+"="+System.getProperty(TissueManager.logShowDateTimeParameter)+"\n");
 		responseSB.append("##############################################################################\n");		
 		responseSB.append("Cell status page for cell " + getCell().getCellName() + "\n");
 		responseSB.append("Cell network name: " + getCell().getCellNetworkName() + "\n");
