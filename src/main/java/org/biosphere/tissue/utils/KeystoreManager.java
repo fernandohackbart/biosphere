@@ -1,8 +1,6 @@
 package org.biosphere.tissue.utils;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringWriter;
 
@@ -78,23 +76,11 @@ public class KeystoreManager {
 	public KeyStore getKeyStore(String cellName, String subjectName, String keyStorePass)
 			throws NoSuchAlgorithmException, InvalidKeySpecException, OperatorCreationException, IOException,
 			CertificateException, KeyStoreException {
-		// return
-		// this.getFileKeyStore("E:\\mywork\\Keystore\\testkey.jks",keyStorePass);
 		// return this.generateKeyStore(cellName,subjectName,keyStorePass);
 		return this.generateKeyStoreSelf(cellName, subjectName, keyStorePass);
 	}
 
-	private KeyStore getFileKeyStore(String file, String password) throws KeyStoreException, FileNotFoundException,
-			IOException, NoSuchAlgorithmException, CertificateException {
-		// keytool -genkey -keyalg RSA -alias selfsigned -keystore
-		// /tmp/testkey.jks -storepass password -validity 360 -keysize 2048
-		KeyStore ks = null;
-		ks = KeyStore.getInstance("JKS");
-		FileInputStream fis = new FileInputStream(file);
-		ks.load(fis, password.toCharArray());
-		return ks;
-	}
-
+	/*
 	private KeyStore generateKeyStore(String cellName, String subjectName, String password)
 			throws NoSuchAlgorithmException, InvalidKeySpecException, OperatorCreationException, IOException,
 			CertificateException, KeyStoreException {
@@ -125,6 +111,7 @@ public class KeystoreManager {
 		ks.setCertificateEntry(subjectName + "-cert", certificate);
 		return ks;
 	}
+	*/
 
 	private KeyStore generateKeyStoreSelf(String cellName, String subjectName, String password)
 			throws NoSuchAlgorithmException, InvalidKeySpecException, OperatorCreationException, IOException,
