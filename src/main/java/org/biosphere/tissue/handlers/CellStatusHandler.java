@@ -52,9 +52,9 @@ public class CellStatusHandler extends AbstractHandler {
 		responseSB.append("##############################################################################\n");
 		responseSB.append("Tissue cells JSON: \n");
 		List<CellInterface> cellInterfaces = getCell().getDna().getTissueCellsInterfaces();
-		Iterator ciitJSON = cellInterfaces.iterator();
+		Iterator<CellInterface> ciitJSON = cellInterfaces.iterator();
 		while (ciitJSON.hasNext()) {
-			CellInterface cif = (CellInterface) ciitJSON.next();
+			CellInterface cif = ciitJSON.next();
 			responseSB.append("  Tissue cell: " + cif.getCellName() + "(" + cif.getCellNetworkName() + ":" + cif.getPort() + ")\n");
 		}
 		responseSB.append("##############################################################################\n");
@@ -70,9 +70,9 @@ public class CellStatusHandler extends AbstractHandler {
 		responseSB.append("##############################################################################\n");
 		Hashtable<String, String> statusTable = new Hashtable<String, String>();
 		statusTable = ServiceManager.getStatus();
-		Enumeration serviceList = statusTable.keys();
+		Enumeration<String> serviceList = statusTable.keys();
 		while (serviceList.hasMoreElements()) {
-			String serviceName = (String) serviceList.nextElement();
+			String serviceName = serviceList.nextElement();
 			responseSB.append("Service: " + serviceName + " Status: " + statusTable.get(serviceName)+"\n");
 			//responseSB.append("Service: " + serviceName + " dump: \n" + ServiceManager.getServletStatus(serviceName).toString()+"\n");
 			responseSB.append("##############################################################################\n");

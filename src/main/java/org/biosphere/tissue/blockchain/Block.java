@@ -209,7 +209,7 @@ public class Block {
 	 */
 	public boolean cellVoted(String cellName) {
 		boolean voted = false;
-		Iterator accIt = acceptanceVotes.listIterator();
+		Iterator<Vote> accIt = acceptanceVotes.listIterator();
 		while (accIt.hasNext()) {
 			if (((Vote) accIt.next()).getCellID().equals(cellName)) {
 				voted = true;
@@ -232,9 +232,9 @@ public class Block {
 		boolean acceptance = false;
 		if (!getBlockID().equals("GENESIS")) {
 			if (totalVotes > (tissueSize / 2)) {
-				Iterator itAccept = acceptanceVotes.iterator();
+				Iterator<Vote> itAccept = acceptanceVotes.iterator();
 				while (itAccept.hasNext()) {
-					Vote tmpVote = (Vote) itAccept.next();
+					Vote tmpVote = itAccept.next();
 					if (tmpVote.isAccepted()) {
 						totalAccepted++;
 					}
@@ -264,9 +264,9 @@ public class Block {
 		int totalVotes = acceptanceVotes.size();
 		logger.debug("Block.acceptanceRate() Block: " + getBlockID() + " total votes " + totalVotes);
 		int totalAccepted = 0;
-		Iterator itAccept = acceptanceVotes.iterator();
+		Iterator<Vote> itAccept = acceptanceVotes.iterator();
 		while (itAccept.hasNext()) {
-			Vote tmpVote = (Vote) itAccept.next();
+			Vote tmpVote = itAccept.next();
 			if (tmpVote.isAccepted()) {
 				totalAccepted++;
 			}
@@ -415,7 +415,7 @@ public class Block {
 				String hashInput = getPrevHash() + ":" + getPayload() + ":" + getCellSignature();
 				MessageDigest md = MessageDigest.getInstance("SHA-256");
 				md.update(hashInput.getBytes(StandardCharsets.UTF_8));
-				byte[] digest = digest = md.digest();
+				byte[] digest = md.digest();
 				digestHexa = String.format("%064x", new java.math.BigInteger(1, digest));
 			} else {
 				logger.error("Block.calculateBlockHash() Previous hash is empty");

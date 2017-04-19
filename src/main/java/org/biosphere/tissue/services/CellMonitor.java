@@ -16,9 +16,9 @@ public class CellMonitor extends THREADService {
 			logger.info("CellMonitor.run() Monitor check ");
 			Hashtable<String, String> statusTable = new Hashtable<String, String>();
 			statusTable = ServiceManager.getStatus();
-			Enumeration serviceList = statusTable.keys();
+			Enumeration<String> serviceList = statusTable.keys();
 			while (serviceList.hasMoreElements()) {
-				String serviceName = (String) serviceList.nextElement();
+				String serviceName = serviceList.nextElement();
 				logger.info("CellMonitor.run() Service: " + serviceName + " Status: " + statusTable.get(serviceName));
 			}
 			logger.info("CellMonitor.run() ##########################################################");

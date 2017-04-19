@@ -28,8 +28,7 @@ public abstract class THREADService extends Thread implements ServiceInterface {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public void setParameters(Hashtable parameters) {
+	public void setParameters(Hashtable<String, Object> parameters) {
 		serviceParameters = parameters;
 	}
 

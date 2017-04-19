@@ -153,6 +153,7 @@ public final class ServiceManager {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private static void loadServlet(ServiceDefinition sd, Cell cell) throws CellException {
 		Logger logger = LoggerFactory.getLogger(ServiceManager.class);
 		int HTTPPort = 0;

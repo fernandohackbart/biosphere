@@ -4,9 +4,9 @@ import java.util.Hashtable;
 import org.biosphere.tissue.Cell;
 
 public interface ServiceInterface {
-	Hashtable serviceParameters = new Hashtable();
+	Hashtable<String, Object> serviceParameters = new Hashtable<String, Object>();
 
-	void setParameters(Hashtable parameters);
+	void setParameters(Hashtable<String, Object> parameters);
 
 	Object getParameter(String parameterName);
 

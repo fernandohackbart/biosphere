@@ -123,7 +123,7 @@ public class Chain {
 		// iterate over the chain and search the accepted block with the highest
 		// position
 		// keep the high position ?
-		Enumeration blockKeys = chain.keys();
+		Enumeration<String> blockKeys = chain.keys();
 		while (blockKeys.hasMoreElements()) {
 			Block block = getBlock((String) blockKeys.nextElement());
 			logger.debug("Chain.getNextBlockID() Checking block ID(" + block.getBlockID() + ")");
@@ -294,9 +294,9 @@ public class Chain {
 			logger.debug("Chain.sendConsensusVotes() Sending consensus vote (" + accepted + ") for block " + block.getBlockID() + " to the tissue");
 			logger.debug("Chain.sendConsensusVotes() Getting the list of the cells from the DNA");
 			List<CellInterface> cellIFs = getCell().getDna().getTissueCellsInterfaces();
-			Iterator cellIFIterator = cellIFs.iterator();
+			Iterator<CellInterface> cellIFIterator = cellIFs.iterator();
 			while (cellIFIterator.hasNext()) {
-				CellInterface cellInterface = (CellInterface) cellIFIterator.next();
+				CellInterface cellInterface = cellIFIterator.next();
 				if ((!cellInterface.getCellName().equals(getCell().getCellName()))
 						&& (!cellInterface.getCellName().equals(block.getCellID()))) {
 					logger.debug("Chain.sendConsensusVotes() Cell " + cellInterface.getCellName() + " elegible for notification ");
@@ -385,9 +385,9 @@ public class Chain {
 	 */
 	public String dumpChain() {
 		StringBuffer dumpChain = new StringBuffer();
-		Enumeration blockKeys = chain.keys();
+		Enumeration<String> blockKeys = chain.keys();
 		while (blockKeys.hasMoreElements()) {
-			String blockID = (String) blockKeys.nextElement();
+			String blockID = blockKeys.nextElement();
 			dumpChain.append("\nChain.dumpChain(" + getCell().getCellName() + ") RAW  POS("
 					+ getBlock(blockID).getChainPosition() + ") PREV(" + getBlock(blockID).getPrevBlockID() + ") ID("
 					+ getBlock(blockID).getBlockID() + ")");
