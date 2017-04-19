@@ -14,7 +14,7 @@ import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.blockchain.Chain;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
-import org.biosphere.tissue.protocol.TissueJoinBroadcast;
+import org.biosphere.tissue.protocol.TissueAnnounce;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +80,7 @@ public class TissueManager {
 		while (!cell.isTissueMember()) {
 			try {
 				Thread.sleep(Long.parseLong(joinPollInternval));
-				TissueJoinBroadcast tj = new TissueJoinBroadcast();
+				TissueAnnounce tj = new TissueAnnounce();
 				tj.setCellName(cell.getCellName());
 				tj.setCellNetworkName(cell.getCellNetworkName());
 				tj.setTissuePort(cell.getTissuePort());

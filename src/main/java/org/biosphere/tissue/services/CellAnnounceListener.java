@@ -26,7 +26,7 @@ import org.biosphere.tissue.cell.CellManager;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.protocol.TissueJoinRequest;
 import org.biosphere.tissue.protocol.TissueWelcomeResponse;
-import org.biosphere.tissue.protocol.TissueJoinBroadcast;
+import org.biosphere.tissue.protocol.TissueAnnounce;
 import org.biosphere.tissue.protocol.TissueJoinResponse;
 import org.biosphere.tissue.protocol.TissueWelcomeRequest;
 import org.biosphere.tissue.tissue.TissueManager;
@@ -84,7 +84,7 @@ public class CellAnnounceListener extends THREADService {
 	private void adoptCell(String tissueJoin) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			TissueJoinBroadcast tjb = mapper.readValue(tissueJoin.getBytes(), TissueJoinBroadcast.class);
+			TissueAnnounce tjb = mapper.readValue(tissueJoin.getBytes(), TissueAnnounce.class);
 
 			logger.debug("CellAnnounceListener.adoptCell() Adopting: (" + tjb.getCellName() + ") "
 					+ tjb.getCellNetworkName() + ":" + tjb.getTissuePort());
