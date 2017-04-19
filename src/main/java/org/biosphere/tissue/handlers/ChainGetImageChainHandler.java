@@ -7,59 +7,18 @@ import java.io.OutputStream;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.biosphere.tissue.Cell;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class ChainGetImageChainHandler extends HttpServlet implements CellServletHandlerInterface {
+public class ChainGetImageChainHandler extends AbstractHandler {
 
 	private static final long serialVersionUID = 1L;
-	private Logger logger;
-	private Cell cell;
-	private String contentType;
-	private String contentEncoding;
 
-	public ChainGetImageChainHandler() {
-		super();
-		logger = LoggerFactory.getLogger(ChainGetImageChainHandler.class);
-	}
-
-	public void setCell(Cell cell) {
-		this.cell = cell;
-	}
-
-	private Cell getCell() {
-		return cell;
-	}
-	
-	public void setContentType(String contentType) {
-		this.contentType = contentType;
-	}
-	
-	private String getContentType()
-	{
-		return this.contentType;
-	}
-	
-	public void setContentEncoding(String contentEncoding) {
-		this.contentEncoding = contentEncoding;
-	}
-	
-	private String getContentEncoding()
-	{
-		return this.contentEncoding;
-	}
-	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
-		logger.debug("ChainGetImageChain.handle() Request from: " + partnerCell);
+		getLogger().debug("ChainGetImageChain.handle() Request from: " + partnerCell);
 		byte[] responseBytes = generateRandomImage();
 		// byte[] response = generateGraphImage(cell.getChain().toFlat());
 		response.setContentType(getContentType());

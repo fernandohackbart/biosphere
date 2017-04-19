@@ -7,63 +7,24 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.protocol.CellInterface;
 import org.biosphere.tissue.services.ServiceManager;
 import org.biosphere.tissue.tissue.TissueManager;
 import org.biosphere.tissue.utils.KeystoreManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class CellStatusHandler extends HttpServlet implements CellServletHandlerInterface {
+public class CellStatusHandler extends AbstractHandler {
 
 	private static final long serialVersionUID = 1L;
-	private Logger logger;
-	private Cell cell;
-	private String contentType;
-	private String contentEncoding;
 
-	public CellStatusHandler() {
-		super();
-		logger = LoggerFactory.getLogger(CellStatusHandler.class);
-	}
-
-	public void setCell(Cell cell) {
-		this.cell = cell;
-	}
-
-	private Cell getCell() {
-		return cell;
-	}
-	
-	public void setContentType(String contentType) {
-		this.contentType = contentType;
-	}
-	
-	private String getContentType()
-	{
-		return this.contentType;
-	}
-	
-	public void setContentEncoding(String contentEncoding) {
-		this.contentEncoding = contentEncoding;
-	}
-	
-	private String getContentEncoding()
-	{
-		return this.contentEncoding;
-	}
-	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
-		logger.debug("CellStatus.doPost() ##############################################################################");
-		logger.debug("CellStatus.doPost() Cell " + cell.getCellName() + " request from: " + partnerCell);
+		getLogger().debug("CellStatus.doPost() ##############################################################################");
+		getLogger().debug("CellStatus.doPost() Cell " + getCell().getCellName() + " request from: " + partnerCell);
 		
 		StringBuffer responseSB = new StringBuffer();
 		responseSB.append("##############################################################################\n");
@@ -76,7 +37,7 @@ public class CellStatusHandler extends HttpServlet implements CellServletHandler
 		responseSB.append("max memory: " + maxMemory / 1024+"\n");
 		responseSB.append("total free memory: " + (freeMemory + (maxMemory - allocatedMemory)) / 1024+"\n");
 		responseSB.append("##############################################################################\n");
-		responseSB.append("Log level: trace="+logger.isTraceEnabled()+" debug="+logger.isDebugEnabled()+" info="+logger.isInfoEnabled()+" warn="+logger.isWarnEnabled()+" error="+logger.isErrorEnabled());
+		responseSB.append("Log level: trace="+getLogger().isTraceEnabled()+" debug="+getLogger().isDebugEnabled()+" info="+getLogger().isInfoEnabled()+" warn="+getLogger().isWarnEnabled()+" error="+getLogger().isErrorEnabled());
 		responseSB.append("Log level: "+TissueManager.logLevelParameter+"="+System.getProperty(TissueManager.logLevelParameter));
 		responseSB.append("Log level: "+TissueManager.logOutputParameter+"="+System.getProperty(TissueManager.logOutputParameter));
 		responseSB.append("Log level: "+TissueManager.logShowDateTimeParameter+"="+System.getProperty(TissueManager.logShowDateTimeParameter));

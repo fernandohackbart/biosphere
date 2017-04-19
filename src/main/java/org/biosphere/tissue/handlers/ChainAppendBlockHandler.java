@@ -3,75 +3,35 @@ package org.biosphere.tissue.handlers;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.blockchain.ChainException;
 import org.biosphere.tissue.blockchain.ChainExceptionHandler;
 import org.biosphere.tissue.protocol.BlockAppendRequest;
 import org.biosphere.tissue.protocol.BlockAppendResponse;
 import org.biosphere.tissue.utils.RequestUtils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class ChainAppendBlockHandler extends HttpServlet implements CellServletHandlerInterface {
+public class ChainAppendBlockHandler extends AbstractHandler {
 
 	private static final long serialVersionUID = 1L;
-	private Logger logger;
-	private Cell cell;
-	private String contentType;
-	private String contentEncoding;
 
-	public ChainAppendBlockHandler() {
-		super();
-		logger = LoggerFactory.getLogger(ChainAppendBlockHandler.class);
-	}
-
-	public void setCell(Cell cell) {
-		this.cell = cell;
-	}
-
-	private Cell getCell() {
-		return cell;
-	}
-	
-	public void setContentType(String contentType) {
-		this.contentType = contentType;
-	}
-	
-	private String getContentType()
-	{
-		return this.contentType;
-	}
-	
-	public void setContentEncoding(String contentEncoding) {
-		this.contentEncoding = contentEncoding;
-	}
-	
-	private String getContentEncoding()
-	{
-		return this.contentEncoding;
-	}
-	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		try {
 			String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
-			logger.debug("ChainAppendBlockHandler.doPost() ##############################################################################");
-			logger.debug("ChainAppendBlockHandler.doPost() Cell " + cell.getCellName() + " request from: " + partnerCell);
+			getLogger().debug("ChainAppendBlockHandler.doPost() ##############################################################################");
+			getLogger().debug("ChainAppendBlockHandler.doPost() Cell " + getCell().getCellName() + " request from: " + partnerCell);
 			String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
 			
 			ObjectMapper mapper = new ObjectMapper();
 			BlockAppendRequest fbar = mapper.readValue(requestPayload.getBytes(),BlockAppendRequest.class);
 			
-			boolean accepted = cell.getChain().appendBlock(fbar);
-			logger.debug("ChainAppendBlockHandler.doPost() Block accepted by " + cell.getCellName() + ":" + accepted);
+			boolean accepted = getCell().getChain().appendBlock(fbar);
+			getLogger().debug("ChainAppendBlockHandler.doPost() Block accepted by " + getCell().getCellName() + ":" + accepted);
 			
 			BlockAppendResponse fbr = new BlockAppendResponse();
 			fbr.setAccepted(accepted);
@@ -83,7 +43,7 @@ public class ChainAppendBlockHandler extends HttpServlet implements CellServletH
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.getWriter().println(responseString);
 			response.flushBuffer();
-			logger.debug("ChainAppendBlockHandler.doPost() Response: " + responseString);
+			getLogger().debug("ChainAppendBlockHandler.doPost() Response: " + responseString);
 		} catch (ChainException e) {
 			ChainExceptionHandler.handleGenericException(e, "ChainAddBlockHandler.doPost()", "ChainException:");
 		}
