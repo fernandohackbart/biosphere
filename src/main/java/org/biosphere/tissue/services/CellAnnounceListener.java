@@ -136,8 +136,6 @@ public class CellAnnounceListener extends THREADService {
 				tjreq.setChain(Base64.toBase64String(getCell().getChain().toJSON().getBytes()));
 				String requestJoin = mapper.writeValueAsString(tjreq);
 				URL urlJoin = new URL("https://" + tjb.getCellNetworkName() + ":" + tjb.getTissuePort() + "/org/biosphere/tissue/join");
-				logger.debug("CellAnnounceListener.adoptCell() Sending DNACore URL to: " + urlJoin.getProtocol() + "://"
-						+ urlJoin.getHost() + ":" + urlJoin.getPort() + "/org/biosphere/tissue/join");
 				HttpsURLConnection connJoin = (HttpsURLConnection) urlJoin.openConnection();
 				connJoin.setRequestMethod("POST");
 				connJoin.setDoOutput(true);
@@ -153,29 +151,7 @@ public class CellAnnounceListener extends THREADService {
 				connJoin.disconnect();
 				TissueJoinResponse tjr= mapper.readValue(responseJoin.getBytes(), TissueJoinResponse.class);
 				logger.debug("CellAnnounceListener.adoptCell() Join response: (" +tjr.getCellName()+") "+ tjr.getMessage());
-				
-				/*
-				String requestChain = cell.getChain().toJSON();
-				URL urlChain = new URL("https://" + tjb.getCellNetworkName() + ":" + tjb.getTissuePort()
-						+ "/org/biosphere/cell/chain/parse/chain");
-				logger.debug("CellAnnounceListener.adoptCell() Sending Chain to: " + urlJoin.getProtocol() + "://"
-						+ urlJoin.getHost() + ":" + urlJoin.getPort() + "/org/biosphere/cell/chain/parse/chain");
-				HttpsURLConnection connChain = (HttpsURLConnection) urlChain.openConnection();
-				connChain.setRequestMethod("POST");
-				connChain.setDoOutput(true);
-				connChain.setInstanceFollowRedirects(false);
-				connChain.setRequestProperty("Content-Type", "text/plain");
-				connChain.setRequestProperty("charset", "utf-8");
-				connChain.setRequestProperty("Content-Length",
-						"" + requestJoin.getBytes(StandardCharsets.UTF_8).length);
-				connChain.setUseCaches(false);
-				DataOutputStream wrChain = new DataOutputStream(connChain.getOutputStream());
-				wrChain.write(requestChain.getBytes());
-				connJoin.connect();
-				String responseChain = getResponseAsString(connChain.getInputStream());
-				connJoin.disconnect();
-				logger.debug("CellAnnounceListener.adoptCell() Chain send response: " + responseChain);
-                */
+
 			}
 		} catch (UnknownHostException e) {
 			TissueExceptionHandler.handleGenericException(e, "CellAnnounceListener.adoptCell()",
