@@ -213,7 +213,7 @@ public class KeystoreManager {
 	}
 
 	public String dumpKeystore(KeyStore ks, String password, String cellName) {
-		logger.debug("KeystoreManager.dumpKeystore() Dumping in memory keystore:");
+		logger.trace("KeystoreManager.dumpKeystore() Dumping in memory keystore:");
 
 		StringBuffer output = new StringBuffer();
 		try {
@@ -289,7 +289,7 @@ public class KeystoreManager {
 		pw.flush();
 		pw.close();
 		String pemEncodedCert = sw.toString();
-		logger.debug("KeystoreManager.getKey() \n" + pemEncodedCert);
+		logger.trace("KeystoreManager.getKey() \n" + pemEncodedCert);
 		return pemEncodedCert;
 	}
 
@@ -302,7 +302,7 @@ public class KeystoreManager {
 		pw.flush();
 		pw.close();
 		String pemEncodedCert = sw.toString();
-		logger.debug("KeystoreManager.getCertificate() \n" + pemEncodedCert);
+		logger.trace("KeystoreManager.getCertificate() \n" + pemEncodedCert);
 		return pemEncodedCert;
 	}
 	
@@ -313,7 +313,7 @@ public class KeystoreManager {
 		pw.flush();
 		pw.close();
 		String pemEncodedCert = sw.toString();
-		logger.debug("KeystoreManager.formatRequest() \n" + pemEncodedCert);
+		logger.trace("KeystoreManager.formatRequest() \n" + pemEncodedCert);
 		return pemEncodedCert;
 	}
 

@@ -18,6 +18,8 @@ import java.util.UUID;
 
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.protocol.FlatBlock;
+import org.biosphere.tissue.protocol.FlatChain;
+import org.biosphere.tissue.protocol.TissueAddCellPayload;
 import org.biosphere.tissue.utils.CellSigner;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -25,6 +27,8 @@ import org.bouncycastle.util.encoders.Base64;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Block {
 	/**
@@ -106,7 +110,7 @@ public class Block {
 	 * @param flatBlock
 	 *            the flat String that represents the Block content
 	 */
-	Block(FlatBlock flatBlock, Chain chain,Cell cell) throws BlockException {
+	Block(FlatBlock flatBlock, Chain chain, Cell cell) throws BlockException {
 		super();
 		logger = LoggerFactory.getLogger(Block.class);
 		logger.debug("Block.Block() Creating new Block: cell(" + flatBlock.getCellID() + ") prev block ID("
@@ -130,7 +134,7 @@ public class Block {
 			throw new BlockException("Block ID(" + getBlockID() + ") is not valid!");
 		}
 	}
-	
+
 	/**
 	 * Creates one empty instance of e Block
 	 * <p>
@@ -196,7 +200,8 @@ public class Block {
 					+ ") for block " + getBlockID());
 			acceptanceVotes.add(vote);
 		} else {
-			logger.debug("Block.addVote() Adding vote: " + vote.getCellID() + " already voted for block " + getBlockID());
+			logger.debug(
+					"Block.addVote() Adding vote: " + vote.getCellID() + " already voted for block " + getBlockID());
 		}
 	}
 
@@ -367,13 +372,12 @@ public class Block {
 		return payload;
 	}
 
-	 /**
-	  * Generates a FlatBlock representation of the block
-	  * 
-	  * @return a FltBlock instance of the block
-	  */
-	public final FlatBlock getFlatBlock()
-	{
+	/**
+	 * Generates a FlatBlock representation of the block
+	 * 
+	 * @return a FltBlock instance of the block
+	 */
+	public final FlatBlock getFlatBlock() {
 		FlatBlock fb = new FlatBlock();
 		fb.setBlockHash(getBlockHash());
 		fb.setBlockID(getBlockID());
@@ -386,7 +390,7 @@ public class Block {
 		fb.setTimestamp(getTimestamp());
 		return fb;
 	}
-	
+
 	/**
 	 * Calculates the hash of this block and set the blockHash attribute
 	 */
@@ -458,6 +462,29 @@ public class Block {
 	}
 
 	/**
+	 * Executes the comands into the payload
+	 * 
+	 * 
+	 * @param cell
+	 * @throws BlockException
+	 */
+	void executePayload(Cell cell) throws BlockException {
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			if (!payload.equals("GENESIS")) {
+				TissueAddCellPayload tacp = mapper.readValue(Base64.decode(payload), TissueAddCellPayload.class);
+				if (tacp.getOperation().equals("CellAdd")) {
+					cell.getDna().appendCell(cell.getDna().getCellInstance(tacp.getName(), tacp.getPublicKey(),
+							tacp.getInterfaces(), tacp.getTissuePort()));
+				}
+
+			}
+		} catch (IOException e) {
+			throw new BlockException("Failed to add cell to the local DNA", e);
+		}
+	}
+
+	/**
 	 * Validates the Block if it is consistent
 	 * 
 	 * @return boolean value for the question "block validated?"
@@ -465,23 +492,24 @@ public class Block {
 	boolean isValid(Cell cell) throws BlockException {
 		boolean valid = true;
 		if (!calculateBlockHash().equals(getBlockHash())) {
-			//throw new BlockException("The block hash does not match the prevBlockHash+payload calculation");
+			// throw new BlockException("The block hash does not match the
+			// prevBlockHash+payload calculation");
 			logger.debug("Block.isValid() Block: " + getBlockID() + " hashes does not match");
 			valid = false;
 		}
 		try {
-			if (!CellSigner.verify(getCellID(), cell, getCellSignature()))
-			{
+			if (!CellSigner.verify(getCellID(), cell, getCellSignature())) {
 				logger.debug("Block.isValid() Block: " + getBlockID() + " signature does not match");
-				valid=false;
+				valid = false;
 			}
 		} catch (CertificateException | OperatorCreationException | CMSException e) {
 			throw new BlockException("Cell signature is not valid", e);
 		}
-		//BlockPayloadValidator bpv = Class.forName("org.biosphere.tissue.blockchain.DefaultBlockPayloadValidator");
-		//bpv.validate(nextBlock, chain)
-	    // TODO check for other required validations
-	    return valid;
+		// BlockPayloadValidator bpv =
+		// Class.forName("org.biosphere.tissue.blockchain.DefaultBlockPayloadValidator");
+		// bpv.validate(nextBlock, chain)
+		// TODO check for other required validations
+		return valid;
 	}
 
 	/**
@@ -558,7 +586,8 @@ public class Block {
 
 	/**
 	 * Check if the signature is valid for the known provided public key
-	 * @throws BlockException 
+	 * 
+	 * @throws BlockException
 	 * 
 	 */
 	final void generateCellSignature(Cell cell) throws BlockException {
@@ -588,6 +617,13 @@ public class Block {
 	public final String checkCellSignature(String cellPublicKey) {
 		return cellSignature;
 	}
-	
 
+	/**
+	 * Return the number of votes
+	 * 
+	 * @return number of votes
+	 */
+	public final int getVotesCount() {
+		return acceptanceVotes.size();
+	}
 }

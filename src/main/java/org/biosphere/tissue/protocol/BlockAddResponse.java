@@ -7,6 +7,8 @@ public class BlockAddResponse {
 	boolean accepted;
 	@JsonProperty("cellName")
 	String cellName;
+	@JsonProperty("blockID")
+	String blockID;
 	@JsonProperty("accepted")
 	public final boolean isAccepted() {
 		return accepted;
@@ -22,6 +24,14 @@ public class BlockAddResponse {
 	@JsonProperty("cellName")
 	public final void setCellName(String cellName) {
 		this.cellName = cellName;
+	}
+	@JsonProperty("blockID")
+	public final String getBlockID() {
+		return blockID;
+	}
+	@JsonProperty("blockID")
+	public final void setBlockID(String blockID) {
+		this.blockID = blockID;
 	}
 	
 

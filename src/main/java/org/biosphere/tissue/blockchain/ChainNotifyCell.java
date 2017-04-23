@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ChainNotifyCell implements Runnable {
 	public ChainNotifyCell(String hostname, int port, Block block, String remoteCellName, String localCellName,
-			boolean accepted) {
+			boolean accepted,boolean ensureAcceptance) {
 		super();
 		logger = LoggerFactory.getLogger(ChainNotifyCell.class);
 		setHostname(hostname);
@@ -31,6 +31,7 @@ public class ChainNotifyCell implements Runnable {
 		setLocalCellName(localCellName);
 		setRemoteCellName(remoteCellName);
 		setAccepted(accepted);
+		setEnsureAcceptance(ensureAcceptance);
 		setRemoteAccepted(false);
 	}
 
@@ -40,6 +41,7 @@ public class ChainNotifyCell implements Runnable {
 	private Block block;
 	private boolean accepted;
 	private boolean remoteAccepted;
+	private boolean ensureAcceptance;
 	private String localCellName;
 	private String remoteCellName;
 
@@ -53,6 +55,7 @@ public class ChainNotifyCell implements Runnable {
 			fbar.setAccepted(isAccepted());
 			fbar.setNotifyingCell(getLocalCellName());
 			fbar.setFlatBlock(getBlock().getFlatBlock());
+			fbar.setEnsureAcceptance(ensureAcceptance);
 			
 			ObjectMapper mapper = new ObjectMapper();
 			String requestNotification = mapper.writeValueAsString(fbar);
@@ -138,5 +141,13 @@ public class ChainNotifyCell implements Runnable {
 
 	private final String getRemoteCellName() {
 		return remoteCellName;
+	}
+
+	public final boolean isEnsureAcceptance() {
+		return ensureAcceptance;
+	}
+
+	public final void setEnsureAcceptance(boolean ensureAcceptance) {
+		this.ensureAcceptance = ensureAcceptance;
 	}
 }

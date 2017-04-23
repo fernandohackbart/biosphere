@@ -20,35 +20,35 @@ public class Cell {
 	@JsonProperty("interfaces")
 	ArrayList<CellNetworkInterface> interfaces;
 	@JsonProperty("name")
-	final String getName() {
+	public final String getName() {
 		return name;
 	}
 	@JsonProperty("name")
-	final void setName(String name) {
+	public final void setName(String name) {
 		this.name = name;
 	}
 	@JsonProperty("publicKey")
-	final String getPublicKey() {
+	public final String getPublicKey() {
 		return publicKey;
 	}
 	@JsonProperty("publicKey")
-	final void setPublicKey(String publicKey) {
+	public final void setPublicKey(String publicKey) {
 		this.publicKey = publicKey;
 	}
 	@JsonProperty("tissuePort")
-	final int getTissuePort() {
+	public final int getTissuePort() {
 		return tissuePort;
 	}
 	@JsonProperty("tissuePort")
-	final void setTissuePort(int tissuePort) {
+	public final void setTissuePort(int tissuePort) {
 		this.tissuePort = tissuePort;
 	}
 	@JsonProperty("interfaces")
-	final ArrayList<CellNetworkInterface> getInterfaces() {
+	public final ArrayList<CellNetworkInterface> getInterfaces() {
 		return interfaces;
 	}
 	@JsonProperty("interfaces")
-	final void setInterfaces(ArrayList<CellNetworkInterface> interfaces) {
+	public final void setInterfaces(ArrayList<CellNetworkInterface> interfaces) {
 		this.interfaces = interfaces;
 	}
 }

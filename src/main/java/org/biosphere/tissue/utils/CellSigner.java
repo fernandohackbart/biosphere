@@ -115,7 +115,7 @@ public class CellSigner {
 				Iterator itasn = cert.getSubjectAlternativeNames().iterator();
 				while (itasn.hasNext()) {
 					List list = (List) itasn.next();
-					logger.debug("CellSigner.verify()", "  Certificate ASN: " +getGeneralName((int)list.get(0))+":"+list.get(1).toString());
+					logger.trace("CellSigner.verify()", "  Certificate ASN: " +getGeneralName((int)list.get(0))+":"+list.get(1).toString());
 					if(list.get(1).toString().equals(cellName))
 					{
 						logger.debug("CellSigner.verify()", "  Expected signer: " +getGeneralName((int)list.get(0))+":"+list.get(1).toString());

@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.cell.CellManager;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.protocol.TissueJoinRequest;
@@ -128,31 +129,38 @@ public class CellAnnounceListener extends THREADService {
 			if (tg.getMessage().equals("Greetings")) {
 				
 				logger.debug("CellAnnounceListener.adoptCell() Adding adopted cell to the local DNA!");
-				cell.getDna().addCell(tg.getCellName(), tjb.getCellCertificate(), tjb.getCellNetworkName(),tjb.getTissuePort());
-
-				TissueJoinRequest tjreq = new TissueJoinRequest();
-				tjreq.setJsonDNAURL("https://" + cell.getCellNetworkName() + ":" + cell.getTissuePort()+"/org/biosphere/tissue/DNA");
-				tjreq.setDna(Base64.toBase64String(getCell().getDna().toJSON().getBytes()));
-				tjreq.setChain(Base64.toBase64String(getCell().getChain().toJSON().getBytes()));
-				String requestJoin = mapper.writeValueAsString(tjreq);
-				URL urlJoin = new URL("https://" + tjb.getCellNetworkName() + ":" + tjb.getTissuePort() + "/org/biosphere/tissue/join");
-				HttpsURLConnection connJoin = (HttpsURLConnection) urlJoin.openConnection();
-				connJoin.setRequestMethod("POST");
-				connJoin.setDoOutput(true);
-				connJoin.setInstanceFollowRedirects(false);
-				connJoin.setRequestProperty("Content-Type", "application/json");
-				connJoin.setRequestProperty("charset", "utf-8");
-				connJoin.setRequestProperty("Content-Length", "" + requestJoin.getBytes(StandardCharsets.UTF_8).length);
-				connJoin.setUseCaches(false);
-				DataOutputStream wrJoin = new DataOutputStream(connJoin.getOutputStream());
-				wrJoin.write(requestJoin.getBytes());
-				connJoin.connect();
-				String responseJoin = getResponseAsString(connJoin.getInputStream());
-				connJoin.disconnect();
-				TissueJoinResponse tjr= mapper.readValue(responseJoin.getBytes(), TissueJoinResponse.class);
-				logger.debug("CellAnnounceListener.adoptCell() Join response: (" +tjr.getCellName()+") "+ tjr.getMessage());
-
+				if (cell.getDna().addCell(tg.getCellName(), tjb.getCellCertificate(), tjb.getCellNetworkName(),tjb.getTissuePort(),cell.getCellName(),cell.getChain()))
+				{
+					TissueJoinRequest tjreq = new TissueJoinRequest();
+					tjreq.setDna(Base64.toBase64String(getCell().getDna().toJSON().getBytes()));
+					tjreq.setChain(Base64.toBase64String(getCell().getChain().toJSON().getBytes()));
+					String requestJoin = mapper.writeValueAsString(tjreq);
+					URL urlJoin = new URL("https://" + tjb.getCellNetworkName() + ":" + tjb.getTissuePort() + "/org/biosphere/tissue/join");
+					HttpsURLConnection connJoin = (HttpsURLConnection) urlJoin.openConnection();
+					connJoin.setRequestMethod("POST");
+					connJoin.setDoOutput(true);
+					connJoin.setInstanceFollowRedirects(false);
+					connJoin.setRequestProperty("Content-Type", "application/json");
+					connJoin.setRequestProperty("charset", "utf-8");
+					connJoin.setRequestProperty("Content-Length", "" + requestJoin.getBytes(StandardCharsets.UTF_8).length);
+					connJoin.setUseCaches(false);
+					DataOutputStream wrJoin = new DataOutputStream(connJoin.getOutputStream());
+					wrJoin.write(requestJoin.getBytes());
+					connJoin.connect();
+					String responseJoin = getResponseAsString(connJoin.getInputStream());
+					connJoin.disconnect();
+					TissueJoinResponse tjr= mapper.readValue(responseJoin.getBytes(), TissueJoinResponse.class);
+					logger.debug("CellAnnounceListener.adoptCell() Join response: (" +tjr.getCellName()+") "+ tjr.getMessage());
+				}
+				else
+				{
+					logger.debug("CellAnnounceListener.adoptCell() Cell ("+tg.getCellName()+") not added reverting");
+					// TODO remove certificate from the keystore
+				}
 			}
+		} catch (BlockException e) {
+			TissueExceptionHandler.handleGenericException(e, "CellAnnounceListener.adoptCell()",
+					"BlockException:");
 		} catch (UnknownHostException e) {
 			TissueExceptionHandler.handleGenericException(e, "CellAnnounceListener.adoptCell()",
 					"UnknownHostException:");

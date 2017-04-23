@@ -377,7 +377,7 @@ public class CellManager {
 		pw.flush();
 		pw.close();
 		String pemEncodedCert = sw.toString();
-		logger.debug("CellManager.getCellCertificateFromKeystore() \n" + pemEncodedCert);
+		logger.trace("CellManager.getCellCertificateFromKeystore() \n" + pemEncodedCert);
 		return pemEncodedCert;
 	}
 
@@ -386,7 +386,7 @@ public class CellManager {
 		Logger logger;
 		logger = LoggerFactory.getLogger(CellManager.class);
 		logger.info("CellManager.addCellTrustKeystore() Adding certificate with alias:" + cellName);
-		logger.debug("CellManager.addCellTrustKeystore() Certificate:\n" + certPem);
+		logger.trace("CellManager.addCellTrustKeystore() Certificate:\n" + certPem);
 		PemReader pr = new PemReader(new StringReader(certPem));
 		PemObject pem = pr.readPemObject();
 		pr.close();

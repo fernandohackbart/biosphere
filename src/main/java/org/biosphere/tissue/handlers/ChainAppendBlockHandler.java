@@ -45,8 +45,11 @@ public class ChainAppendBlockHandler extends AbstractHandler {
 			response.flushBuffer();
 			getLogger().debug("ChainAppendBlockHandler.doPost() Response: " + responseString);
 		} catch (ChainException e) {
-			ChainExceptionHandler.handleGenericException(e, "ChainAddBlockHandler.doPost()", "ChainException:");
+			ChainExceptionHandler.handleGenericException(e, "ChainAppendBlockHandler.doPost()", "ChainException:");
+		} catch (Exception e) {
+			ChainExceptionHandler.handleGenericException(e, "ChainAppendBlockHandler.doPost()", "Exception:");
 		}
+		
 	}
 
 }

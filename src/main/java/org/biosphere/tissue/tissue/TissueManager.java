@@ -19,6 +19,7 @@ import org.biosphere.tissue.protocol.TissueAnnounce;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TissueManager {
@@ -56,6 +57,8 @@ public class TissueManager {
 	public final static String jettLogOutputValue = "org.eclipse.jetty.util.log.Slf4jLog";
 	//public final static String jettLogOutputValue = "org.eclipse.jetty.util.log.StdErrLog";
 	private static boolean onWelcomeProcess = false;
+	public final static long acceptanceTimeout = 2000L;
+	public final static long acceptanceInterval = 120000L;
 	
 
 	public final static void createTissue(Cell cell) throws CellException {
@@ -69,7 +72,12 @@ public class TissueManager {
 			TissueExceptionHandler.handleUnrecoverableGenericException(e, "TissueManager.createTissue()",
 					"Failed to set chain");
 		}
-		dna.addCell(cell.getCellName(), cell.getCellCertificate(), cell.getCellNetworkName(), cell.getTissuePort());
+		try {
+			dna.addCell(cell.getCellName(), cell.getCellCertificate(), cell.getCellNetworkName(), cell.getTissuePort(),cell.getCellName(),cell.getChain());
+		} catch (JsonProcessingException | BlockException e) {
+			TissueExceptionHandler.handleUnrecoverableGenericException(e, "TissueManager.createTissue()",
+					"Failed to set chain");
+		}
 		cell.setTissueMember(true);
 	}
 

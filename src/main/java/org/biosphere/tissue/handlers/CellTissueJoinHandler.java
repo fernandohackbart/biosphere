@@ -40,8 +40,8 @@ public class CellTissueJoinHandler extends AbstractHandler {
 			DNA dna = new DNA(tissue);
 			getCell().setDna(dna);
 			
-			getLogger().info("CellTissueJoinHandler.doPost() Adding local cell to the local DNA (just in case the adopter forgot)");
-			getCell().getDna().addCell(getCell().getCellName(), getCell().getCellCertificate(), getCell().getCellNetworkName(),getCell().getTissuePort());
+			//getLogger().info("CellTissueJoinHandler.doPost() Adding local cell to the local DNA (just in case the adopter forgot)");
+			//getCell().getDna().appendCell(getCell().getCellName(), getCell().getCellCertificate(), getCell().getCellNetworkName(),getCell().getTissuePort(),getCell().getCellName(),getCell().getChain());
 			
 			//Add the chain to the cell
 			getLogger().info("CellTissueJoinHandler.doPost() Parsing the Chain received");

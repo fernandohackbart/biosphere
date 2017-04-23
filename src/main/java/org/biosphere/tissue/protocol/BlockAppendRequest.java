@@ -9,30 +9,26 @@ public class BlockAppendRequest extends FlatBlock{
 	
 	@JsonProperty("notifyingCell")
 	String notifyingCell;
-	
 	@JsonProperty("accepted")
 	boolean accepted;
-
+	@JsonProperty("ensureAcceptance")
+	boolean ensureAcceptance;
 	@JsonProperty("accepted")
 	public final boolean isAccepted() {
 		return accepted;
 	}
-
 	@JsonProperty("accepted")
 	public final void setAccepted(boolean accepted) {
 		this.accepted = accepted;
 	}
-
 	@JsonProperty("notifyingCell")
 	public final String getNotifyingCell() {
 		return notifyingCell;
 	}
-
 	@JsonProperty("notifyingCell")
 	public final void setNotifyingCell(String notifyingCell) {
 		this.notifyingCell = notifyingCell;
 	}
-	
 	@JsonIgnore
 	public final void setFlatBlock(FlatBlock flatBlock)
 	{
@@ -45,6 +41,14 @@ public class BlockAppendRequest extends FlatBlock{
         setPayload(flatBlock.getPayload());
         setBlockHash(flatBlock.getBlockHash());
         setChainPosition(flatBlock.getChainPosition());
+	}
+	@JsonProperty("ensureAcceptance")
+	public final boolean isEnsureAcceptance() {
+		return ensureAcceptance;
+	}
+	@JsonProperty("ensureAcceptance")
+	public final void setEnsureAcceptance(boolean ensureAcceptance) {
+		this.ensureAcceptance = ensureAcceptance;
 	}
 
 }
