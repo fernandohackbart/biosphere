@@ -21,7 +21,7 @@ public abstract class AbstractHandler extends HttpServlet implements CellServlet
 
 	public AbstractHandler() {
 		super();
-		logger = LoggerFactory.getLogger(CellStatusHandler.class);
+		logger = LoggerFactory.getLogger(AbstractHandler.class);
 	}
 
 	public void setCell(Cell cell) {

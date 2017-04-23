@@ -51,7 +51,7 @@ public class CellTissueWelcomeHandler extends AbstractHandler {
 		else
 		{
 			tg.setMessage("Busy");
-			getLogger().info("CellTissueWelcomeHandler.doPost() Sending busy to cell:" + twr.getCellName());
+			getLogger().info("CellTissueWelcomeHandler.doPost() Sending busy to cell (" + twr.getCellName()+")");
 		}
 		tg.setCellName(getCell().getCellName());
 		String responseString = mapper.writeValueAsString(tg);

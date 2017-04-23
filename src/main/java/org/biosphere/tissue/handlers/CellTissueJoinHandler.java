@@ -47,7 +47,7 @@ public class CellTissueJoinHandler extends AbstractHandler {
 			getLogger().info("CellTissueJoinHandler.doPost() Parsing the Chain received");
 			FlatChain fc = mapper.readValue(Base64.decode(tjreq.getChain()), FlatChain.class);
 			Chain tmpChain = new Chain(getCell().getCellName(), getCell(), fc);
-			getLogger().debug("ChainParseChainHandler.doPost() Parsed flatChain: \n" + tmpChain.toJSON());
+			getLogger().trace("ChainParseChainHandler.doPost() Parsed flatChain: \n" + tmpChain.toJSON());
 			getCell().setChain(tmpChain);
 
 			getCell().setTissueMember(true);

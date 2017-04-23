@@ -23,7 +23,6 @@ public class ChainAddBlockHandler extends AbstractHandler {
 			throws ServletException, IOException {
 		try {
 			String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
-			getLogger().debug("ChainAddBlockHandler.doPost() ##############################################################################");
 			getLogger().debug("ChainAddBlockHandler.doPost() Cell " + getCell().getCellName() + " request from: " + partnerCell);
 			String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
 			getLogger().debug("ChainAddBlockHandler.doPost() Payload to be added to the block:" + requestPayload);

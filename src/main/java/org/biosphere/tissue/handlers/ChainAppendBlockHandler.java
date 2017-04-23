@@ -6,6 +6,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.biosphere.tissue.blockchain.Chain;
 import org.biosphere.tissue.blockchain.ChainException;
 import org.biosphere.tissue.blockchain.ChainExceptionHandler;
 import org.biosphere.tissue.protocol.BlockAppendRequest;
@@ -23,16 +24,22 @@ public class ChainAppendBlockHandler extends AbstractHandler {
 			throws ServletException, IOException {
 		try {
 			String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
-			getLogger().debug("ChainAppendBlockHandler.doPost() ##############################################################################");
-			getLogger().debug("ChainAppendBlockHandler.doPost() Cell " + getCell().getCellName() + " request from: " + partnerCell);
 			String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
-			
+
 			ObjectMapper mapper = new ObjectMapper();
-			BlockAppendRequest fbar = mapper.readValue(requestPayload.getBytes(),BlockAppendRequest.class);
-			
-			boolean accepted = getCell().getChain().appendBlock(fbar);
-			getLogger().debug("ChainAppendBlockHandler.doPost() Block accepted by " + getCell().getCellName() + ":" + accepted);
-			
+			BlockAppendRequest fbar = mapper.readValue(requestPayload.getBytes(), BlockAppendRequest.class);
+			getLogger().debug("ChainAppendBlockHandler.doPost() Cell " + getCell().getCellName() + " request from: ("
+					+ fbar.getNotifyingCell() + ") " + partnerCell);
+
+			boolean accepted = false;
+			if (getCell().getChain() instanceof Chain) {
+				accepted = getCell().getChain().appendBlock(fbar);
+				getLogger().debug("ChainAppendBlockHandler.doPost() Block accepted by " + getCell().getCellName() + ":"
+						+ accepted);
+			} else {
+				getLogger().debug("ChainAppendBlockHandler.doPost() Chain is empty, ignoring request");
+			}
+
 			BlockAppendResponse fbr = new BlockAppendResponse();
 			fbr.setAccepted(accepted);
 			fbr.setCellName(getCell().getCellName());
@@ -49,7 +56,7 @@ public class ChainAppendBlockHandler extends AbstractHandler {
 		} catch (Exception e) {
 			ChainExceptionHandler.handleGenericException(e, "ChainAppendBlockHandler.doPost()", "Exception:");
 		}
-		
+
 	}
 
 }
