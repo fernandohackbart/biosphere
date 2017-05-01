@@ -29,14 +29,14 @@ public class CellTissueJoinHandler extends AbstractHandler {
 		try {
 
 			String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
-			getLogger().debug("CellTissueJoinHandler.doPost() Request from: " + partnerCell);
 			ObjectMapper mapper = new ObjectMapper();
-			TissueJoinResponse tjresp = new TissueJoinResponse();
+			TissueJoinResponse tjresp = new TissueJoinResponse();			
 			tjresp.setCellName(getCell().getCellName());
-
+			String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
+			TissueJoinRequest tjreq = mapper.readValue(requestPayload.getBytes(), TissueJoinRequest.class);
+			getLogger().debug("CellTissueJoinHandler.doPost() Request ("+tjreq.getRequestID()+") from: " + partnerCell);
+			
 			if (!getCell().isTissueMember()) {
-				String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
-				TissueJoinRequest tjreq = mapper.readValue(requestPayload.getBytes(), TissueJoinRequest.class);
 
 				// Add the DNA to the cell
 				getLogger().info("CellTissueJoinHandler.doPost() Creating new DNA for this cell");
@@ -66,6 +66,7 @@ public class CellTissueJoinHandler extends AbstractHandler {
 				tjresp.setMessage(getCell().getCellName() + " already member of tissue ("+getCell().getDna().getTissueName()+")");
 				tjresp.setCellJoinedTissue(false);
 			}
+			tjresp.setRequestID(tjreq.getRequestID());
 
 			String responseString = mapper.writeValueAsString(tjresp);
 			response.setContentType(getContentType());

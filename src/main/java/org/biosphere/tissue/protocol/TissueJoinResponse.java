@@ -2,7 +2,12 @@ package org.biosphere.tissue.protocol;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class TissueJoinResponse {
+public class TissueJoinResponse extends AbstractProtocol {
+	
+	public TissueJoinResponse() {
+		super();
+	}
+	
 	@JsonProperty("cellName")
 	String cellName;
 	@JsonProperty("cellJoinedTissue")

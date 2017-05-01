@@ -7,6 +7,10 @@ import org.biosphere.tissue.protocol.FlatBlock;
 
 public class BlockAppendRequest extends FlatBlock{
 	
+	public BlockAppendRequest() {
+		super();
+	}
+	
 	@JsonProperty("notifyingCell")
 	String notifyingCell;
 	@JsonProperty("accepted")

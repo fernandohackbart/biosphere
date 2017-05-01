@@ -68,11 +68,11 @@ public class CellAnnounceListener extends THREADService {
 				packet = new DatagramPacket(buf, buf.length);
 				socket.receive(packet);
 				String receivedPayload = new String(packet.getData(), 0, packet.getLength());
-				logger.debug("CellAnnounceListener.run() Received request adopting cell!");
 				ObjectMapper mapper = new ObjectMapper();
 				TissueAnnounce tjb = mapper.readValue(receivedPayload.getBytes(), TissueAnnounce.class);
 				if (!this.getCell().getDna().containsCell(tjb.getCellName()))
 				{
+					logger.debug("CellAnnounceListener.run() Received request ("+tjb.getRequestID()+") adopting cell!");
 					adoptCell(tjb);	
 				}
 				else
@@ -115,7 +115,7 @@ public class CellAnnounceListener extends THREADService {
 			String requestWelcome = mapper.writeValueAsString(twr);
 			URL urlWelcome = new URL(
 					"https://" + tjb.getCellNetworkName() + ":" + tjb.getTissuePort() + "/org/biosphere/tissue/welcome");
-			logger.debug("CellAnnounceListener.adoptCell() Contacting: " + urlWelcome.getProtocol() + "://"
+			logger.debug("CellAnnounceListener.adoptCell() Request ("+twr.getRequestID()+") contacting: " + urlWelcome.getProtocol() + "://"
 					+ urlWelcome.getHost() + ":" + urlWelcome.getPort() + "/org/biosphere/tissue/welcome");
 			HttpsURLConnection connWelcome = (HttpsURLConnection) urlWelcome.openConnection();
 			connWelcome.setRequestMethod("POST");
@@ -146,6 +146,7 @@ public class CellAnnounceListener extends THREADService {
 					tjreq.setChain(Base64.toBase64String(getCell().getChain().toJSON().getBytes()));
 					String requestJoin = mapper.writeValueAsString(tjreq);
 					URL urlJoin = new URL("https://" + tjb.getCellNetworkName() + ":" + tjb.getTissuePort() + "/org/biosphere/tissue/join");
+					logger.debug("CellAnnounceListener.adoptCell() Request ("+tjreq.getRequestID()+") contacting: https://" + tjb.getCellNetworkName() + ":" + tjb.getTissuePort() + "/org/biosphere/tissue/join");
 					HttpsURLConnection connJoin = (HttpsURLConnection) urlJoin.openConnection();
 					connJoin.setRequestMethod("POST");
 					connJoin.setDoOutput(true);

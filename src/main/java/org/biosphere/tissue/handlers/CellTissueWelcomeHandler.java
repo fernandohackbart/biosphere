@@ -30,7 +30,7 @@ public class CellTissueWelcomeHandler extends AbstractHandler {
 		String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
 		ObjectMapper mapper = new ObjectMapper();
 		TissueWelcomeRequest twr = mapper.readValue(requestPayload.getBytes(), TissueWelcomeRequest.class);
-		getLogger().info("CellTissueWelcomeHandler.doPost() Welcome request to tissue " + twr.getTissueName() + " from cell (" + twr.getCellName()+") at "+ partnerCell);
+		getLogger().info("CellTissueWelcomeHandler.doPost() Welcome request to tissue " + twr.getTissueName() + " from cell (" + twr.getCellName()+") at "+ partnerCell + " Request ("+twr.getRequestID()+")");
 		
 		TissueWelcomeResponse tg = new TissueWelcomeResponse();
 		if ((!TissueManager.isOnWelcomeProcess())&&(!getCell().isTissueMember()))
@@ -56,6 +56,7 @@ public class CellTissueWelcomeHandler extends AbstractHandler {
 			getLogger().info("CellTissueWelcomeHandler.doPost() Sending busy to cell (" + twr.getCellName()+")");
 		}
 		tg.setCellName(getCell().getCellName());
+		tg.setRequestID(twr.getRequestID());
 		String responseString = mapper.writeValueAsString(tg);
 		response.setContentType(getContentType());
 		response.setCharacterEncoding(getContentEncoding());

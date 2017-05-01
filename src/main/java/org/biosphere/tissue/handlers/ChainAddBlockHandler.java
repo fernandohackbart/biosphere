@@ -23,12 +23,13 @@ public class ChainAddBlockHandler extends AbstractHandler {
 			throws ServletException, IOException {
 		try {
 			String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
-			getLogger().debug("ChainAddBlockHandler.doPost() Cell " + getCell().getCellName() + " request from: " + partnerCell);
 			String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
 			getLogger().debug("ChainAddBlockHandler.doPost() Payload to be added to the block:" + requestPayload);
 			ObjectMapper mapper = new ObjectMapper();
 			BlockAddRequest bare = mapper.readValue(requestPayload.getBytes(),BlockAddRequest.class);
+			getLogger().debug("ChainAddBlockHandler.doPost() Request ("+bare.getRequestID()+") Cell " + getCell().getCellName() + " request from: " + partnerCell);
 			BlockAddResponse bar = getCell().getChain().addBlock(bare);
+			bar.setRequestID(bare.getRequestID());
 			String responseString = mapper.writeValueAsString(bar);
 			response.setContentType(getContentType());
 			response.setCharacterEncoding(getContentEncoding());

@@ -2,7 +2,12 @@ package org.biosphere.tissue.protocol;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class BlockAddResponse {
+public class BlockAddResponse extends AbstractProtocol {
+
+	public BlockAddResponse() {
+		super();
+	}
+	
 	@JsonProperty("accepted")
 	boolean accepted;
 	@JsonProperty("cellName")

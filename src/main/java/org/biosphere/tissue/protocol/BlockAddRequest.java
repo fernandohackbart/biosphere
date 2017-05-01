@@ -2,7 +2,11 @@ package org.biosphere.tissue.protocol;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class BlockAddRequest {
+public class BlockAddRequest extends AbstractProtocol{
+	
+	public BlockAddRequest() {
+		super();
+	}
 	
 	@JsonProperty("title")
 	String title;

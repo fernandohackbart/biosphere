@@ -102,6 +102,7 @@ public class TissueManager {
 						byte[] buf = (tissueJoinString).getBytes();
 						logger.trace("TissueManager.joinTissue() TissueJoinString as byteArray size " + buf.length
 								+ " bytes");
+						logger.trace("TissueManager.joinTissue() Request ID (" + tj.getRequestID()+")");
 						socket = new DatagramSocket();
 						DatagramPacket packet = new DatagramPacket(buf, buf.length);
 						packet.setAddress(InetAddress.getByName(announceAddress));

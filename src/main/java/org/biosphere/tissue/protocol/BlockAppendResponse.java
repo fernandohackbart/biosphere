@@ -3,6 +3,11 @@ package org.biosphere.tissue.protocol;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class BlockAppendResponse {
+	
+	public BlockAppendResponse() {
+		super();
+	}
+	
 	@JsonProperty("cellName")
 	String cellName;
 	@JsonProperty("accepted")

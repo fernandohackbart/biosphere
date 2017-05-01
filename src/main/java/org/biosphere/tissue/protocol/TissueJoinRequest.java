@@ -2,7 +2,12 @@ package org.biosphere.tissue.protocol;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class TissueJoinRequest {
+public class TissueJoinRequest extends AbstractProtocol {
+	
+	public TissueJoinRequest() {
+		super();
+	}
+	
 	@JsonProperty("dna")
 	String dna;
 	@JsonProperty("chain")
