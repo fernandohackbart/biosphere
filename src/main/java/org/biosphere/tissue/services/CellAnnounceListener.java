@@ -133,7 +133,7 @@ public class CellAnnounceListener extends THREADService {
 			connWelcome.disconnect();
 
 			TissueWelcomeResponse tg = mapper.readValue(responsePayload.getBytes(), TissueWelcomeResponse.class);
-			logger.info("CellAnnounceListener.adoptCell() Greeting response: (" +tg.getCellName()+ ") " + tg.getMessage());
+			logger.info("CellAnnounceListener.adoptCell() Greeting response from cell (" +tg.getCellName()+ "): " + tg.getMessage());
 
 			if (!tg.isCellBusy()) {
 				
@@ -161,7 +161,7 @@ public class CellAnnounceListener extends THREADService {
 					String responseJoin = getResponseAsString(connJoin.getInputStream());
 					connJoin.disconnect();
 					TissueJoinResponse tjr= mapper.readValue(responseJoin.getBytes(), TissueJoinResponse.class);
-					logger.debug("CellAnnounceListener.adoptCell() Join response: (" +tjr.getCellName()+") "+ tjr.getMessage());
+					logger.debug("CellAnnounceListener.adoptCell() Join response from cell (" +tjr.getCellName()+"): "+ tjr.getMessage());
 				}
 				else
 				{
