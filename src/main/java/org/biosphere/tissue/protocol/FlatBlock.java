@@ -44,6 +44,13 @@ public class FlatBlock {
 	private String prevBlockID;
 
 	/**
+	 * Title of the Block
+	 */
+	@JsonProperty("title")
+	private String title;
+
+	
+	/**
 	 * Payload of the Block
 	 */
 	@JsonProperty("payload")
@@ -150,10 +157,21 @@ public class FlatBlock {
 	public final void setChainPosition(int chainPosition) {
 		this.chainPosition = chainPosition;
 	}
+	
+	@JsonProperty("title")
+	public final String getTitle() {
+		return title;
+	}
+
+	@JsonProperty("title")
+	public final void setTitle(String title) {
+		this.title = title;
+	}
 
 	public final String toJSON() throws JsonProcessingException
 	{
 		ObjectMapper mapper = new ObjectMapper();
 		return mapper.writeValueAsString(this);
 	}
+
 }

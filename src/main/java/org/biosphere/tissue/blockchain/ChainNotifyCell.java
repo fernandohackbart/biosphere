@@ -49,7 +49,7 @@ public class ChainNotifyCell implements Runnable {
 	public void run() {
 		try {
 			String peerURL = "https://" + getHostname() + ":" + getPort() + "/org/biosphere/cell/chain/append/block";
-			logger.debug("ChainNotifyCell.run() Notifying " + peerURL);
+			logger.debug("ChainNotifyCell.run() Notifying " + peerURL +" block ("+ getBlock().getBlockID()+") TITLE("+getBlock().getTitle()+")");
 			
 			BlockAppendRequest fbar = new BlockAppendRequest();
 			fbar.setAccepted(isAccepted());
@@ -77,7 +77,7 @@ public class ChainNotifyCell implements Runnable {
 			connNotification.disconnect();
 			
 			BlockAppendResponse fbr = mapper.readValue(responsePayload.getBytes(),BlockAppendResponse.class);
-			logger.debug("ChainNotifyCell.run() Notification response: (" + fbr.getCellName()+ ")" + fbr.isAccepted());
+			logger.debug("ChainNotifyCell.run() Notification response: cell (" + fbr.getCellName()+ ") = " + fbr.isAccepted());
 			setRemoteAccepted(fbr.isAccepted());
 			getBlock().addVote(new Vote(getRemoteCellName(), isRemoteAccepted()));
 		} catch (MalformedURLException e) {

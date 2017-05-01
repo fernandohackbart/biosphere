@@ -62,6 +62,11 @@ public class Block {
 	private String prevBlockID;
 
 	/**
+	 * Title of the Block
+	 */
+	private String title;
+
+	/**
 	 * Payload of the Block
 	 */
 	private String payload;
@@ -113,8 +118,9 @@ public class Block {
 	Block(FlatBlock flatBlock, Chain chain, Cell cell) throws BlockException {
 		super();
 		logger = LoggerFactory.getLogger(Block.class);
-		logger.debug("Block.Block() Creating new Block: cell(" + flatBlock.getCellID() + ") prev block ID("
-				+ flatBlock.getPrevBlockID() + ") block ID(" + flatBlock.getBlockID() + ")");
+		logger.debug("Block.Block() Creating new Block (flatBlock): cell(" + flatBlock.getCellID() + ") prev block ID("
+				+ flatBlock.getPrevBlockID() + ") block ID(" + flatBlock.getBlockID() + ") TITLE("
+				+ flatBlock.getTitle() + ")");
 		setChainPosition(flatBlock.getChainPosition());
 		setTimestamp(flatBlock.getTimestamp());
 		setCellID(flatBlock.getCellID());
@@ -122,6 +128,7 @@ public class Block {
 		setBlockID(flatBlock.getBlockID());
 		setPrevHash(flatBlock.getPrevHash());
 		setBlockHash(flatBlock.getBlockHash());
+		setTitle(flatBlock.getTitle());
 		setPayload(new String(Base64.decode(flatBlock.getPayload())));
 		setCellSignature(flatBlock.getCellSignature());
 		setChain(chain);
@@ -145,10 +152,13 @@ public class Block {
 	 *            the unique identified of the Cell that added the Block to the
 	 *            chain, mostly the local Cell.
 	 */
-	Block(Cell cell, String payload, String prevBlockID, Chain chain, boolean genesis) throws BlockException {
+	Block(Cell cell, String title, String payload, String prevBlockID, Chain chain, boolean genesis)
+			throws BlockException {
 		super();
 		logger = LoggerFactory.getLogger(Block.class);
-		logger.debug("Block.Block() Creating new Block:" + cellID + ":" + payload + ":" + prevBlockID + ":" + genesis);
+		String blockID = UUID.randomUUID().toString();
+		logger.debug("Block.Block() Creating new Block (flatBlock): cell(" + cell.getCellName() + ") prev block ID("
+				+ prevBlockID + ") block ID(" + blockID + ") TITLE(" + title + ") GENESIS(" + genesis + ")");
 		setChain(chain);
 		setAcceptanceVotes(new ArrayList<Vote>());
 		setNextBlockIDs(new ArrayList<String>());
@@ -159,11 +169,12 @@ public class Block {
 			setPrevHash("GENESIS");
 			setChainPosition(0);
 		} else {
-			setBlockID(UUID.randomUUID().toString());
+			setBlockID(blockID);
 			setPrevHash(chain.getBlock(prevBlockID).getBlockHash());
 			setChainPosition(chain.getBlock(prevBlockID).getChainPosition() + 1);
 			chain.getBlock(getPrevBlockID()).addNextBlockID(getBlockID());
 		}
+		setTitle(title);
 		setPayload(payload);
 		generateCellSignature(cell);
 		setBlockHash(calculateBlockHash());
@@ -232,11 +243,12 @@ public class Block {
 	 */
 	public boolean isAccepted(int tissueSize) {
 		int totalVotes = acceptanceVotes.size();
-		logger.debug("Block.accepted() Block: " + getBlockID() + " total votes " + totalVotes);
+		logger.trace("Block.accepted() Block: " + getBlockID() + " total votes " + totalVotes + " tissue size "
+				+ tissueSize);
 		int totalAccepted = 0;
 		boolean acceptance = false;
 		if (!getBlockID().equals("GENESIS")) {
-			if (totalVotes > (tissueSize / 2)) {
+			if (totalVotes >= (tissueSize / 2)) {
 				Iterator<Vote> itAccept = acceptanceVotes.iterator();
 				while (itAccept.hasNext()) {
 					Vote tmpVote = itAccept.next();
@@ -244,18 +256,18 @@ public class Block {
 						totalAccepted++;
 					}
 				}
-				logger.debug("Block.accepted() Block: " + getBlockID() + " total accepted votes " + totalAccepted);
+				logger.trace("Block.accepted() Block: " + getBlockID() + " total accepted votes " + totalAccepted);
 				if (totalAccepted > (totalVotes / 2)) {
 					acceptance = true;
 				}
 			} else {
-				logger.debug("Block.accepted() Block: " + getBlockID() + " no enought votes " + totalVotes);
+				logger.trace("Block.accepted() Block: " + getBlockID() + " no enought votes " + totalVotes);
 			}
 		} else {
-			logger.debug("Block.accepted() Block: " + getBlockID() + " always accepted.");
+			logger.trace("Block.accepted() Block: " + getBlockID() + " always accepted.");
 			acceptance = true;
 		}
-		logger.debug("Block.accepted() Block: " + getBlockID() + " accepted: " + acceptance);
+		logger.trace("Block.accepted() Block: " + getBlockID() + " ACCEPTED: " + acceptance);
 		return acceptance;
 	}
 
@@ -384,6 +396,7 @@ public class Block {
 		fb.setCellID(getCellID());
 		fb.setCellSignature(getCellSignature());
 		fb.setChainPosition(getChainPosition());
+		fb.setTitle(getTitle());
 		fb.setPayload(Base64.toBase64String(getPayload().getBytes(StandardCharsets.UTF_8)));
 		fb.setPrevBlockID(getPrevBlockID());
 		fb.setPrevHash(getPrevHash());
@@ -470,17 +483,22 @@ public class Block {
 	 */
 	void executePayload(Cell cell) throws BlockException {
 		try {
+			logger.debug("Block.executePayload() Executing payload of block (" + getBlockID() + ")");
 			ObjectMapper mapper = new ObjectMapper();
 			if (!payload.equals("GENESIS")) {
 				TissueAddCellPayload tacp = mapper.readValue(Base64.decode(payload), TissueAddCellPayload.class);
-				if (tacp.getOperation().equals("CellAdd")) {
+				switch (tacp.getOperation()) {
+				case "CellAdd":
+					logger.trace("Block.executePayload() Executing payload of block (" + getBlockID() + ") CellAdd: ("
+							+ tacp.getName() + ")");
 					cell.getDna().appendCell(cell.getDna().getCellInstance(tacp.getName(), tacp.getPublicKey(),
 							tacp.getInterfaces(), tacp.getTissuePort()));
+					break;
 				}
 
 			}
 		} catch (IOException e) {
-			throw new BlockException("Failed to add cell to the local DNA", e);
+			throw new BlockException("Failed to execute block payload: ", e);
 		}
 	}
 
@@ -625,5 +643,18 @@ public class Block {
 	 */
 	public final int getVotesCount() {
 		return acceptanceVotes.size();
+	}
+
+	public final String getTitle() {
+		return title;
+	}
+
+	final void setTitle(String title) throws BlockException {
+		if (title == null) {
+			throw new BlockException("Block title could not be null!");
+		} else {
+			this.title = title;
+		}
+
 	}
 }

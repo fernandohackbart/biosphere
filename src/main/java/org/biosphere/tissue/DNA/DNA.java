@@ -56,9 +56,9 @@ public class DNA {
 		return tissue.getCells().size();
 	}
 
-	private boolean containsCell(String cellName) {
+	public boolean containsCell(String cellName) {
 		boolean cellPresent = false;
-		logger.debug("DNACore.contains() Getting the list of the cells from the DNA");
+		logger.trace("DNACore.contains() Getting the list of the cells from the DNA");
 		for (Cell cell : tissue.getCells()) {
 			if (cell.getName().equals(cellName)) {
 				cellPresent = true;
@@ -70,7 +70,7 @@ public class DNA {
 
 	public boolean addCell(String cellName, String cellpublickey, String cellNetworkName, int cellTissuePort,String adopterCellName,Chain chain) throws BlockException, JsonProcessingException {
 		boolean cellAdded=false;
-		logger.info("DNA.addCell() Notifying tissue over chain for cell " + cellName);
+		logger.info("DNA.addCell() Notifying tissue over chain for cell (" + cellName+")");
 		Cell cell = getCellInstance(cellName, cellpublickey, cellNetworkName, cellTissuePort);
 		TissueAddCellPayload tacp = new TissueAddCellPayload();
 		tacp.setAdopterCellName(adopterCellName);
@@ -79,13 +79,14 @@ public class DNA {
 		ObjectMapper mapper = new ObjectMapper();
 		BlockAddRequest bar = new BlockAddRequest();
 		bar.setEnsureAcceptance(true);
+		bar.setTitle("AddCell-"+cellName);
 		bar.setPayload(Base64.toBase64String(mapper.writeValueAsString(tacp).getBytes()));
 		//TODO check why the new cell is being notified 
 		BlockAddResponse baresp = chain.addBlock(bar);
 		if (baresp.isAccepted())
 		{
-			logger.info("DNA.addCell() Cell " + cellName+ " accepted in the Tissue with block "+baresp.getBlockID());
-			logger.info("DNA.addCell() Adding cell " + cellName+ " to the local DNA!");
+			logger.info("DNA.addCell() Cell (" + cellName+ ") accepted in the Tissue with block "+baresp.getBlockID());
+			logger.info("DNA.addCell() Adding cell (" + cellName+ ") to the local DNA!");
 			appendCell(cell);	
 			cellAdded=true;
 		}

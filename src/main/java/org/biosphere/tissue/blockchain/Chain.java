@@ -1,6 +1,7 @@
 package org.biosphere.tissue.blockchain;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -33,7 +34,7 @@ public class Chain {
 		logger = LoggerFactory.getLogger(Chain.class);
 		setCell(cell);
 		chain = new Hashtable<String, Block>();
-		Block genesisBlock = new Block(getCell(), "GENESIS", "GENESIS", this, true);
+		Block genesisBlock = new Block(getCell(),"GENESIS", "GENESIS", "GENESIS", this, true);
 		addBlockToChain(genesisBlock);
 	}
 
@@ -127,17 +128,17 @@ public class Chain {
 		Enumeration<String> blockKeys = chain.keys();
 		while (blockKeys.hasMoreElements()) {
 			Block block = getBlock((String) blockKeys.nextElement());
-			logger.debug("Chain.getNextBlockID() Checking block ID(" + block.getBlockID() + ")");
+			logger.trace("Chain.getNextBlockID() Checking block ID(" + block.getBlockID() + ")");
 			if (block.isAccepted(tissueSize)) {
 				if ((block.getChainPosition() > highestPosition)) {
-					logger.debug("Chain.getNextBlockID() Found new high position (" + block.getChainPosition()
+					logger.trace("Chain.getNextBlockID() Found new high position (" + block.getChainPosition()
 							+ ") block ID(" + block.getBlockID() + ")");
 					candidates = new ArrayList<String>();
 					candidates.add(block.getBlockID());
 					highestPosition = block.getChainPosition();
 				}
 				if ((block.getChainPosition() == highestPosition)) {
-					logger.debug("Chain.getNextBlockID() Found another high position (" + block.getChainPosition()
+					logger.trace("Chain.getNextBlockID() Found another high position (" + block.getChainPosition()
 							+ ") block ID(" + block.getBlockID() + ")");
 					candidates.add(block.getBlockID());
 				}
@@ -147,12 +148,12 @@ public class Chain {
 			boolean nextBlockIDSet = false;
 			for (String candidate : candidates) {
 				if (!nextBlockIDSet) {
-					logger.debug("Chain.getNextBlockID() Choosing first block ID(" + candidate + ")");
+					logger.trace("Chain.getNextBlockID() Choosing first block ID(" + candidate + ")");
 					nextBlockID = candidate;
 					nextBlockIDSet = true;
 				} else {
 					if (getBlock(candidate).getTimestamp().before(getBlock(nextBlockID).getTimestamp())) {
-						logger.debug("Chain.getNextBlockID() Block ID(" + candidate + ") is older than ID(" + candidate
+						logger.trace("Chain.getNextBlockID() Block ID(" + candidate + ") is older than ID(" + candidate
 								+ "), replacing.");
 						nextBlockID = candidate;
 					}
@@ -161,6 +162,7 @@ public class Chain {
 		} else {
 			nextBlockID = candidates.get(0);
 		}
+		logger.trace("Chain.getNextBlockID() NEXT BLOCK ID (" + nextBlockID + ")");
 		return nextBlockID;
 	}
 
@@ -182,9 +184,9 @@ public class Chain {
 	public synchronized BlockAddResponse addBlock(BlockAddRequest blockAddRequest) throws BlockException {
 		logger.debug("Chain.addBlock() Adding block with payload:" + blockAddRequest.getPayload());
 		Block nextBlock = getNextBlock();
-		Block newBlock = new Block(getCell(), blockAddRequest.getPayload(), nextBlock.getBlockID(), this, false);
-		logger.debug("Chain.addBlock() Block (" + newBlock.getBlockID() + ") extending block (" + nextBlock.getBlockID()
-				+ ")!");
+		logger.debug("Chain.addBlock() Adding block with nextBlockID: (" + nextBlock.getBlockID()+")");
+		Block newBlock = new Block(getCell(), blockAddRequest.getTitle(),blockAddRequest.getPayload(), nextBlock.getBlockID(), this, false);
+		logger.debug("Chain.addBlock() Block (" + newBlock.getBlockID() + ") extending block (" + nextBlock.getBlockID()+ ")!");
 		boolean accepted = appendBlock(newBlock, getCell().getCellName(), true, blockAddRequest.isEnsureAcceptance());
 		//newBlock.executePayload(cell);
 		BlockAddResponse bar = new BlockAddResponse();
@@ -204,8 +206,9 @@ public class Chain {
 	public synchronized boolean appendBlock(BlockAppendRequest flatBlock) throws ChainException {
 		boolean accepted = false;
 		try {
+			logger.debug("Chain.appendBlock() Creating new block (from flatblock) (" + flatBlock.getBlockID() + ") TITLE("+flatBlock.getTitle()+")");
 			Block block = new Block(flatBlock, this, getCell());
-			logger.debug("Chain.appendBlock() Block (" + block.getBlockID() + ") being appended!");
+			logger.debug("Chain.appendBlock() Block (flatBlock) (" + block.getBlockID() + ") being appended!");
 			accepted = appendBlock(block, flatBlock.getNotifyingCell(), flatBlock.isAccepted(),
 					flatBlock.isEnsureAcceptance());
 			logger.debug("Chain.appendBlock() Block (" + block.getBlockID() + ") executing payload!");
@@ -257,6 +260,7 @@ public class Chain {
 	 */
 	private boolean appendBlock(Block block, String notifyingCell, boolean notifyingCellAccepted,
 			boolean ensureAcceptance) {
+		logger.trace("Chain.appendBlock() block("+ block.getBlockID() + ")");
 		boolean accepted = true;
 		try {
 			if (block.isValid(getCell())) {
@@ -265,6 +269,7 @@ public class Chain {
 					if (ensureAcceptance) {
 						boolean keepWaiting = true;
 						long timeout = System.currentTimeMillis() + TissueManager.acceptanceTimeout;
+						logger.trace("Chain.appendBlock() Will wait until "+new Date(timeout)+" for acceptance of Block ("+ block.getBlockID() + ")");
 						while (keepWaiting) {
 							if (block.getVotesCount() > (getCell().getDna().getTissueSize() / 2)) {
 								accepted = block.isAccepted(getCell().getDna().getTissueSize());
@@ -278,6 +283,7 @@ public class Chain {
 								keepWaiting = false;
 							}
 							if (keepWaiting) {
+								logger.trace("Chain.appendBlock() Waiting for acceptance for Block ("+ block.getBlockID() + ") for more "+TissueManager.acceptanceInterval+" seconds");
 								Thread.sleep(TissueManager.acceptanceInterval);
 							}
 						}
@@ -390,6 +396,7 @@ public class Chain {
 	 * @throws JsonProcessingException
 	 */
 	public String toJSON() throws JsonProcessingException {
+		logger.trace("Chain.toJSON() Returning flat chain!");
 		FlatChain flatChain = new FlatChain();
 		blockToJSON("GENESIS", flatChain);
 		ObjectMapper mapper = new ObjectMapper();
@@ -406,7 +413,16 @@ public class Chain {
 	 *            the output StringBuffer
 	 */
 	private void blockToJSON(String blockID, FlatChain flatChain) {
-		flatChain.addBlock(getBlock(blockID).getFlatBlock());
+		if (getBlock(blockID)!=null)
+		{
+			flatChain.addBlock(getBlock(blockID).getFlatBlock());
+			logger.trace("Chain.blockToJSON() Adding block POS("+getBlock(blockID).getChainPosition()+") ("+blockID+") to the flat chain!");
+		}
+		else
+		{
+			//TODO decide whenever to raise a exception
+			logger.trace("Chain.blockToJSON() Block ("+blockID+") not found in the chain!");
+		}
 		for (String nextBlockID : getBlock(blockID).getNextBlockIDs()) {
 			blockToJSON(nextBlockID, flatChain);
 		}
@@ -422,9 +438,9 @@ public class Chain {
 		Enumeration<String> blockKeys = chain.keys();
 		while (blockKeys.hasMoreElements()) {
 			String blockID = blockKeys.nextElement();
-			dumpChain.append("\nChain.dumpChain(" + getCell().getCellName() + ") RAW  POS("
+			dumpChain.append("\nChain.dumpChain(" + getCell().getCellName() + ")  POS("
 					+ getBlock(blockID).getChainPosition() + ") PREV(" + getBlock(blockID).getPrevBlockID() + ") ID("
-					+ getBlock(blockID).getBlockID() + ")");
+					+ getBlock(blockID).getBlockID() + ") TITLE ("+getBlock(blockID).getTitle()+")");
 		}
 		return dumpChain.toString();
 	}

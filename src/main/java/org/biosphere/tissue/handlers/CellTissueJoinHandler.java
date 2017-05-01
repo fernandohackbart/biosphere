@@ -27,34 +27,45 @@ public class CellTissueJoinHandler extends AbstractHandler {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		try {
+
 			String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
 			getLogger().debug("CellTissueJoinHandler.doPost() Request from: " + partnerCell);
-
-			String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
 			ObjectMapper mapper = new ObjectMapper();
-			TissueJoinRequest tjreq = mapper.readValue(requestPayload.getBytes(), TissueJoinRequest.class);
-			
-			//Add the DNA to the cell
-			getLogger().info("CellTissueJoinHandler.doPost() Creating new DNA for this cell");
-			Tissue tissue = mapper.readValue(Base64.decode(tjreq.getDna()),Tissue.class);
-			DNA dna = new DNA(tissue);
-			getCell().setDna(dna);
-			
-			//getLogger().info("CellTissueJoinHandler.doPost() Adding local cell to the local DNA (just in case the adopter forgot)");
-			//getCell().getDna().appendCell(getCell().getCellName(), getCell().getCellCertificate(), getCell().getCellNetworkName(),getCell().getTissuePort(),getCell().getCellName(),getCell().getChain());
-			
-			//Add the chain to the cell
-			getLogger().info("CellTissueJoinHandler.doPost() Parsing the Chain received");
-			FlatChain fc = mapper.readValue(Base64.decode(tjreq.getChain()), FlatChain.class);
-			Chain tmpChain = new Chain(getCell().getCellName(), getCell(), fc);
-			getLogger().trace("ChainParseChainHandler.doPost() Parsed flatChain: \n" + tmpChain.toJSON());
-			getCell().setChain(tmpChain);
-
-			getCell().setTissueMember(true);
-
 			TissueJoinResponse tjresp = new TissueJoinResponse();
 			tjresp.setCellName(getCell().getCellName());
-			tjresp.setMessage(getCell().getCellName() + " sucessfull joined the tissue!");
+
+			if (!getCell().isTissueMember()) {
+				String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
+				TissueJoinRequest tjreq = mapper.readValue(requestPayload.getBytes(), TissueJoinRequest.class);
+
+				// Add the DNA to the cell
+				getLogger().info("CellTissueJoinHandler.doPost() Creating new DNA for this cell");
+				Tissue tissue = mapper.readValue(Base64.decode(tjreq.getDna()), Tissue.class);
+				DNA dna = new DNA(tissue);
+				getCell().setDna(dna);
+
+				// getLogger().info("CellTissueJoinHandler.doPost() Adding local
+				// cell to the local DNA (just in case the adopter forgot)");
+				// getCell().getDna().appendCell(getCell().getCellName(),
+				// getCell().getCellCertificate(),
+				// getCell().getCellNetworkName(),getCell().getTissuePort(),getCell().getCellName(),getCell().getChain());
+
+				// Add the chain to the cell
+				getLogger().info("CellTissueJoinHandler.doPost() Parsing the Chain received");
+				FlatChain fc = mapper.readValue(Base64.decode(tjreq.getChain()), FlatChain.class);
+				Chain tmpChain = new Chain(getCell().getCellName(), getCell(), fc);
+				getLogger().trace("ChainParseChainHandler.doPost() Parsed flatChain: \n" + tmpChain.toJSON());
+				getCell().setChain(tmpChain);
+
+				getCell().setTissueMember(true);
+				
+				tjresp.setMessage(getCell().getCellName() + " sucessfull joined the tissue!");
+				tjresp.setCellJoinedTissue(true);
+
+			} else {
+				tjresp.setMessage(getCell().getCellName() + " already member of tissue ("+getCell().getDna().getTissueName()+")");
+				tjresp.setCellJoinedTissue(false);
+			}
 
 			String responseString = mapper.writeValueAsString(tjresp);
 			response.setContentType(getContentType());
@@ -63,7 +74,8 @@ public class CellTissueJoinHandler extends AbstractHandler {
 			response.setContentLength(responseString.getBytes().length);
 			response.getWriter().println(responseString);
 			response.flushBuffer();
-			getLogger().info("CellTissueJoinHandler.doPost() Joined tissue : " + getCell().getDna().getTissueName()+ " from: " + partnerCell);
+			getLogger().info("CellTissueJoinHandler.doPost() Joined tissue : " + getCell().getDna().getTissueName()
+					+ " from: " + partnerCell);
 		} catch (BlockException e) {
 			ChainExceptionHandler.handleGenericException(e, "ChainAddBlockHandler.doPost()", "BlockException:");
 		}

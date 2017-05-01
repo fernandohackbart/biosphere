@@ -28,11 +28,13 @@ public class ChainAppendBlockHandler extends AbstractHandler {
 
 			ObjectMapper mapper = new ObjectMapper();
 			BlockAppendRequest fbar = mapper.readValue(requestPayload.getBytes(), BlockAppendRequest.class);
-			getLogger().debug("ChainAppendBlockHandler.doPost() Cell " + getCell().getCellName() + " request from: ("
+			getLogger().debug("ChainAppendBlockHandler.doPost() Cell (" + getCell().getCellName() + ") received request from: ("
 					+ fbar.getNotifyingCell() + ") " + partnerCell);
 
 			boolean accepted = false;
 			if (getCell().getChain() instanceof Chain) {
+				getLogger().debug("ChainAppendBlockHandler.doPost() Appending block (" + fbar.getBlockID() +") TITLE("+fbar.getTitle()+")");
+			
 				accepted = getCell().getChain().appendBlock(fbar);
 				getLogger().debug("ChainAppendBlockHandler.doPost() Block accepted by " + getCell().getCellName() + ":"
 						+ accepted);

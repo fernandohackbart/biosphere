@@ -69,7 +69,17 @@ public class CellAnnounceListener extends THREADService {
 				socket.receive(packet);
 				String receivedPayload = new String(packet.getData(), 0, packet.getLength());
 				logger.debug("CellAnnounceListener.run() Received request adopting cell!");
-				adoptCell(receivedPayload);
+				ObjectMapper mapper = new ObjectMapper();
+				TissueAnnounce tjb = mapper.readValue(receivedPayload.getBytes(), TissueAnnounce.class);
+				if (!this.getCell().getDna().containsCell(tjb.getCellName()))
+				{
+					adoptCell(tjb);	
+				}
+				else
+				{
+					logger.warn("CellAnnounceListener.run() Cell ("+tjb.getCellName()+") already present in the DNA, ignoring announce!");
+				}
+				
 			}
 			socket.leaveGroup(address);
 			socket.close();
@@ -82,11 +92,10 @@ public class CellAnnounceListener extends THREADService {
 		}
 	}
 
-	private void adoptCell(String tissueJoin) {
+	private void adoptCell(TissueAnnounce tjb) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			TissueAnnounce tjb = mapper.readValue(tissueJoin.getBytes(), TissueAnnounce.class);
-
+			
 			logger.debug("CellAnnounceListener.adoptCell() Adopting: (" + tjb.getCellName() + ") "
 					+ tjb.getCellNetworkName() + ":" + tjb.getTissuePort());
 			try {
@@ -126,11 +135,12 @@ public class CellAnnounceListener extends THREADService {
 			TissueWelcomeResponse tg = mapper.readValue(responsePayload.getBytes(), TissueWelcomeResponse.class);
 			logger.info("CellAnnounceListener.adoptCell() Greeting response: (" +tg.getCellName()+ ") " + tg.getMessage());
 
-			if (tg.getMessage().equals("Greetings")) {
+			if (!tg.isCellBusy()) {
 				
 				logger.debug("CellAnnounceListener.adoptCell() Adding adopted cell to the local DNA!");
 				if (cell.getDna().addCell(tg.getCellName(), tjb.getCellCertificate(), tjb.getCellNetworkName(),tjb.getTissuePort(),cell.getCellName(),cell.getChain()))
 				{
+					logger.debug("CellAnnounceListener.adoptCell() Cell added to the local DNA, sending the DNA and Chain to the cell!");
 					TissueJoinRequest tjreq = new TissueJoinRequest();
 					tjreq.setDna(Base64.toBase64String(getCell().getDna().toJSON().getBytes()));
 					tjreq.setChain(Base64.toBase64String(getCell().getChain().toJSON().getBytes()));
@@ -154,7 +164,7 @@ public class CellAnnounceListener extends THREADService {
 				}
 				else
 				{
-					logger.debug("CellAnnounceListener.adoptCell() Cell ("+tg.getCellName()+") not added reverting");
+					logger.debug("CellAnnounceListener.adoptCell() Cell ("+tg.getCellName()+") busy, reverting keystore certificate addition.");
 					// TODO remove certificate from the keystore
 				}
 			}

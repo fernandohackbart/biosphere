@@ -46,11 +46,13 @@ public class CellTissueWelcomeHandler extends AbstractHandler {
 						"CertificateException:");
 			}			
 			tg.setMessage("Greetings");
-			getLogger().info("CellTissueWelcomeHandler.doPost() Sending greetings to cell:" + twr.getCellName());
+			tg.setCellBusy(false);
+			getLogger().info("CellTissueWelcomeHandler.doPost() Sending greetings to cell (" + twr.getCellName()+")");
 		}
 		else
 		{
 			tg.setMessage("Busy");
+			tg.setCellBusy(true);
 			getLogger().info("CellTissueWelcomeHandler.doPost() Sending busy to cell (" + twr.getCellName()+")");
 		}
 		tg.setCellName(getCell().getCellName());

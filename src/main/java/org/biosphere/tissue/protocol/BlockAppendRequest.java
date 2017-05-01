@@ -38,6 +38,7 @@ public class BlockAppendRequest extends FlatBlock{
         setCellSignature(flatBlock.getCellSignature());
         setPrevHash(flatBlock.getPrevHash());
         setPrevBlockID(flatBlock.getPrevBlockID());
+        setTitle(flatBlock.getTitle());
         setPayload(flatBlock.getPayload());
         setBlockHash(flatBlock.getBlockHash());
         setChainPosition(flatBlock.getChainPosition());

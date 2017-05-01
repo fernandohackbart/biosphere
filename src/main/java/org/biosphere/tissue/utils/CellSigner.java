@@ -110,15 +110,15 @@ public class CellSigner {
 
 			
 			
-			logger.debug("CellSigner.verify()", "Signed for: " + cellName + " by: " + cert.getSubjectX500Principal());
+			logger.debug("CellSigner.verify() Signed for: " + cellName + " by: " + cert.getSubjectX500Principal());
 			if (cert.getSubjectAlternativeNames() != null) {
 				Iterator itasn = cert.getSubjectAlternativeNames().iterator();
 				while (itasn.hasNext()) {
 					List list = (List) itasn.next();
-					logger.trace("CellSigner.verify()", "  Certificate ASN: " +getGeneralName((int)list.get(0))+":"+list.get(1).toString());
+					logger.trace("CellSigner.verify() Certificate ASN: " +getGeneralName((int)list.get(0))+":"+list.get(1).toString());
 					if(list.get(1).toString().equals(cellName))
 					{
-						logger.debug("CellSigner.verify()", "  Expected signer: " +getGeneralName((int)list.get(0))+":"+list.get(1).toString());
+						logger.trace("CellSigner.verify() Expected signer: " +getGeneralName((int)list.get(0))+":"+list.get(1).toString());
 						rightSigner=true;
 					}
 				}
