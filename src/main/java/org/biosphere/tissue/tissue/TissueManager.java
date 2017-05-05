@@ -60,6 +60,9 @@ public class TissueManager {
 	private static boolean onWelcomeProcess = false;
 	public final static long acceptanceTimeout = 5500L;
 	public final static long acceptanceInterval = 1000L;
+	public final static String ThreadServiceClass = "org.biosphere.tissue.services.THREADService";
+	public final static String ServletServiceClass = "org.eclipse.jetty.server.Server";
+	
 
 	public final static void createTissue(Cell cell) throws CellException {
 		Logger logger = LoggerFactory.getLogger(TissueManager.class);

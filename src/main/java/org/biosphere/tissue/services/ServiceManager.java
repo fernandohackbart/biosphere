@@ -10,6 +10,7 @@ import javax.servlet.Servlet;
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.handlers.CellServletHandlerInterface;
+import org.biosphere.tissue.tissue.TissueManager;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 
 import org.eclipse.jetty.http.HttpVersion;
@@ -40,10 +41,10 @@ public final class ServiceManager {
 		if (cellServiceInstances.containsKey(serviceName)) {
 			String serviceType = cellServiceInstances.get(serviceName).getType();
 			switch (serviceType) {
-			case "THREAD":
+			case TissueManager.ThreadServiceClass:
 				isRunning = cellServiceInstances.get(serviceName).getThreadService().isAlive();
 				break;
-			case "SERVLET":
+			case TissueManager.ServletServiceClass:
 				isRunning = cellServiceInstances.containsKey(serviceName);
 				break;
 			}
@@ -56,10 +57,10 @@ public final class ServiceManager {
 		if (cellServiceInstances.containsKey(serviceName)) {
 			String serviceType = cellServiceInstances.get(serviceName).getType();
 			switch (serviceType) {
-			case "THREAD":
+			case TissueManager.ThreadServiceClass:
 				isLoaded = cellServiceInstances.containsKey(serviceName);
 				break;
-			case "SERVLET":
+			case TissueManager.ServletServiceClass:
 				isLoaded = cellServiceInstances.containsKey(serviceName);
 				break;
 			}
@@ -74,13 +75,13 @@ public final class ServiceManager {
 			String serviceName = (String) serviceList.nextElement();
 			String serviceType = cellServiceInstances.get(serviceName).getType();
 			switch (serviceType) {
-			case "THREAD":
+			case TissueManager.ThreadServiceClass:
 				statusTable.put(serviceName,
 						"THREAD name:" + cellServiceInstances.get(serviceName).getThreadService().toString() + " state:"
 								+ cellServiceInstances.get(serviceName).getThreadService().getState().toString()
 								+ " daemon:" + cellServiceInstances.get(serviceName).getThreadService().isDaemon());
 				break;
-			case "SERVLET":
+			case TissueManager.ServletServiceClass:
 				statusTable.put(serviceName, cellServiceInstances.get(serviceName).getJettyServer().getState());
 				break;
 			}
@@ -90,7 +91,7 @@ public final class ServiceManager {
 
 	public static StringBuffer getServletStatus(String serviceName) {
 		StringBuffer statusTable = new StringBuffer();
-     	if(cellServiceInstances.get(serviceName).getType().equals("SERVLET"))
+     	if(cellServiceInstances.get(serviceName).getType().equals(TissueManager.ServletServiceClass))
      	{
 			try {
 				cellServiceInstances.get(serviceName).getJettyServer().dump(statusTable);
@@ -120,10 +121,10 @@ public final class ServiceManager {
 		logger.debug("ServiceManager.load() Loading " + serviceDefinition.getType() + " service "
 				+ serviceDefinition.getName());
 		switch (serviceDefinition.getType()) {
-		case "THREAD":
+		case TissueManager.ThreadServiceClass:
 			loadTHREAD(serviceDefinition, cell);
 			break;
-		case "SERVLET":
+		case TissueManager.ServletServiceClass:
 			loadServlet(serviceDefinition, cell);
 			break;
 		}
@@ -221,7 +222,7 @@ public final class ServiceManager {
 		try {
 			logger.info("ServiceManager.start() Starting " + sd.getType() + " service " + sd.getName());
 			startServiceDefinition(sd, cell);
-			if (sd.getType().equals("SERVLET")) {
+			if (sd.getType().equals(TissueManager.ServletServiceClass)) {
 				// TODO add HTTPPort to the DNA service parameters
 			}
 		} catch (CellException e) {
@@ -263,10 +264,10 @@ public final class ServiceManager {
 			String serviceType = cellServiceInstances.get(serviceName).getType();
 			logger.debug("ServiceManager.startServiceInstance() Starting " + serviceType + " service " + serviceName + "!");
 			switch (serviceType) {
-			case "THREAD":
+			case TissueManager.ThreadServiceClass:
 				cellServiceInstances.get(serviceName).getThreadService().start();
 				break;
-			case "SERVLET":
+			case TissueManager.ServletServiceClass:
 				HTTPPort = startServlet(cellServiceInstances.get(serviceName));
 				break;
 			}
@@ -314,10 +315,10 @@ public final class ServiceManager {
 		logger.debug("ServiceManager.stop() Stopping " + serviceType + " service " + serviceName);
 
 		switch (serviceType) {
-		case "THREAD":
+		case TissueManager.ThreadServiceClass:
 			stopTHREAD(serviceName);
 			break;
-		case "SERVLET":
+		case TissueManager.ServletServiceClass:
 			stopServlet(serviceName);
 			break;
 		}
@@ -362,7 +363,7 @@ public final class ServiceManager {
 			String serviceName = (String) servletServiceList.nextElement();
 			String serviceType = cellServiceInstances.get(serviceName).getType();
 			switch (serviceType) {
-			case "SERVLET":
+			case TissueManager.ServletServiceClass:
 				try {
 					stopServlet(serviceName);
 				} catch (CellException e) {

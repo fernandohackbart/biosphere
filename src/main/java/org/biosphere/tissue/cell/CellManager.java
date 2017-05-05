@@ -97,7 +97,7 @@ public class CellManager {
 
 	public final static void stopCell() {
 		try {
-			ServiceManager.stop("THREAD", "CellMonitor");
+			ServiceManager.stop(TissueManager.ThreadServiceClass, "CellMonitor");
 		} catch (CellException e) {
 			TissueExceptionHandler.handleGenericException(e, "CellManager.stopCell()", "Failed to stop Cell.");
 		}
@@ -106,7 +106,7 @@ public class CellManager {
 	public final static ServiceDefinition getCellMonitorDefinition() {
 		ServiceDefinition sdCellMonitor = new ServiceDefinition();
 		sdCellMonitor.setName("CellMonitor");
-		sdCellMonitor.setType("THREAD");
+		sdCellMonitor.setType(TissueManager.ThreadServiceClass);
 		sdCellMonitor.setVersion("0.1");
 		sdCellMonitor.setDaemon(false);
 		sdCellMonitor.setClassName("org.biosphere.tissue.services.CellMonitor");
@@ -117,7 +117,7 @@ public class CellManager {
 	public final static ServiceDefinition getCellAnnounceListenerDefinition() {
 		ServiceDefinition sdCellAnnounceListener = new ServiceDefinition();
 		sdCellAnnounceListener.setName("CellAnnounceListener");
-		sdCellAnnounceListener.setType("THREAD");
+		sdCellAnnounceListener.setType(TissueManager.ThreadServiceClass);
 		sdCellAnnounceListener.setVersion("0.1");
 		sdCellAnnounceListener.setClassName("org.biosphere.tissue.services.CellAnnounceListener");
 		sdCellAnnounceListener.addParameter("AnnouncePort", TissueManager.announcePort);
@@ -128,7 +128,7 @@ public class CellManager {
 	public final static ServiceDefinition getCellACSDefinition() {
 		ServiceDefinition sdCellACS = new ServiceDefinition();
 		sdCellACS.setName("CellAdministrationConsole");
-		sdCellACS.setType("THREAD");
+		sdCellACS.setType(TissueManager.ThreadServiceClass);
 		sdCellACS.setVersion("0.1");
 		sdCellACS.setClassName("org.biosphere.tissue.services.CellAdministrationConsole");
 		sdCellACS.addParameter("ListenPort", TissueManager.announcePort);
@@ -222,7 +222,7 @@ public class CellManager {
 
 		ServiceDefinition sdCellTissueListener = new ServiceDefinition();
 		sdCellTissueListener.setName("CellTissueListener");
-		sdCellTissueListener.setType("SERVLET");
+		sdCellTissueListener.setType(TissueManager.ServletServiceClass);
 		sdCellTissueListener.setVersion("0.1");
 		sdCellTissueListener.setClassName("org.eclipse.jetty.server.Server");
 		sdCellTissueListener.addParameter("Handlers", cellTissueListenerHandlers);
@@ -256,7 +256,7 @@ public class CellManager {
 
 		ServiceDefinition sdCellTissueListener = new ServiceDefinition();
 		sdCellTissueListener.setName("CellServiceListener");
-		sdCellTissueListener.setType("SERVLET");
+		sdCellTissueListener.setType(TissueManager.ServletServiceClass);
 		sdCellTissueListener.setVersion("0.1");
 		sdCellTissueListener.setClassName("org.eclipse.jetty.server.Server");
 		sdCellTissueListener.addParameter("Handlers", cellServiceListenerHandlers);
