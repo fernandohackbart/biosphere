@@ -31,6 +31,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.biosphere.tissue.Cell;
+import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.services.ServiceDefinition;
@@ -48,6 +49,8 @@ import org.bouncycastle.util.io.pem.PemWriter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class CellManager {
 	public CellManager() {
@@ -95,8 +98,13 @@ public class CellManager {
 		return cellName;
 	}
 
-	public final static void stopCell() {
+	public final static void stopCell(Cell thisCell) {
 		try {
+			try {
+				thisCell.getDna().removeCell(thisCell.getCellName(), thisCell.getCellCertificate(), thisCell.getCellNetworkName(), thisCell.getTissuePort(),thisCell.getChain());
+			} catch (JsonProcessingException | BlockException e) {
+				TissueExceptionHandler.handleGenericException(e, "CellManager.stopCell()", "Failed to notify the DNA.");
+			}
 			ServiceManager.stop(TissueManager.ThreadServiceClass, "CellMonitor");
 		} catch (CellException e) {
 			TissueExceptionHandler.handleGenericException(e, "CellManager.stopCell()", "Failed to stop Cell.");
@@ -385,15 +393,20 @@ public class CellManager {
 			throws KeyStoreException, CertificateEncodingException, IOException, CertificateException {
 		Logger logger;
 		logger = LoggerFactory.getLogger(CellManager.class);
-		logger.info("CellManager.addCellTrustKeystore() Adding certificate with alias:" + cellName);
-		logger.trace("CellManager.addCellTrustKeystore() Certificate:\n" + certPem);
-		PemReader pr = new PemReader(new StringReader(certPem));
-		PemObject pem = pr.readPemObject();
-		pr.close();
-		CertificateFactory cf = CertificateFactory.getInstance("X509");
-		Certificate cert = cf.generateCertificate(new ByteArrayInputStream(pem.getContent()));
 		KeyStore ks = cell.getCellKeystore();
-		ks.setCertificateEntry(cellName, cert);
-		CellManager.setDefaultSSLSocketFactory(cell);
+		if(ks.getCertificate(cellName)==null){
+			logger.info("CellManager.addCellTrustKeystore() Adding certificate with alias: (" + cellName+")");
+			logger.trace("CellManager.addCellTrustKeystore() Certificate:\n" + certPem);
+			PemReader pr = new PemReader(new StringReader(certPem));
+			PemObject pem = pr.readPemObject();
+			pr.close();
+			CertificateFactory cf = CertificateFactory.getInstance("X509");
+			Certificate cert = cf.generateCertificate(new ByteArrayInputStream(pem.getContent()));
+			ks.setCertificateEntry(cellName, cert);
+			CellManager.setDefaultSSLSocketFactory(cell);
+		}
+		else{
+			logger.trace("CellManager.addCellTrustKeystore() certificate with alias: (" + cellName + ") already exists!");
+		}
 	}
 }

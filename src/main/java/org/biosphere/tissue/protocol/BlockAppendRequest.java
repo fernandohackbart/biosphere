@@ -46,6 +46,7 @@ public class BlockAppendRequest extends FlatBlock{
         setPayload(flatBlock.getPayload());
         setBlockHash(flatBlock.getBlockHash());
         setChainPosition(flatBlock.getChainPosition());
+        setAcceptanceVotes(flatBlock.getAcceptanceVotes());
 	}
 	@JsonProperty("ensureAcceptance")
 	public final boolean isEnsureAcceptance() {

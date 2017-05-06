@@ -63,6 +63,8 @@ public class TissueManager {
 	public final static String ThreadServiceClass = "org.biosphere.tissue.services.THREADService";
 	public final static String ServletServiceClass = "org.eclipse.jetty.server.Server";
 	
+	public final static String TissueCellAddOperation = "CellAdd";
+	public final static String TissueCellRemoveOperation = "CellRemove";
 
 	public final static void createTissue(Cell cell) throws CellException {
 		Logger logger = LoggerFactory.getLogger(TissueManager.class);
@@ -77,7 +79,7 @@ public class TissueManager {
 		}
 		try {
 			dna.addCell(cell.getCellName(), cell.getCellCertificate(), cell.getCellNetworkName(), cell.getTissuePort(),
-					cell.getCellName(), cell.getChain());
+					cell.getCellName(), cell);
 		} catch (JsonProcessingException | BlockException e) {
 			TissueExceptionHandler.handleUnrecoverableGenericException(e, "TissueManager.createTissue()",
 					"Failed to set chain");

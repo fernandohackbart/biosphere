@@ -24,7 +24,7 @@ public class CellStopHandler extends AbstractHandler {
 		response.setContentLength(responseString.getBytes().length);
 		response.getWriter().println(responseString);	
 		response.flushBuffer();
-		CellManager.stopCell();
+		CellManager.stopCell(getCell());
 	}
 	
 }

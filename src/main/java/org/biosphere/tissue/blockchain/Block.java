@@ -18,8 +18,10 @@ import java.util.UUID;
 
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.protocol.FlatBlock;
-import org.biosphere.tissue.protocol.FlatChain;
 import org.biosphere.tissue.protocol.TissueAddCellPayload;
+import org.biosphere.tissue.protocol.TissueOperationPayload;
+import org.biosphere.tissue.protocol.TissueRemoveCellPayload;
+import org.biosphere.tissue.tissue.TissueManager;
 import org.biosphere.tissue.utils.CellSigner;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -28,6 +30,7 @@ import org.bouncycastle.util.encoders.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Block {
@@ -94,7 +97,7 @@ public class Block {
 	/**
 	 * The chain that this Block belongs to
 	 */
-	private Chain chain;
+	//private Chain chain;
 
 	/**
 	 * Block logger
@@ -131,8 +134,14 @@ public class Block {
 		setTitle(flatBlock.getTitle());
 		setPayload(new String(Base64.decode(flatBlock.getPayload())));
 		setCellSignature(flatBlock.getCellSignature());
-		setChain(chain);
-		setAcceptanceVotes(new ArrayList<Vote>());
+		//setChain(chain);
+		if (flatBlock.getAcceptanceVotes() != null) {
+			logger.trace("Block.Block() Acceptance votes from flatBlock: " + flatBlock.getAcceptanceVotes().size());
+			setAcceptanceVotes(flatBlock.getAcceptanceVotes());
+		} else {
+			logger.trace("Block.Block() No acceptance votes from flatBlock");
+			setAcceptanceVotes(new ArrayList<Vote>());
+		}
 		setNextBlockIDs(new ArrayList<String>());
 		if (!getBlockID().equals("GENESIS")) {
 			chain.getBlock(getPrevBlockID()).addNextBlockID(getBlockID());
@@ -157,9 +166,9 @@ public class Block {
 		super();
 		logger = LoggerFactory.getLogger(Block.class);
 		String blockID = UUID.randomUUID().toString();
-		logger.debug("Block.Block() Creating new Block (flatBlock): cell(" + cell.getCellName() + ") prev block ID("
+		logger.debug("Block.Block() Creating new Block (parameters): cell(" + cell.getCellName() + ") prev block ID("
 				+ prevBlockID + ") block ID(" + blockID + ") TITLE(" + title + ") GENESIS(" + genesis + ")");
-		setChain(chain);
+		//setChain(chain);
 		setAcceptanceVotes(new ArrayList<Vote>());
 		setNextBlockIDs(new ArrayList<String>());
 		setCellID(cell.getCellName());
@@ -206,13 +215,13 @@ public class Block {
 	 * @param vote
 	 */
 	public synchronized void addVote(Vote vote) {
-		if (!acceptanceVotes.contains(vote)) {
-			logger.debug("Block.addVote() Adding vote: " + vote.getCellID() + " voted: (" + vote.isAccepted()
-					+ ") for block " + getBlockID());
+		if (!cellVoted(vote.getCellID())) {
+			logger.debug("Block.addVote() Adding vote block ("+getBlockID()+") cell (" + vote.getCellID() + ") voted: " + vote.isAccepted()
+					+ " for block (" + getBlockID() + ")");
 			acceptanceVotes.add(vote);
 		} else {
 			logger.debug(
-					"Block.addVote() Adding vote: " + vote.getCellID() + " already voted for block " + getBlockID());
+					"Block.addVote() Cell (" + vote.getCellID() + ") already voted for block (" + getBlockID() + ")");
 		}
 	}
 
@@ -225,17 +234,28 @@ public class Block {
 	 */
 	public boolean cellVoted(String cellName) {
 		boolean voted = false;
-		Iterator<Vote> accIt = acceptanceVotes.listIterator();
-		while (accIt.hasNext()) {
-			if (((Vote) accIt.next()).getCellID().equals(cellName)) {
+		logger.trace("Block.cellVoted() Block ("+getBlockID()+") vote count="+getAcceptanceVotes().size());
+		showVotes();
+		for (Vote vote : getAcceptanceVotes()) {
+			if (vote.getCellID().equals(cellName)) {
 				voted = true;
+				break;
 			}
-			break;
 		}
-		logger.debug("Block.cellVoted() Cell: " + cellName + " vote present: " + voted);
+		if (!voted) {
+			logger.trace("Block.cellVoted() Cell (" + cellName + ") NOT voted for block ("+getBlockID()+")");
+		} else {
+			logger.trace("Block.cellVoted() Cell (" + cellName + ") already voted for block ("+getBlockID()+")");
+		}
 		return voted;
 	}
 
+	public void showVotes() {
+		logger.trace("Block.showVotes() Block ("+getBlockID()+") vote count="+getAcceptanceVotes().size());
+		for (Vote vote : getAcceptanceVotes()) {
+			logger.trace("Block.showVotes() Cell ("+vote.getCellID()+") vote ("+vote.isAccepted()+")");
+		}
+	}
 	/**
 	 * Return the acceptance of the block base on the votes
 	 * 
@@ -243,7 +263,7 @@ public class Block {
 	 */
 	public boolean isAccepted(int tissueSize) {
 		int totalVotes = acceptanceVotes.size();
-		logger.trace("Block.accepted() Block: " + getBlockID() + " total votes " + totalVotes + " tissue size "
+		logger.trace("Block.isAccepted() Block: " + getBlockID() + " total votes " + totalVotes + " tissue size "
 				+ tissueSize);
 		int totalAccepted = 0;
 		boolean acceptance = false;
@@ -256,18 +276,18 @@ public class Block {
 						totalAccepted++;
 					}
 				}
-				logger.trace("Block.accepted() Block: " + getBlockID() + " total accepted votes " + totalAccepted);
+				logger.trace("Block.isAccepted() Block: " + getBlockID() + " total accepted votes " + totalAccepted);
 				if (totalAccepted > (totalVotes / 2)) {
 					acceptance = true;
 				}
 			} else {
-				logger.trace("Block.accepted() Block: " + getBlockID() + " no enought votes " + totalVotes);
+				logger.trace("Block.isAccepted() Block: " + getBlockID() + " no enought votes " + totalVotes);
 			}
 		} else {
-			logger.trace("Block.accepted() Block: " + getBlockID() + " always accepted.");
+			logger.trace("Block.isAccepted() Block: " + getBlockID() + " always accepted.");
 			acceptance = true;
 		}
-		logger.trace("Block.accepted() Block: " + getBlockID() + " ACCEPTED: " + acceptance);
+		logger.trace("Block.isAccepted() Block: " + getBlockID() + " ACCEPTED: " + acceptance);
 		return acceptance;
 	}
 
@@ -401,6 +421,7 @@ public class Block {
 		fb.setPrevBlockID(getPrevBlockID());
 		fb.setPrevHash(getPrevHash());
 		fb.setTimestamp(getTimestamp());
+		fb.setAcceptanceVotes(getAcceptanceVotes());
 		return fb;
 	}
 
@@ -475,7 +496,7 @@ public class Block {
 	}
 
 	/**
-	 * Executes the comands into the payload
+	 * Executes the commands into the payload
 	 * 
 	 * 
 	 * @param cell
@@ -486,16 +507,27 @@ public class Block {
 			logger.debug("Block.executePayload() Executing payload of block (" + getBlockID() + ")");
 			ObjectMapper mapper = new ObjectMapper();
 			if (!payload.equals("GENESIS")) {
-				TissueAddCellPayload tacp = mapper.readValue(Base64.decode(payload), TissueAddCellPayload.class);
-				switch (tacp.getOperation()) {
-				case "CellAdd":
-					logger.trace("Block.executePayload() Executing payload of block (" + getBlockID() + ") CellAdd: ("
-							+ tacp.getName() + ")");
-					cell.getDna().appendCell(cell.getDna().getCellInstance(tacp.getName(), tacp.getPublicKey(),
-							tacp.getInterfaces(), tacp.getTissuePort()));
+				mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+				TissueOperationPayload topl = mapper.readValue(Base64.decode(payload), TissueOperationPayload.class);
+				mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+				switch (topl.getOperation()) {
+				case TissueManager.TissueCellAddOperation:
+					TissueAddCellPayload tacp = mapper.readValue(Base64.decode(payload), TissueAddCellPayload.class);
+					logger.trace("Block.executePayload() Executing payload of block (" + getBlockID() + ") "
+							+ TissueManager.TissueCellAddOperation + " (" + tacp.getCell().getName() + ")");
+					cell.getDna()
+							.appendCell(cell.getDna().getCellInstance(tacp.getCell().getName(),
+									tacp.getCell().getPublicKey(), tacp.getCell().getInterfaces(),
+									tacp.getCell().getTissuePort()), cell);
+					break;
+				case TissueManager.TissueCellRemoveOperation:
+					TissueRemoveCellPayload trcp = mapper.readValue(Base64.decode(payload),
+							TissueRemoveCellPayload.class);
+					logger.trace("Block.executePayload() Executing payload of block (" + getBlockID() + ") "
+							+ TissueManager.TissueCellRemoveOperation + " (" + trcp.getToRemoveCell().getName() + ")");
+					cell.getDna().deleteCell(trcp.getToRemoveCell());
 					break;
 				}
-
 			}
 		} catch (IOException e) {
 			throw new BlockException("Failed to execute block payload: ", e);
@@ -536,9 +568,9 @@ public class Block {
 	 * @param chain
 	 *            The chain that this block belongs to
 	 */
-	private final void setChain(Chain chain) {
+	/*private final void setChain(Chain chain) {
 		this.chain = chain;
-	}
+	}*/
 
 	/**
 	 * Set the chain position for this block

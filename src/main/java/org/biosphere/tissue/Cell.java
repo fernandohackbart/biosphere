@@ -85,7 +85,7 @@ public class Cell {
 		} catch (CertificateException | IOException | InvalidKeySpecException | KeyStoreException
 				| NoSuchAlgorithmException | OperatorCreationException | CellException e) {
 			TissueExceptionHandler.handleGenericException(e, "Cell.start()", "Failed to start, exiting.");
-			CellManager.stopCell();
+			CellManager.stopCell(this);
 		}
 		CellManager.loadServicesDNA(this);
 		CellManager.startServicesDNA(this);

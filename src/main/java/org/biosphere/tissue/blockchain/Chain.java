@@ -34,7 +34,7 @@ public class Chain {
 		logger = LoggerFactory.getLogger(Chain.class);
 		setCell(cell);
 		chain = new Hashtable<String, Block>();
-		Block genesisBlock = new Block(getCell(),"GENESIS", "GENESIS", "GENESIS", this, true);
+		Block genesisBlock = new Block(getCell(), "GENESIS", "GENESIS", "GENESIS", this, true);
 		addBlockToChain(genesisBlock);
 	}
 
@@ -128,7 +128,8 @@ public class Chain {
 		Enumeration<String> blockKeys = chain.keys();
 		while (blockKeys.hasMoreElements()) {
 			Block block = getBlock((String) blockKeys.nextElement());
-			logger.trace("Chain.getNextBlockID() Checking block ID(" + block.getBlockID() + ")");
+			logger.trace("Chain.getNextBlockID() Checking block ID(" + block.getBlockID() + ") POSITION("
+					+ block.getChainPosition() + ")");
 			if (block.isAccepted(tissueSize)) {
 				if ((block.getChainPosition() > highestPosition)) {
 					logger.trace("Chain.getNextBlockID() Found new high position (" + block.getChainPosition()
@@ -184,11 +185,13 @@ public class Chain {
 	public synchronized BlockAddResponse addBlock(BlockAddRequest blockAddRequest) throws BlockException {
 		logger.debug("Chain.addBlock() Adding block with payload:" + blockAddRequest.getPayload());
 		Block nextBlock = getNextBlock();
-		logger.debug("Chain.addBlock() Adding block with nextBlockID: (" + nextBlock.getBlockID()+")");
-		Block newBlock = new Block(getCell(), blockAddRequest.getTitle(),blockAddRequest.getPayload(), nextBlock.getBlockID(), this, false);
-		logger.debug("Chain.addBlock() Block (" + newBlock.getBlockID() + ") extending block (" + nextBlock.getBlockID()+ ")!");
+		logger.debug("Chain.addBlock() Adding block with nextBlockID: (" + nextBlock.getBlockID() + ")");
+		Block newBlock = new Block(getCell(), blockAddRequest.getTitle(), blockAddRequest.getPayload(),
+				nextBlock.getBlockID(), this, false);
+		logger.debug("Chain.addBlock() Block (" + newBlock.getBlockID() + ") extending block (" + nextBlock.getBlockID()
+				+ ")!");
 		boolean accepted = appendBlock(newBlock, getCell().getCellName(), true, blockAddRequest.isEnsureAcceptance());
-		//newBlock.executePayload(cell);
+		// newBlock.executePayload(cell);
 		BlockAddResponse bar = new BlockAddResponse();
 		bar.setAccepted(accepted);
 		bar.setCellName(getCell().getCellName());
@@ -206,15 +209,20 @@ public class Chain {
 	public synchronized boolean appendBlock(BlockAppendRequest flatBlock) throws ChainException {
 		boolean accepted = false;
 		try {
-			logger.debug("Chain.appendBlock() Creating new block (from flatblock) (" + flatBlock.getBlockID() + ") TITLE("+flatBlock.getTitle()+")");
-			Block block = new Block(flatBlock, this, getCell());
-			logger.debug("Chain.appendBlock() Block (flatBlock) (" + block.getBlockID() + ") being appended!");
+			Block block = null;
+			if (!chain.containsKey(flatBlock.getBlockID())) {
+				logger.debug("Chain.appendBlock(BlockAppendRequest) Block (" + flatBlock.getBlockID()
+						+ ") does not exists in the chain, creating!");
+				block = new Block(flatBlock, this, getCell());
+			} else {
+				logger.debug("Chain.appendBlock(BlockAppendRequest) Block (" + flatBlock.getBlockID()
+						+ ") already exists in the chain, adding votes!");
+				block = getBlock(flatBlock.getBlockID());
+			}
 			accepted = appendBlock(block, flatBlock.getNotifyingCell(), flatBlock.isAccepted(),
 					flatBlock.isEnsureAcceptance());
-			logger.debug("Chain.appendBlock() Block (" + block.getBlockID() + ") executing payload!");
-			block.executePayload(cell);
 		} catch (BlockException e) {
-			ChainExceptionHandler.handleGenericException(e, "Chain.appendBlock()",
+			ChainExceptionHandler.handleGenericException(e, "Chain.appendBlock(BlockAppendRequest)",
 					"Failed to create new block instance.");
 		}
 		return accepted;
@@ -232,19 +240,22 @@ public class Chain {
 		boolean blockAdded = false;
 		if (!chain.containsKey(block.getBlockID())) {
 			if ((chain.containsKey(block.getPrevBlockID()))) {
-				logger.debug("Chain.addBlockToChain() Adding block to chain: " + block.getBlockID());
+				logger.debug("Chain.addBlockToChain() Adding block (" + block.getBlockID() + ") to chain");
 				chain.put(block.getBlockID(), block);
 				blockAdded = true;
 			} else {
 				if (block.getBlockID().equals("GENESIS")) {
-					logger.debug("Chain.addBlockToChain() Adding GENESIS block to chain: " + block.getBlockID());
+					logger.debug("Chain.addBlockToChain() Adding GENESIS block (" + block.getBlockID() + ") to chain");
 					chain.put(block.getBlockID(), block);
 					blockAdded = true;
 				} else {
-					logger.error("Chain.addBlockToChain() Adding block to be added: " + block.getBlockID()
-							+ " previous block: " + block.getPrevBlockID() + " not present in the chain!");
+					logger.error("Chain.addBlockToChain() Block (" + block.getBlockID() + ") previous block ("
+							+ block.getPrevBlockID() + ") not present in the chain!");
 				}
 			}
+		} else {
+			logger.debug("Chain.addBlockToChain() Block (" + block.getBlockID()
+					+ ") already exists in the chain!");
 		}
 		return blockAdded;
 	}
@@ -260,48 +271,65 @@ public class Chain {
 	 */
 	private boolean appendBlock(Block block, String notifyingCell, boolean notifyingCellAccepted,
 			boolean ensureAcceptance) {
-		logger.trace("Chain.appendBlock() block("+ block.getBlockID() + ")");
+		logger.trace("Chain.appendBlock(Block) block(" + block.getBlockID() + ")");
 		boolean accepted = true;
 		try {
 			if (block.isValid(getCell())) {
+				logger.trace(
+						"Chain.appendBlock(Block) Block (" + block.getBlockID() + ") is valid, adding to the chain!");
 				if (addBlockToChain(block)) {
-					requestVotes(block, accepted, notifyingCell, notifyingCellAccepted, ensureAcceptance);
-					if (ensureAcceptance) {
-						boolean keepWaiting = true;
-						long timeout = System.currentTimeMillis() + TissueManager.acceptanceTimeout;
-						logger.trace("Chain.appendBlock() Will wait until "+new Date(timeout)+" for acceptance of Block ("+ block.getBlockID() + ")");
-						while (keepWaiting) {
-							if (block.getVotesCount() > (getCell().getDna().getTissueSize() / 2)) {
-								accepted = block.isAccepted(getCell().getDna().getTissueSize());
-								logger.warn("Chain.appendBlock() Acceptance for Block (" + block.getBlockID() + ") = "
-										+ accepted);
-								keepWaiting = false;
-							}
-							if (System.currentTimeMillis() > timeout) {
-								logger.warn("Chain.appendBlock() Timeout waiting for acceptance for Block ("
-										+ block.getBlockID() + ")");
-								keepWaiting = false;
-							}
-							if (keepWaiting) {
-								logger.trace("Chain.appendBlock() Waiting for acceptance for Block ("+ block.getBlockID() + ") for more "+TissueManager.acceptanceInterval+" seconds");
-								Thread.sleep(TissueManager.acceptanceInterval);
-							}
+					logger.debug("Chain.appendBlock(Block) Block (" + block.getBlockID()+ ") added to the chain!");
+				} else {
+					logger.debug("Chain.appendBlock(Block) Block (" + block.getBlockID()+ ") already present in the chain!");
+				}
+				requestVotes(block, accepted, notifyingCell, notifyingCellAccepted, ensureAcceptance);
+				if (ensureAcceptance) {
+					logger.debug("Chain.appendBlock(Block) ensureAcceptance = " + ensureAcceptance
+							+ " waiting for acceptance!");
+					boolean keepWaiting = true;
+					long timeout = System.currentTimeMillis() + TissueManager.acceptanceTimeout;
+					logger.trace("Chain.appendBlock(Block) Will wait until " + new Date(timeout)
+							+ " for acceptance of Block (" + block.getBlockID() + ")");
+					while (keepWaiting) {
+						if (block.getVotesCount() > (getCell().getDna().getTissueSize() / 2)) {
+							accepted = block.isAccepted(getCell().getDna().getTissueSize());
+							logger.debug("Chain.appendBlock(Block) Acceptance for Block (" + block.getBlockID() + ") = "
+									+ accepted);
+							keepWaiting = false;
+						}
+						if (System.currentTimeMillis() > timeout) {
+							logger.warn("Chain.appendBlock(Block) Timeout waiting for acceptance for Block ("
+									+ block.getBlockID() + ")");
+							keepWaiting = false;
+						}
+						if (keepWaiting) {
+							logger.trace(
+									"Chain.appendBlock(Block) Waiting for acceptance for Block (" + block.getBlockID()
+											+ ") for more " + TissueManager.acceptanceInterval + " seconds");
+							Thread.sleep(TissueManager.acceptanceInterval);
 						}
 					}
 				} else {
-					logger.warn("Chain.appendBlock() Block (" + block.getBlockID() + " not added to the chain!");
+					logger.trace("Chain.appendBlock(Block) ensureAcceptance = " + ensureAcceptance
+							+ ", NOT waiting for acceptance!");
 				}
+				if (accepted) {
+					logger.trace(
+							"Chain.appendBlock(Block) Block (" + block.getBlockID() + ") accepted, executing payload!");
+					block.executePayload(cell);
+				}
+
 			} else {
-				logger.debug("Chain.appendBlock() Block ID(" + block.getBlockID() + ") not valid, rejecting...");
+				logger.debug("Chain.appendBlock(Block) Block ID(" + block.getBlockID() + ") not valid, rejecting...");
 				accepted = false;
 			}
 		} catch (BlockException e) {
 			accepted = false;
-			ChainExceptionHandler.handleGenericException(e, "Chain.appendBlock()",
+			ChainExceptionHandler.handleGenericException(e, "Chain.appendBlock(Block)",
 					"Failed to create new block instance (BlockException).");
 		} catch (Exception e) {
 			accepted = false;
-			ChainExceptionHandler.handleGenericException(e, "Chain.appendBlock()",
+			ChainExceptionHandler.handleGenericException(e, "Chain.appendBlock(Block)",
 					"Failed to create new block instance (Exception).");
 		}
 		return accepted;
@@ -318,49 +346,49 @@ public class Chain {
 	private void requestVotes(Block block, boolean accepted, String notifyingCell, boolean notifyingCellAccepted,
 			boolean ensureAcceptance) {
 		if (!block.cellVoted(getCell().getCellName())) {
-			logger.debug("Chain.sendConsensusVotes() Adding local (" + getCell().getCellName() + ") vote (" + accepted
-					+ ") for block " + block.getBlockID());
+			logger.debug("Chain.requestVotes() Adding local cell (" + getCell().getCellName() + ") vote (" + accepted
+					+ ") for block (" + block.getBlockID() + ")");
 			block.addVote(new Vote(getCell().getCellName(), accepted));
 		}
 		if (!block.cellVoted(notifyingCell)) {
-			logger.debug("Chain.sendConsensusVotes() Adding remote " + notifyingCell + " vote (" + notifyingCellAccepted
-					+ ") for block " + block.getBlockID());
+			logger.debug("Chain.requestVotes() Adding remote cell (" + notifyingCell + ") vote ("
+					+ notifyingCellAccepted + ") for block " + block.getBlockID() + ")");
 			block.addVote(new Vote(notifyingCell, notifyingCellAccepted));
 		}
 		if (block.getCellID().equals(notifyingCell)) {
-			logger.debug("Chain.sendConsensusVotes() Sending consensus vote (" + accepted + ") for block "
-					+ block.getBlockID() + " to the tissue");
-			logger.debug("Chain.sendConsensusVotes() Getting the list of the cells from the DNA");
+			logger.debug("Chain.requestVotes() Sending consensus vote (" + accepted + ") for block ("
+					+ block.getBlockID() + ") to the tissue");
+			logger.debug("Chain.requestVotes() Getting the list of the cells from the DNA");
 			List<CellInterface> cellIFs = getCell().getDna().getTissueCellsInterfaces();
 			Iterator<CellInterface> cellIFIterator = cellIFs.iterator();
 			while (cellIFIterator.hasNext()) {
 				CellInterface cellInterface = cellIFIterator.next();
 				if ((!cellInterface.getCellName().equals(getCell().getCellName()))
 						&& (!cellInterface.getCellName().equals(block.getCellID()))) {
-					logger.debug("Chain.sendConsensusVotes() Cell " + cellInterface.getCellName()
-							+ " elegible for notification ");
+					logger.debug("Chain.requestVotes() Cell (" + cellInterface.getCellName()
+							+ ") elegible for notification ");
 					if (!block.cellVoted(cellInterface.getCellName())) {
-						logger.debug("Chain.sendConsensusVotes() Notifying cell: " + cellInterface.getCellName() + ":"
+						logger.debug("Chain.requestVotes() Notifying cell (" + cellInterface.getCellName() + ") "
 								+ cellInterface.getCellNetworkName() + ":" + cellInterface.getPort());
 						ChainNotifyCell cnc = new ChainNotifyCell(cellInterface.getCellNetworkName(),
 								cellInterface.getPort(), block, cellInterface.getCellName(), getCell().getCellName(),
 								accepted, ensureAcceptance);
 						(new Thread(cnc)).start();
 					} else {
-						logger.debug("Chain.sendConsensusVotes() Cell " + cellInterface.getCellName()
-								+ " already voted, skipping...");
+						logger.debug("Chain.requestVotes() Cell (" + cellInterface.getCellName()
+								+ ") already voted, skipping...");
 					}
 				} else {
 					if ((cellInterface.getCellName().equals(getCell().getCellName()))) {
-						logger.debug("Chain.sendConsensusVotes() Cell " + cellInterface.getCellName()
+						logger.debug("Chain.requestVotes() Cell " + cellInterface.getCellName()
 								+ " NOT elegible for notification as it is local (" + getCell().getCellName() + ")");
 					}
 					if ((cellInterface.getCellName().equals(block.getCellID()))) {
-						logger.debug("Chain.sendConsensusVotes() Cell " + cellInterface.getCellName()
+						logger.debug("Chain.requestVotes() Cell " + cellInterface.getCellName()
 								+ " NOT elegible for notification as it is creator (" + getCell().getCellName() + ")");
 					}
 					if ((cellInterface.getCellName().equals(notifyingCell))) {
-						logger.debug("Chain.sendConsensusVotes() Cell " + cellInterface.getCellName()
+						logger.debug("Chain.requestVotes() Cell " + cellInterface.getCellName()
 								+ " NOT elegible for notification as it is notifyingCell (" + notifyingCell + ")");
 					}
 				}
@@ -372,24 +400,26 @@ public class Chain {
 	}
 
 	/**
-	 * Create a chain from a String (JSON or XML) payload
+	 * Create a chain from a String (JSON or XML) pay load
 	 *
 	 * @param flatChain
-	 *            the String (JSON or XML) to be converted in to a Hashtable
-	 * @return the chain hashtable
+	 *            the String (JSON or XML) to be converted in to a Hash table
+	 * @return the chain hash table
 	 */
 	private void parseChain(FlatChain flatChain) throws BlockException {
 		logger.debug("Chain.parseChain() Parsing flatChain");
 		for (FlatBlock flatBlock : flatChain.getBlocks()) {
 			Block tmpBlock = new Block(flatBlock, this, getCell());
 			logger.debug("Chain.parseChain() Adding block ID: " + tmpBlock.getBlockID());
-			addBlockToChain(tmpBlock);
+			if (addBlockToChain(tmpBlock)) {
+				tmpBlock.executePayload(cell);
+			}
 		}
 		logger.debug("Chain.parseChain() chain size after parse: " + chain.size());
 	}
 
 	/**
-	 * Return a flat (JSON or XML) representaion of the chain in its current
+	 * Return a flat (JSON or XML) representation of the chain in its current
 	 * state
 	 *
 	 * @return flat String of the Chain
@@ -413,15 +443,13 @@ public class Chain {
 	 *            the output StringBuffer
 	 */
 	private void blockToJSON(String blockID, FlatChain flatChain) {
-		if (getBlock(blockID)!=null)
-		{
+		if (getBlock(blockID) != null) {
 			flatChain.addBlock(getBlock(blockID).getFlatBlock());
-			logger.trace("Chain.blockToJSON() Adding block POS("+getBlock(blockID).getChainPosition()+") ("+blockID+") to the flat chain!");
-		}
-		else
-		{
-			//TODO decide whenever to raise a exception
-			logger.trace("Chain.blockToJSON() Block ("+blockID+") not found in the chain!");
+			logger.trace("Chain.blockToJSON() Adding block POS(" + getBlock(blockID).getChainPosition() + ") ID("
+					+ blockID + ") TITLE(" + getBlock(blockID).getTitle() + ") to the flat chain!");
+		} else {
+			// TODO decide whenever to raise a exception
+			logger.trace("Chain.blockToJSON() Block (" + blockID + ") not found in the chain!");
 		}
 		for (String nextBlockID : getBlock(blockID).getNextBlockIDs()) {
 			blockToJSON(nextBlockID, flatChain);
@@ -440,7 +468,7 @@ public class Chain {
 			String blockID = blockKeys.nextElement();
 			dumpChain.append("\nChain.dumpChain(" + getCell().getCellName() + ")  POS("
 					+ getBlock(blockID).getChainPosition() + ") PREV(" + getBlock(blockID).getPrevBlockID() + ") ID("
-					+ getBlock(blockID).getBlockID() + ") TITLE ("+getBlock(blockID).getTitle()+")");
+					+ getBlock(blockID).getBlockID() + ") TITLE(" + getBlock(blockID).getTitle() + ")");
 		}
 		return dumpChain.toString();
 	}

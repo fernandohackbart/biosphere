@@ -138,7 +138,7 @@ public class CellAnnounceListener extends THREADService {
 			if (!tg.isCellBusy()) {
 				
 				logger.debug("CellAnnounceListener.adoptCell() Adding adopted cell to the local DNA!");
-				if (cell.getDna().addCell(tg.getCellName(), tjb.getCellCertificate(), tjb.getCellNetworkName(),tjb.getTissuePort(),cell.getCellName(),cell.getChain()))
+				if (cell.getDna().addCell(tg.getCellName(), tjb.getCellCertificate(), tjb.getCellNetworkName(),tjb.getTissuePort(),cell.getCellName(),cell))
 				{
 					logger.debug("CellAnnounceListener.adoptCell() Cell added to the local DNA, sending the DNA and Chain to the cell!");
 					TissueJoinRequest tjreq = new TissueJoinRequest();

@@ -1,6 +1,9 @@
 package org.biosphere.tissue.protocol;
 
+import java.util.ArrayList;
 import java.util.Date;
+
+import org.biosphere.tissue.blockchain.Vote;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -67,6 +70,9 @@ public class FlatBlock {
 	 */
 	@JsonProperty("chainPosition")
 	private int chainPosition;
+	
+	@JsonProperty("acceptanceVotes")
+	ArrayList<Vote> acceptanceVotes;
 
 	@JsonProperty("blockID")
 	public final String getBlockID() {
@@ -172,6 +178,16 @@ public class FlatBlock {
 	{
 		ObjectMapper mapper = new ObjectMapper();
 		return mapper.writeValueAsString(this);
+	}
+	
+	@JsonProperty("acceptanceVotes")
+	public final ArrayList<Vote> getAcceptanceVotes() {
+		return acceptanceVotes;
+	}
+
+	@JsonProperty("acceptanceVotes")
+	public final void setAcceptanceVotes(ArrayList<Vote> votes) {
+		this.acceptanceVotes = votes;
 	}
 
 }

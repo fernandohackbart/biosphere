@@ -76,7 +76,7 @@ public class CellStatusHandler extends AbstractHandler {
 		// response.append("Keystore algorithms: \n"+new
 		// KeystoreManager().showAlgorithm()+"\n");
 		responseSB.append("##############################################################################\n");
-		responseSB.append("Tissue DNA JSON: \n" + getCell().getDna().toJSON() + "\n");
+		responseSB.append("Tissue DNA: \n" + getCell().getDna().toJSON() + "\n");
 		responseSB.append("##############################################################################\n");
 		Hashtable<String, String> statusTable = new Hashtable<String, String>();
 		statusTable = ServiceManager.getStatus();

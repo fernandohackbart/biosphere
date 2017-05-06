@@ -50,6 +50,7 @@ public class ChainNotifyCell implements Runnable {
 		try {
 			String peerURL = "https://" + getHostname() + ":" + getPort() + "/org/biosphere/cell/chain/append/block";
 			logger.debug("ChainNotifyCell.run() Notifying " + peerURL +" block ("+ getBlock().getBlockID()+") TITLE("+getBlock().getTitle()+")");
+			logger.trace("ChainNotifyCell.run() Block votes in the flat block: " + getBlock().getFlatBlock().getAcceptanceVotes().size());
 			
 			BlockAppendRequest fbar = new BlockAppendRequest();
 			fbar.setAccepted(isAccepted());

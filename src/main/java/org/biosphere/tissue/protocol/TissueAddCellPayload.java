@@ -4,10 +4,11 @@ import org.biosphere.tissue.DNA.Cell;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class TissueAddCellPayload extends Cell {
-	@JsonProperty("operation")
-	String operation;
-	
+public class TissueAddCellPayload extends TissueOperationPayload {
+
+	@JsonProperty("cell")
+	Cell cell;
+
 	@JsonProperty("adopterCellName")
 	String adopterCellName;
 
@@ -20,23 +21,14 @@ public class TissueAddCellPayload extends Cell {
 	public final void setAdopterCellName(String adopterCellName) {
 		this.adopterCellName = adopterCellName;
 	}
-	
-	@JsonProperty("operation")
-	public final String getOperation() {
-		return operation;
+
+	@JsonProperty("cell")
+	public final Cell getCell() {
+		return cell;
 	}
 
-	@JsonProperty("operation")
-	public final void setOperation(String operation) {
-		this.operation = operation;
+	@JsonProperty("cell")
+	public final void setCell(Cell cell) {
+		this.cell = cell;
 	}
-	
-	public void setCell(Cell cell)
-	{
-		setName(cell.getName());
-		setPublicKey(cell.getPublicKey());
-		setTissuePort(cell.getTissuePort());
-		setInterfaces(cell.getInterfaces());
-	}
-	
 }
