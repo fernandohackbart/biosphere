@@ -1,19 +1,24 @@
 package org.biosphere.tissue.services;
 
+import org.biosphere.tissue.DNA.Service;
+import org.biosphere.tissue.DNA.ServiceParameter;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import java.util.Hashtable;
 
-public class ServiceInstance extends ServiceDefinition {
+import java.io.IOException;
+import java.util.ArrayList;
+
+public class ServiceInstance extends Service {
+	
 	public ServiceInstance() {
 		super();
-		serviceInstanceParameters = new Hashtable<String, Object>();
+		serviceInstanceParameters = new ArrayList<ServiceParameter>();
 	}
 
-	public ServiceInstance(ServiceDefinition serviceDefinition) {
+	public ServiceInstance(Service serviceDefinition) {
 		super();
-		serviceInstanceParameters = new Hashtable<String, Object>();
+		serviceInstanceParameters = new ArrayList<ServiceParameter>();
 		loadDefinition(serviceDefinition);
 	}
 
@@ -22,25 +27,44 @@ public class ServiceInstance extends ServiceDefinition {
 	private Server jettyServer;
 	private ContextHandlerCollection jettyContexts;
 	private ServerConnector jettyServerConnector;
-	private Hashtable<String, Object> serviceInstanceParameters;
+	private ArrayList<ServiceParameter> serviceInstanceParameters;
 
-	public final void loadDefinition(ServiceDefinition serviceDefinition) {
+	public final void loadDefinition(Service serviceDefinition) {
 		this.setName(serviceDefinition.getName());
 		this.setType(serviceDefinition.getType());
 		this.setDaemon(serviceDefinition.isDaemon());
 		this.setClassName(serviceDefinition.getClassName());
 		this.setParameters(serviceDefinition.getParameters());
 	}
+	
+	public final boolean containsInstanceParameter(String key) {
+		boolean present = false;
+		for (ServiceParameter sp : serviceInstanceParameters) {
+			if (sp.getName().equals(key)) {
+				present = true;
+				break;
+			}
+		}
+		return present;
+	}
 
-	public final void addServiceInstanceParameter(String key, Object value) {
-		serviceInstanceParameters.put(key, value);
+	public final void addServiceInstanceParameter(String key, Object value) throws IOException {
+		ServiceParameter sp = new ServiceParameter();
+		sp.setName(key);
+		sp.setObjectValue(value);
+		serviceInstanceParameters.add(sp);
 	}
 
 	public final void removeServiceInstanceParameter(String key) {
-		serviceInstanceParameters.remove(key);
+		for (ServiceParameter sp : serviceInstanceParameters){
+			if(sp.getName().equals(key)){
+				//TODO remove the entry from the Array
+				//value=sp.getObjectValue();
+			}
+		}
 	}
 
-	public final Hashtable<String, Object> getServiceInstanceParameters() {
+	public final ArrayList<ServiceParameter> getServiceInstanceParameters() {
 		return serviceInstanceParameters;
 	}
 

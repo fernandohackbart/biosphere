@@ -1,9 +1,8 @@
 package org.biosphere.tissue.services;
 
-import java.util.Hashtable;
-
+import java.util.ArrayList;
 import org.biosphere.tissue.Cell;
-
+import org.biosphere.tissue.DNA.ServiceParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +14,7 @@ public abstract class THREADService extends Thread implements ServiceInterface {
 
 	protected Logger logger;
 	protected Cell cell;
-	protected Hashtable<String, Object> serviceParameters;
+	ArrayList<ServiceParameter> serviceParameters = new ArrayList<ServiceParameter>();
 
 	@Override
 	public void setCell(Cell cell) {
@@ -28,13 +27,32 @@ public abstract class THREADService extends Thread implements ServiceInterface {
 	}
 
 	@Override
-	public void setParameters(Hashtable<String, Object> parameters) {
+	public void setParameters(ArrayList<ServiceParameter> parameters) {
 		serviceParameters = parameters;
 	}
 
 	@Override
-	public Object getParameter(String name) {
-		return serviceParameters.get(name);
+	public final Object getParameter(String key) {
+		Object value = null;
+		if (containsParameter(key)) {
+			for (ServiceParameter sp : serviceParameters) {
+				if (sp.getName().equals(key)) {
+					value = sp.getObjectValue();
+					break;
+				}
+			}
+		}
+		return value;
 	}
 
+	public final boolean containsParameter(String key) {
+		boolean present = false;
+		for (ServiceParameter sp : serviceParameters) {
+			if (sp.getName().equals(key)) {
+				present = true;
+				break;
+			}
+		}
+		return present;
+	}
 }

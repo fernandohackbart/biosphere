@@ -72,12 +72,12 @@ public class CellAnnounceListener extends THREADService {
 				TissueAnnounce tjb = mapper.readValue(receivedPayload.getBytes(), TissueAnnounce.class);
 				if (!this.getCell().getDna().containsCell(tjb.getCellName()))
 				{
-					logger.debug("CellAnnounceListener.run() Received request ("+tjb.getRequestID()+") adopting cell!");
+					logger.debug("CellAnnounceListener.run() Received cell announce ("+tjb.getRequestID()+") adopting cell!");
 					adoptCell(tjb);	
 				}
 				else
 				{
-					logger.warn("CellAnnounceListener.run() Cell ("+tjb.getCellName()+") already present in the DNA, ignoring announce!");
+					logger.warn("CellAnnounceListener.run() Cell ("+tjb.getCellName()+") already present in the DNA, ignoring cell announce ("+tjb.getRequestID()+")");
 				}
 				
 			}

@@ -1,73 +1,141 @@
 package org.biosphere.tissue.DNA;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Service {
-	
+
 	public Service() {
 		super();
-		parameters= new ArrayList<ServiceParameter>();
+		parameters = new ArrayList<ServiceParameter>();
 	}
+
 	@JsonProperty("name")
-	String name;
+	private String name;
 	@JsonProperty("version")
-	String version;
+	private String version;
 	@JsonProperty("type")
-	String type;
+	private String type;
+	@JsonProperty("enabled")
+	private boolean enabled;
 	@JsonProperty("daemon")
-	boolean daemon;
+	private boolean daemon;
 	@JsonProperty("className")
-	String className;
+	private String className;
 	@JsonProperty("parameters")
-	ArrayList<ServiceParameter> parameters;
+	private ArrayList<ServiceParameter> parameters;
+
 	@JsonProperty("name")
-	final String getName() {
+	public final String getName() {
 		return name;
 	}
+
 	@JsonProperty("name")
-	final void setName(String name) {
+	public final void setName(String name) {
 		this.name = name;
 	}
+
 	@JsonProperty("version")
-	final String getVersion() {
+	public final String getVersion() {
 		return version;
 	}
+
 	@JsonProperty("version")
-	final void setVersion(String version) {
+	public final void setVersion(String version) {
 		this.version = version;
 	}
+
 	@JsonProperty("type")
-	final String getType() {
+	public final String getType() {
 		return type;
 	}
+
 	@JsonProperty("type")
-	final void setType(String type) {
+	public final void setType(String type) {
 		this.type = type;
 	}
+
 	@JsonProperty("daemon")
-	final boolean isDaemon() {
+	public final boolean isDaemon() {
 		return daemon;
 	}
+
 	@JsonProperty("daemon")
-	final void setDaemon(boolean daemon) {
+	public final void setDaemon(boolean daemon) {
 		this.daemon = daemon;
 	}
+
 	@JsonProperty("className")
-	final String getClassName() {
+	public final String getClassName() {
 		return className;
 	}
+
 	@JsonProperty("className")
-	final void setClassName(String className) {
+	public final void setClassName(String className) {
 		this.className = className;
 	}
+
 	@JsonProperty("parameters")
-	final ArrayList<ServiceParameter> getParameters() {
+	public final ArrayList<ServiceParameter> getParameters() {
 		return parameters;
 	}
+
 	@JsonProperty("parameters")
-	final void setParameters(ArrayList<ServiceParameter> parameters) {
+	public final void setParameters(ArrayList<ServiceParameter> parameters) {
 		this.parameters = parameters;
+	}
+
+	@JsonProperty("enabled")
+	public final boolean isEnabled() {
+		return enabled;
+	}
+
+	@JsonProperty("enabled")
+	public final void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public final void addParameter(String key, Object value) throws IOException {
+		if (!containsParameter(key)) {
+			ServiceParameter sp = new ServiceParameter();
+			sp.setName(key);
+			sp.setObjectValue(value);
+			parameters.add(sp);
+		}
+	}
+
+	public final boolean containsParameter(String key) {
+		boolean present = false;
+		for (ServiceParameter sp : getParameters()) {
+			if (sp.getName().equals(key)) {
+				present = true;
+				break;
+			}
+		}
+		return present;
+	}
+
+	public final Object getParameterValue(String key) throws IOException {
+		Object value = null;
+		if (containsParameter(key)) {
+			for (ServiceParameter sp : getParameters()) {
+				if (sp.getName().equals(key)) {
+					value = sp.getObjectValue();
+					break;
+				}
+			}
+		}
+		return value;
+	}
+
+	public final void removeParameter(String key) {
+		for (ServiceParameter sp : getParameters()) {
+			if (sp.getName().equals(key)) {
+				// TODO remove the entry from the Array
+				// value=sp.getObjectValue();
+			}
+		}
 	}
 }

@@ -31,10 +31,10 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.biosphere.tissue.Cell;
+import org.biosphere.tissue.DNA.Service;
 import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
-import org.biosphere.tissue.services.ServiceDefinition;
 import org.biosphere.tissue.services.ServiceManager;
 import org.biosphere.tissue.services.ServletHandlerDefinition;
 import org.biosphere.tissue.tissue.TissueManager;
@@ -111,8 +111,8 @@ public class CellManager {
 		}
 	}
 
-	public final static ServiceDefinition getCellMonitorDefinition() {
-		ServiceDefinition sdCellMonitor = new ServiceDefinition();
+	public final static Service getCellMonitorDefinition() throws IOException {
+		Service sdCellMonitor = new Service();
 		sdCellMonitor.setName("CellMonitor");
 		sdCellMonitor.setType(TissueManager.ThreadServiceClass);
 		sdCellMonitor.setVersion("0.1");
@@ -122,8 +122,8 @@ public class CellManager {
 		return sdCellMonitor;
 	}
 
-	public final static ServiceDefinition getCellAnnounceListenerDefinition() {
-		ServiceDefinition sdCellAnnounceListener = new ServiceDefinition();
+	public final static Service getCellAnnounceListenerDefinition() throws IOException {
+		Service sdCellAnnounceListener = new Service();
 		sdCellAnnounceListener.setName("CellAnnounceListener");
 		sdCellAnnounceListener.setType(TissueManager.ThreadServiceClass);
 		sdCellAnnounceListener.setVersion("0.1");
@@ -133,8 +133,8 @@ public class CellManager {
 		return sdCellAnnounceListener;
 	}
 
-	public final static ServiceDefinition getCellACSDefinition() {
-		ServiceDefinition sdCellACS = new ServiceDefinition();
+	public final static Service getCellACSDefinition() throws IOException {
+		Service sdCellACS = new Service();
 		sdCellACS.setName("CellAdministrationConsole");
 		sdCellACS.setType(TissueManager.ThreadServiceClass);
 		sdCellACS.setVersion("0.1");
@@ -143,7 +143,7 @@ public class CellManager {
 		return sdCellACS;
 	}
 
-	public final static ServiceDefinition getCellTissueServletListenerDefinition() {
+	public final static Service getCellTissueServletListenerDefinition() throws IOException {
 		ArrayList<ServletHandlerDefinition> cellTissueListenerHandlers = new ArrayList<ServletHandlerDefinition>();
 
 		ServletHandlerDefinition cellTissueWelcomeSHD = new ServletHandlerDefinition();
@@ -228,7 +228,7 @@ public class CellManager {
 		cellTissueListenerHandlers.add(chainGetImageChainSHD);
 		// #################################################################################################
 
-		ServiceDefinition sdCellTissueListener = new ServiceDefinition();
+		Service sdCellTissueListener = new Service();
 		sdCellTissueListener.setName("CellTissueListener");
 		sdCellTissueListener.setType(TissueManager.ServletServiceClass);
 		sdCellTissueListener.setVersion("0.1");
@@ -238,7 +238,7 @@ public class CellManager {
 		return sdCellTissueListener;
 	}
 
-	public final static ServiceDefinition getCellServiceListenerDefinition() {
+	public final static Service getCellServiceListenerDefinition() throws IOException {
 		// all those parameters should be placed inside the DNA and the consumed
 		// from there when starting the service
 
@@ -262,7 +262,7 @@ public class CellManager {
 		cellServiceListenerSHD.setContexts(chainParseChainContexts);
 		cellServiceListenerHandlers.add(cellServiceListenerSHD);
 
-		ServiceDefinition sdCellTissueListener = new ServiceDefinition();
+		Service sdCellTissueListener = new Service();
 		sdCellTissueListener.setName("CellServiceListener");
 		sdCellTissueListener.setType(TissueManager.ServletServiceClass);
 		sdCellTissueListener.setVersion("0.1");
@@ -273,8 +273,8 @@ public class CellManager {
 		return sdCellTissueListener;
 	}
 
-	public static final void startTissueListenerService(Cell cell) throws CellException {
-		cell.setTissuePort(ServiceManager.startServiceDefinition(getCellTissueServletListenerDefinition(), cell));
+	public static final void startTissueListenerService(Cell cell) throws CellException, IOException {
+		cell.setTissuePort(ServiceManager.startService(getCellTissueServletListenerDefinition(), cell));
 	}
 
 	public static final void loadServicesDNA(Cell cell) {
@@ -311,8 +311,8 @@ public class CellManager {
 	public static final void startServicesDNA(Cell cell) {
 		Logger logger;
 		logger = LoggerFactory.getLogger(CellManager.class);
-		ArrayList<ServiceDefinition> sds = cell.getDna().getServices();
-		for (ServiceDefinition sd : sds) {
+		ArrayList<Service> sds = cell.getDna().getServices();
+		for (Service sd : sds) {
 			logger.info("CellManager.startServicesDNA() Starting " + sd.getName() + " from DNA");
 			ServiceManager.start(sd.getName(), cell);
 		}

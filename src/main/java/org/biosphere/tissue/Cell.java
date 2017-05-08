@@ -10,6 +10,7 @@ import java.security.spec.InvalidKeySpecException;
 
 import org.biosphere.tissue.DNA.DNA;
 import org.biosphere.tissue.blockchain.Chain;
+import org.biosphere.tissue.blockchain.Vote;
 import org.biosphere.tissue.cell.CellManager;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
@@ -92,6 +93,11 @@ public class Cell {
 		logger.info("Cell.start() ####################################################################################");
 		logger.info("Cell.start() Cell " + getCellName() + " is running!  Tissue listener at:" + getCellNetworkName()
 		+ ":" + getTissuePort());
+		logger.info("Cell.start() Tissue name: "+getDna().getTissueName());
+		logger.info("Cell.start() Tissue size: "+getDna().getTissueSize());
+		for (org.biosphere.tissue.DNA.Cell cell : getDna().getCells()) {
+			logger.info("Cell.start()     Tissue member: ("+ cell.getName() + ") "+cellNetworkName+":"+cell.getTissuePort());
+		}
 		logger.info("Cell.start() ####################################################################################");
 	}
 

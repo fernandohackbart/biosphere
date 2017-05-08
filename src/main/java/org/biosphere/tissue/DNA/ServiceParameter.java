@@ -21,11 +21,11 @@ public class ServiceParameter {
 	String value;
 
 	@JsonProperty("name")
-	final String getName() {
+	public final String getName() {
 		return name;
 	}
 	@JsonProperty("name")
-	final void setName(String name) {
+	public final void setName(String name) {
 		this.name = name;
 	}
 	@JsonProperty("value")
@@ -37,7 +37,7 @@ public class ServiceParameter {
 		this.value = value;
 	}
 	@JsonIgnore
-	void setObjectValue(Object value) throws IOException {
+	public void setObjectValue(Object value) throws IOException {
 		ByteArrayOutputStream bo = new ByteArrayOutputStream();
 		ObjectOutputStream so = new ObjectOutputStream(bo);
 		so.writeObject(value);
@@ -45,7 +45,7 @@ public class ServiceParameter {
 		setValue(Base64.toBase64String(bo.toByteArray()));
 	}
 	@JsonIgnore
-	Object getObjectValue() {
+	public Object getObjectValue() {
 		Object value = null;
 		try
 		{

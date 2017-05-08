@@ -1,12 +1,12 @@
 package org.biosphere.tissue.services;
 
-import java.util.Hashtable;
+import java.util.ArrayList;
 import org.biosphere.tissue.Cell;
+import org.biosphere.tissue.DNA.ServiceParameter;
 
 public interface ServiceInterface {
-	Hashtable<String, Object> serviceParameters = new Hashtable<String, Object>();
 
-	void setParameters(Hashtable<String, Object> parameters);
+	void setParameters(ArrayList<ServiceParameter> parameters);
 
 	Object getParameter(String parameterName);
 

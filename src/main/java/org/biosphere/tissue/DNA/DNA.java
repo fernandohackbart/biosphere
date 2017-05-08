@@ -6,8 +6,6 @@ import java.security.KeyStoreException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -21,7 +19,6 @@ import org.biosphere.tissue.protocol.BlockAddResponse;
 import org.biosphere.tissue.protocol.CellInterface;
 import org.biosphere.tissue.protocol.TissueAddCellPayload;
 import org.biosphere.tissue.protocol.TissueRemoveCellPayload;
-import org.biosphere.tissue.services.ServiceDefinition;
 import org.biosphere.tissue.tissue.TissueManager;
 import org.biosphere.tissue.utils.RequestUtils;
 import org.bouncycastle.util.encoders.Base64;
@@ -199,8 +196,8 @@ public class DNA {
 		return tissue.getCells();
 	}
 
-	public ArrayList<ServiceDefinition> getServices() {
-		ArrayList<ServiceDefinition> services = new ArrayList<ServiceDefinition>();
+	public ArrayList<Service> getServices() {
+		ArrayList<Service> services = new ArrayList<Service>();
 		for (Service service : tissue.getServices()) {
 			services.add(getService(service.getName()));
 		}
@@ -218,48 +215,24 @@ public class DNA {
 		return loaded;
 	}
 
-	public void addService(ServiceDefinition sd) throws IOException {
-		if (!isServiceAdded(sd.getName())) {
-			logger.info("DNA.addService() Adding service " + sd.getName());
-			Service service = new Service();
-			service.setName(sd.getName());
-			service.setClassName(sd.getClassName());
-			service.setDaemon(sd.isDaemon());
-			service.setType(sd.getType());
-			service.setVersion(sd.getVersion());
-			Enumeration<String> pne = sd.getParameters().keys();
-			while (pne.hasMoreElements()) {
-				ServiceParameter sp = new ServiceParameter();
-				String pn = pne.nextElement();
-				sp.setName(pn);
-				sp.setObjectValue(sd.getParameters().get(pn));
-				service.getParameters().add(sp);
-			}
+	public void addService(Service service) throws IOException {
+		if (!isServiceAdded(service.getName())) {
+			logger.info("DNA.addService() Adding service " + service.getName());
 			tissue.getServices().add(service);
 		} else {
-			logger.warn("DNA.addService() Service " + sd.getName() + " already present in the DNA!");
+			logger.warn("DNA.addService() Service " + service.getName() + " already present in the DNA!");
 		}
 	}
 
-	public ServiceDefinition getService(String serviceName) {
-		ServiceDefinition sd = null;
-		for (Service service : tissue.getServices()) {
-			if (service.getName().equals(serviceName)) {
-				sd = new ServiceDefinition();
-				sd.setClassName(service.getClassName());
-				sd.setDaemon(service.isDaemon());
-				sd.setName(service.getName());
-				sd.setType(service.getType());
-				sd.setVersion(service.getVersion());
-				Hashtable<String, Object> serviceDefinitionParameters = new Hashtable<String, Object>();
-				for (ServiceParameter sp : service.getParameters()) {
-					serviceDefinitionParameters.put(sp.getName(), sp.getObjectValue());
-				}
-				sd.setParameters(serviceDefinitionParameters);
+	public Service getService(String serviceName) {
+		Service service = null;
+		for (Service serviceInList : tissue.getServices()) {
+			if (serviceInList.getName().equals(serviceName)) {
+				service=serviceInList;
 				break;
 			}
 		}
-		return sd;
+		return service;
 	}
 
 	public void fromJSON(String remoteDNAURL) {
