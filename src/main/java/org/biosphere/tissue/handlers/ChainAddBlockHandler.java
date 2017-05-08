@@ -27,6 +27,7 @@ public class ChainAddBlockHandler extends AbstractHandler {
 			getLogger().debug("ChainAddBlockHandler.doPost() Payload to be added to the block:" + requestPayload);
 			ObjectMapper mapper = new ObjectMapper();
 			BlockAddRequest bare = mapper.readValue(requestPayload.getBytes(),BlockAddRequest.class);
+			//Thread.currentThread().setName("ChainAddBlockHandler.doPost()Request("+bare.getRequestID()+")");
 			getLogger().debug("ChainAddBlockHandler.doPost() Request ("+bare.getRequestID()+") Cell " + getCell().getCellName() + " request from: " + partnerCell);
 			BlockAddResponse bar = getCell().getChain().addBlock(bare);
 			bar.setRequestID(bare.getRequestID());

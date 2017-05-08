@@ -34,6 +34,7 @@ public class CellTissueJoinHandler extends AbstractHandler {
 			tjresp.setCellName(getCell().getCellName());
 			String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
 			TissueJoinRequest tjreq = mapper.readValue(requestPayload.getBytes(), TissueJoinRequest.class);
+			//Thread.currentThread().setName("CellTissueJoinHandler.doPost()Request("+tjreq.getRequestID()+")");
 			getLogger().debug("CellTissueJoinHandler.doPost() Request ("+tjreq.getRequestID()+") from: " + partnerCell);
 			
 			if (!getCell().isTissueMember()) {

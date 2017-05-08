@@ -24,6 +24,7 @@ import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
@@ -160,7 +161,10 @@ public final class ServiceManager {
 		Logger logger = LoggerFactory.getLogger(ServiceManager.class);
 		int HTTPPort = 0;
         try {
-			Server server = new Server();
+	        QueuedThreadPool threadPool = new QueuedThreadPool();
+	        threadPool.setMaxThreads(50);
+	        threadPool.setName(service.getName());
+			Server server = new Server(threadPool);
      		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 			ArrayList<ServletHandlerDefinition> cellTissueListenerHandlers = (ArrayList<ServletHandlerDefinition>) service.getParameterValue("Handlers");			
 			for (ServletHandlerDefinition cellTissueListenerHandler : cellTissueListenerHandlers)

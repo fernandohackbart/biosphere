@@ -373,7 +373,9 @@ public class Chain {
 						ChainNotifyCell cnc = new ChainNotifyCell(cellInterface.getCellNetworkName(),
 								cellInterface.getPort(), block, cellInterface.getCellName(), getCell().getCellName(),
 								accepted, ensureAcceptance);
-						(new Thread(cnc)).start();
+						Thread thread = new Thread(cnc);
+						thread.setName("ChainNotifyCell-Block("+block.getBlockID()+")-Cell("+cellInterface.getCellName()+")");
+						thread.start();
 					} else {
 						logger.debug("Chain.requestVotes() Cell (" + cellInterface.getCellName()
 								+ ") already voted, skipping...");

@@ -117,6 +117,7 @@ public class CellManager {
 		sdCellMonitor.setType(TissueManager.ThreadServiceClass);
 		sdCellMonitor.setVersion("0.1");
 		sdCellMonitor.setDaemon(false);
+		sdCellMonitor.setEnabled(true);
 		sdCellMonitor.setClassName("org.biosphere.tissue.services.CellMonitor");
 		sdCellMonitor.addParameter("Interval", TissueManager.monitorInterval);
 		return sdCellMonitor;
@@ -127,6 +128,7 @@ public class CellManager {
 		sdCellAnnounceListener.setName("CellAnnounceListener");
 		sdCellAnnounceListener.setType(TissueManager.ThreadServiceClass);
 		sdCellAnnounceListener.setVersion("0.1");
+		sdCellAnnounceListener.setEnabled(true);
 		sdCellAnnounceListener.setClassName("org.biosphere.tissue.services.CellAnnounceListener");
 		sdCellAnnounceListener.addParameter("AnnouncePort", TissueManager.announcePort);
 		sdCellAnnounceListener.addParameter("AnnounceAddress", TissueManager.announceAddress);
@@ -138,6 +140,7 @@ public class CellManager {
 		sdCellACS.setName("CellAdministrationConsole");
 		sdCellACS.setType(TissueManager.ThreadServiceClass);
 		sdCellACS.setVersion("0.1");
+		sdCellACS.setEnabled(true);
 		sdCellACS.setClassName("org.biosphere.tissue.services.CellAdministrationConsole");
 		sdCellACS.addParameter("ListenPort", TissueManager.announcePort);
 		return sdCellACS;
@@ -232,6 +235,7 @@ public class CellManager {
 		sdCellTissueListener.setName("CellTissueListener");
 		sdCellTissueListener.setType(TissueManager.ServletServiceClass);
 		sdCellTissueListener.setVersion("0.1");
+		sdCellTissueListener.setEnabled(true);
 		sdCellTissueListener.setClassName("org.eclipse.jetty.server.Server");
 		sdCellTissueListener.addParameter("Handlers", cellTissueListenerHandlers);
 		sdCellTissueListener.addParameter("DefaultHTTPPort", TissueManager.defaultTissuePort);
@@ -266,6 +270,7 @@ public class CellManager {
 		sdCellTissueListener.setName("CellServiceListener");
 		sdCellTissueListener.setType(TissueManager.ServletServiceClass);
 		sdCellTissueListener.setVersion("0.1");
+		sdCellTissueListener.setEnabled(true);
 		sdCellTissueListener.setClassName("org.eclipse.jetty.server.Server");
 		sdCellTissueListener.addParameter("Handlers", cellServiceListenerHandlers);
 		sdCellTissueListener.addParameter("DefaultHTTPPort",

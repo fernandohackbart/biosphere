@@ -30,6 +30,7 @@ public class CellTissueWelcomeHandler extends AbstractHandler {
 		String requestPayload = RequestUtils.getRequestAsString(request.getInputStream());
 		ObjectMapper mapper = new ObjectMapper();
 		TissueWelcomeRequest twr = mapper.readValue(requestPayload.getBytes(), TissueWelcomeRequest.class);
+		//Thread.currentThread().setName("CellTissueWelcomeHandler.doPost()Request("+twr.getRequestID()+")");
 		getLogger().info("CellTissueWelcomeHandler.doPost() Welcome request to tissue " + twr.getTissueName() + " from cell (" + twr.getCellName()+") at "+ partnerCell + " Request ("+twr.getRequestID()+")");
 		
 		TissueWelcomeResponse tg = new TissueWelcomeResponse();

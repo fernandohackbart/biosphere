@@ -28,6 +28,7 @@ public class ChainAppendBlockHandler extends AbstractHandler {
 
 			ObjectMapper mapper = new ObjectMapper();
 			BlockAppendRequest fbar = mapper.readValue(requestPayload.getBytes(), BlockAppendRequest.class);
+			//Thread.currentThread().setName("ChainAppendBlockHandler.doPost()Block("+fbar.getBlockID()+")");
 			getLogger().debug("ChainAppendBlockHandler.doPost() Request received from: cell (" + fbar.getNotifyingCell() + ") " + partnerCell);
 			getLogger().trace("ChainAppendBlockHandler.doPost() Appending block using payload: " + requestPayload);
 
