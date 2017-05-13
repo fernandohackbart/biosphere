@@ -1,4 +1,4 @@
-package org.biosphere.tissue.handlers;
+package org.biosphere.tissue.services;
 
 import javax.servlet.Servlet;
 import org.biosphere.tissue.Cell;

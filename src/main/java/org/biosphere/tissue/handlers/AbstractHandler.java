@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.biosphere.tissue.Cell;
+import org.biosphere.tissue.services.CellServletHandlerInterface;
+import org.biosphere.tissue.tissue.TissueManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +23,8 @@ public abstract class AbstractHandler extends HttpServlet implements CellServlet
 
 	public AbstractHandler() {
 		super();
+		setContentEncoding(TissueManager.defaultContentEncoding);
+		setContentType(TissueManager.defaultContentType);
 		logger = LoggerFactory.getLogger(AbstractHandler.class);
 		//Thread.currentThread().setName(AbstractHandler.class.toString());
 	}

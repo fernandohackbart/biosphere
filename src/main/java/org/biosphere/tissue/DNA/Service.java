@@ -3,6 +3,7 @@ package org.biosphere.tissue.DNA;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Service {
@@ -96,7 +97,8 @@ public class Service {
 	public final void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
-
+	
+    @JsonIgnore
 	public final void addParameter(String key, Object value) throws IOException {
 		if (!containsParameter(key)) {
 			ServiceParameter sp = new ServiceParameter();
@@ -106,6 +108,7 @@ public class Service {
 		}
 	}
 
+    @JsonIgnore
 	public final boolean containsParameter(String key) {
 		boolean present = false;
 		for (ServiceParameter sp : getParameters()) {
@@ -117,6 +120,7 @@ public class Service {
 		return present;
 	}
 
+    @JsonIgnore
 	public final Object getParameterValue(String key) throws IOException {
 		Object value = null;
 		if (containsParameter(key)) {
@@ -129,7 +133,23 @@ public class Service {
 		}
 		return value;
 	}
+    
+    @JsonIgnore
+	public final boolean setParameterValue(String key,Object value) throws IOException {
+    	boolean parameterChanged=false;
+		if (containsParameter(key)) {
+			for (ServiceParameter sp : getParameters()) {
+				if (sp.getName().equals(key)) {
+					sp.setObjectValue(value);
+					parameterChanged=true;
+					break;
+				}
+			}
+		}
+		return parameterChanged;
+	}
 
+	@JsonIgnore 
 	public final void removeParameter(String key) {
 		for (ServiceParameter sp : getParameters()) {
 			if (sp.getName().equals(key)) {

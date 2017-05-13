@@ -10,7 +10,6 @@ import java.security.spec.InvalidKeySpecException;
 
 import org.biosphere.tissue.DNA.DNA;
 import org.biosphere.tissue.blockchain.Chain;
-import org.biosphere.tissue.blockchain.Vote;
 import org.biosphere.tissue.cell.CellManager;
 import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;

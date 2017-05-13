@@ -33,6 +33,7 @@ public class ServiceInstance extends Service {
 		this.setName(serviceDefinition.getName());
 		this.setType(serviceDefinition.getType());
 		this.setDaemon(serviceDefinition.isDaemon());
+		this.setEnabled(serviceDefinition.isEnabled());
 		this.setClassName(serviceDefinition.getClassName());
 		this.setParameters(serviceDefinition.getParameters());
 	}

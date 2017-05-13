@@ -20,11 +20,11 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class ChainNotifyCell implements Runnable {
-	public ChainNotifyCell(String hostname, int port, Block block, String remoteCellName, String localCellName,
+public class ChainNotifier implements Runnable {
+	public ChainNotifier(String hostname, int port, Block block, String remoteCellName, String localCellName,
 			boolean accepted,boolean ensureAcceptance) {
 		super();
-		logger = LoggerFactory.getLogger(ChainNotifyCell.class);
+		logger = LoggerFactory.getLogger(ChainNotifier.class);
 		setHostname(hostname);
 		setPort(port);
 		setBlock(block);
@@ -49,8 +49,8 @@ public class ChainNotifyCell implements Runnable {
 	public void run() {
 		try {
 			String peerURL = "https://" + getHostname() + ":" + getPort() + "/org/biosphere/cell/chain/append/block";
-			logger.debug("ChainNotifyCell.run() Notifying " + peerURL +" block ("+ getBlock().getBlockID()+") TITLE("+getBlock().getTitle()+")");
-			logger.trace("ChainNotifyCell.run() Block votes in the flat block: " + getBlock().getFlatBlock().getAcceptanceVotes().size());
+			logger.debug("ChainNotifier.run() Notifying " + peerURL +" block ("+ getBlock().getBlockID()+") TITLE("+getBlock().getTitle()+")");
+			logger.trace("ChainNotifier.run() Block votes in the flat block: " + getBlock().getFlatBlock().getAcceptanceVotes().size());
 			
 			BlockAppendRequest fbar = new BlockAppendRequest();
 			fbar.setAccepted(isAccepted());
@@ -78,13 +78,13 @@ public class ChainNotifyCell implements Runnable {
 			connNotification.disconnect();
 			
 			BlockAppendResponse fbr = mapper.readValue(responsePayload.getBytes(),BlockAppendResponse.class);
-			logger.debug("ChainNotifyCell.run() Notification response: cell (" + fbr.getCellName()+ ") = " + fbr.isAccepted());
+			logger.debug("ChainNotifier.run() Notification response: cell (" + fbr.getCellName()+ ") = " + fbr.isAccepted());
 			setRemoteAccepted(fbr.isAccepted());
 			getBlock().addVote(new Vote(getRemoteCellName(), isRemoteAccepted()));
 		} catch (MalformedURLException e) {
-			TissueExceptionHandler.handleGenericException(e, "ChainNotifyCell.run()", "Failed to notify tissue.");
+			TissueExceptionHandler.handleGenericException(e, "ChainNotifier.run()", "Failed to notify tissue.");
 		} catch (IOException e) {
-			TissueExceptionHandler.handleGenericException(e, "ChainNotifyCell.run()", "Failed to notify tissue.");
+			TissueExceptionHandler.handleGenericException(e, "ChainNotifier.run()", "Failed to notify tissue.");
 		}
 	}
 

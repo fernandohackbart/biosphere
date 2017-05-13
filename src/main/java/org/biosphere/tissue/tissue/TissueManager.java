@@ -51,10 +51,16 @@ public class TissueManager {
 	public final static String logOutputValue = "System.out";
 	public final static String logDateFormatParameter = "org.slf4j.simpleLogger.dateTimeFormat";
 	public final static String logDateFormatValue = "yyyy-MM-dd_HH:mm:ss:SSS";
-	public final static String jettLogLevelParameter = "org.eclipse.jetty.LEVEL";
-	public final static String jettLogLevelValue = "ALL";
-	public final static String jettLogOutputParameter = "org.eclipse.jetty.util.log.class";
-	public final static String jettLogOutputValue = "org.eclipse.jetty.util.log.Slf4jLog";
+	public final static String jettyLogLevelParameter = "org.eclipse.jetty.LEVEL";
+	public final static String jettyLogLevelValue = "ALL";
+	public final static String jettyLogOutputParameter = "org.eclipse.jetty.util.log.class";
+	public final static String jettyLogOutputValue = "org.eclipse.jetty.util.log.Slf4jLog";
+	public final static int jettyMaxThreadPoolSize = 50;
+	public final static int jettyOutputBufferSize = 32768;
+	public final static int jettyRequestHeaderSize=8192;
+	public final static int jettyResponseHeaderSize=8192;
+	public final static boolean jettySendServerVersion=true;
+	public final static boolean jettySendDateHeader=false;
 	// public final static String jettLogOutputValue =
 	// "org.eclipse.jetty.util.log.StdErrLog";
 	private static boolean onWelcomeProcess = false;
@@ -65,6 +71,10 @@ public class TissueManager {
 	
 	public final static String TissueCellAddOperation = "CellAdd";
 	public final static String TissueCellRemoveOperation = "CellRemove";
+	public final static long serviceDiscoveryTimeout = 3000L;
+	public final static long serviceDiscoveryInterval = 500L;
+	public final static String defaultContentType = "application/json";
+	public final static String defaultContentEncoding = "utf-8";
 
 	public final static void createTissue(Cell cell) throws CellException {
 		Logger logger = LoggerFactory.getLogger(TissueManager.class);

@@ -62,8 +62,8 @@ public class CellManager {
 		System.setProperty(TissueManager.logOutputParameter, TissueManager.logOutputValue);
 		System.setProperty(TissueManager.logShowDateTimeParameter, TissueManager.logShowDateTimeValue);
 		System.setProperty(TissueManager.logDateFormatParameter, TissueManager.logDateFormatValue);
-		System.setProperty(TissueManager.jettLogLevelParameter, TissueManager.jettLogLevelValue);
-		System.setProperty(TissueManager.jettLogOutputParameter, TissueManager.jettLogOutputValue);
+		System.setProperty(TissueManager.jettyLogLevelParameter, TissueManager.jettyLogLevelValue);
+		System.setProperty(TissueManager.jettyLogOutputParameter, TissueManager.jettyLogOutputValue);
 		cell.setCellName(generateCellName());
 		cell.setCellNetworkName(getCellNetworkName());
 		cell.setTissueMember(false);
@@ -175,6 +175,15 @@ public class CellManager {
 		cellStopContexts.add("/org/biosphere/cell/stop");
 		cellStopSHD.setContexts(cellStopContexts);
 		cellTissueListenerHandlers.add(cellStopSHD);
+		
+		ServletHandlerDefinition serviceDiscoverSHD = new ServletHandlerDefinition();
+		serviceDiscoverSHD.setClassName("org.biosphere.tissue.handlers.ServiceDiscoveryHandler");
+		serviceDiscoverSHD.setContentType("application/json");
+		serviceDiscoverSHD.setContentEncoding("utf-8");
+		ArrayList<String> serviceDiscoverContexts = new ArrayList<String>();
+		serviceDiscoverContexts.add("/org/biosphere/cell/service/discover");
+		serviceDiscoverSHD.setContexts(serviceDiscoverContexts);
+		cellTissueListenerHandlers.add(serviceDiscoverSHD);
 
 		ServletHandlerDefinition serviceStopSHD = new ServletHandlerDefinition();
 		serviceStopSHD.setClassName("org.biosphere.tissue.handlers.ServiceThreadStopHandler");
@@ -238,6 +247,7 @@ public class CellManager {
 		sdCellTissueListener.setEnabled(true);
 		sdCellTissueListener.setClassName("org.eclipse.jetty.server.Server");
 		sdCellTissueListener.addParameter("Handlers", cellTissueListenerHandlers);
+		sdCellTissueListener.addParameter("DefaultHandler","org.biosphere.tissue.handlers.CellDefaultHandler");
 		sdCellTissueListener.addParameter("DefaultHTTPPort", TissueManager.defaultTissuePort);
 		return sdCellTissueListener;
 	}
@@ -262,7 +272,7 @@ public class CellManager {
 		cellServiceListenerSHD.setContentType("text/plain");
 		cellServiceListenerSHD.setContentEncoding("utf-8");
 		ArrayList<String> chainParseChainContexts = new ArrayList<String>();
-		chainParseChainContexts.add("/");
+		chainParseChainContexts.add("/test");
 		cellServiceListenerSHD.setContexts(chainParseChainContexts);
 		cellServiceListenerHandlers.add(cellServiceListenerSHD);
 
@@ -273,6 +283,7 @@ public class CellManager {
 		sdCellTissueListener.setEnabled(true);
 		sdCellTissueListener.setClassName("org.eclipse.jetty.server.Server");
 		sdCellTissueListener.addParameter("Handlers", cellServiceListenerHandlers);
+		sdCellTissueListener.addParameter("DefaultHandler","org.biosphere.tissue.handlers.ServiceDefaultHandler");
 		sdCellTissueListener.addParameter("DefaultHTTPPort",
 				TissueManager.defaultTissuePort + TissueManager.portJumpFactor);
 		return sdCellTissueListener;
