@@ -1,6 +1,7 @@
 package org.biosphere.tissue.handlers;
 
 import org.biosphere.tissue.Cell;
+import org.biosphere.tissue.DNA.Service;
 import org.biosphere.tissue.tissue.TissueManager;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ public class AbstractDefaultHandler extends DefaultHandler  {
 	private Cell cell;
 	private String contentType;
 	private String contentEncoding;
+	private Service service;
 
 	public AbstractDefaultHandler() {
 		super();
@@ -51,5 +53,13 @@ public class AbstractDefaultHandler extends DefaultHandler  {
 
 	public final void setLogger(Logger logger) {
 		this.logger = logger;
+	}
+
+	public final Service getService() {
+		return service;
+	}
+
+	public final void setService(Service service) {
+		this.service = service;
 	}
 }

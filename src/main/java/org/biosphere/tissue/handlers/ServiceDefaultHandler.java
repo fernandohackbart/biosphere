@@ -26,7 +26,7 @@ public class ServiceDefaultHandler extends AbstractDefaultHandler {
 					+ ") handled by service (" + serviceName + ") found in DNA");
 			if (ServiceManager.isEnabled(getCell(), serviceName)) {
 				getLogger().debug("ServiceDiscoveryHandler.handle() Service (" + serviceName + ") is enabled in DNA");
-				ServiceDiscoveryResponse sdr = ServiceManager.discoverService(serviceName,getCell());
+				ServiceDiscoveryResponse sdr = ServiceManager.discoverService(serviceName,getCell(),getService());
 				if (sdr.isRunning()) {
 					getLogger().debug("ServiceDiscoveryHandler.handle() Redirecting to remote cell ("+sdr.getCellName()+") ("+sdr.getCellNetworkName()+":"+sdr.getCellServicePort()+") for service (" + serviceName + ") !");
 					redirectToCell(request.getContextPath(),sdr,response);

@@ -20,38 +20,36 @@ public class ServiceNotFoundHandler extends AbstractErrorHandler {
 				throws IOException {
 
 		String partnerCell = (String) (request.getRemoteHost() + ":" + request.getRemotePort());
-		getLogger().debug("ServiceNotFoundHandler.handle() Not handled request (" + request.getRequestURI()
+		getLogger().debug("ServiceNotFoundHandler.handle() ("+getService().getName()+") not handling request (" + request.getRequestURI()
 				+ ") from: " + partnerCell);
 		String serviceName = ServiceManager.isContextDefined(getCell(), request.getRequestURI());
-		
-		getLogger().debug("ServiceNotFoundHandler.handle() Found serviceName (" + serviceName + ")");
-		
+	
 		if (!(serviceName==null)) {
-			getLogger().debug("ServiceNotFoundHandler.handle() Context (" + request.getRequestURI()
+			getLogger().debug("ServiceNotFoundHandler.handle() ("+getService().getName()+") context (" + request.getRequestURI()
 					+ ") handled by service (" + serviceName + ") found in DNA");
 			if (ServiceManager.isEnabled(getCell(), serviceName)) {
-				getLogger().debug("ServiceNotFoundHandler.handle() Service (" + serviceName + ") is enabled in DNA");
-				ServiceDiscoveryResponse sdr = ServiceManager.discoverService(serviceName,getCell());
+				getLogger().debug("ServiceNotFoundHandler.handle() ("+getService().getName()+") service (" + serviceName + ") is enabled in DNA");
+				ServiceDiscoveryResponse sdr = ServiceManager.discoverService(serviceName,getCell(),getService());
 				if (sdr.isRunning()) {
-					getLogger().debug("ServiceNotFoundHandler.handle() Redirecting to remote cell ("+sdr.getCellName()+") ("+sdr.getCellNetworkName()+":"+sdr.getCellServicePort()+") for service (" + serviceName + ") !");
+					getLogger().debug("ServiceNotFoundHandler.handle() ("+getService().getName()+") redirecting to remote cell ("+sdr.getCellName()+") ("+sdr.getCellNetworkName()+":"+sdr.getCellServicePort()+") for service (" + serviceName + ") !");
 					redirectToCell(request.getRequestURI(),sdr,response);
 				} else {
-					getLogger().debug("ServiceNotFoundHandler.handle() Starting service (" + serviceName + ") locally!");
+					getLogger().debug("ServiceNotFoundHandler.handle() ("+getService().getName()+") starting service (" + serviceName + ") locally!");
 					ServiceManager.start(serviceName, getCell());
 					ServiceDiscoveryResponse sdrLocal = new ServiceDiscoveryResponse();
 					sdrLocal.setCellNetworkName(getCell().getCellNetworkName());
 					sdrLocal.setCellName(getCell().getCellName());
 					sdrLocal.setCellServicePort((int)getCell().getDna().getService(serviceName).getParameterValue("ServiceListenerPort"));
-					getLogger().debug("ServiceNotFoundHandler.handle() Redirecting to local cell ("+sdrLocal.getCellName()+") ("+sdrLocal.getCellNetworkName()+":"+sdrLocal.getCellServicePort()+") for service (" + serviceName + ") !");
+					getLogger().debug("ServiceNotFoundHandler.handle() ("+getService().getName()+") redirecting to local cell ("+sdrLocal.getCellName()+") ("+sdrLocal.getCellNetworkName()+":"+sdrLocal.getCellServicePort()+") for service (" + serviceName + ") !");
 					redirectToCell(request.getContextPath(),sdr,response);
 				}
 			} else {
-				getLogger().debug("ServiceNotFoundHandler.handle() Service (" + serviceName
+				getLogger().debug("ServiceNotFoundHandler.handle() ("+getService().getName()+") service (" + serviceName
 						+ ") is disabled in DNA, returning HTTP-404");
 				return404(request.getRequestURI(), response);
 			}
 		} else {
-			getLogger().warn("ServiceNotFoundHandler.handle() Context (" + request.getRequestURI()
+			getLogger().warn("ServiceNotFoundHandler.handle() ("+getService().getName()+") context (" + request.getRequestURI()
 					+ ") not found in DNA! Returning HTTP-404");
 			return404(request.getRequestURI(), response);
 		}
