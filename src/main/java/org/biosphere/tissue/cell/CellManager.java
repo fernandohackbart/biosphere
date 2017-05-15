@@ -259,6 +259,15 @@ public class CellManager {
 		ArrayList<ServletHandlerDefinition> cellServiceListenerHandlers = new ArrayList<ServletHandlerDefinition>();
 		ServletHandlerDefinition cellServiceListenerSHD = new ServletHandlerDefinition();
 
+		ServletHandlerDefinition cellServiceNotFoundSHD = new ServletHandlerDefinition();
+		cellServiceNotFoundSHD.setClassName("org.biosphere.tissue.handlers.ServiceNotFoundHandler");
+		cellServiceNotFoundSHD.setContentType("text/html");
+		cellServiceNotFoundSHD.setContentEncoding("utf-8");
+		ArrayList<String> cellServiceNotFoundContexts = new ArrayList<String>();
+		cellServiceNotFoundContexts.add("/org/biosphere/cell/service/notfound");
+		cellServiceNotFoundSHD.setContexts(cellServiceNotFoundContexts);
+		//cellServiceListenerHandlers.add(cellServiceNotFoundSHD);		
+		
 		ServletHandlerDefinition cellHTTPContextAddSHD = new ServletHandlerDefinition();
 		cellHTTPContextAddSHD.setClassName("org.biosphere.tissue.handlers.ServiceAddContextHandler");
 		cellHTTPContextAddSHD.setContentType("text/plain");

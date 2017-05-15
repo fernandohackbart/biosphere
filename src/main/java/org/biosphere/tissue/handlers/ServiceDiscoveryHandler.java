@@ -35,7 +35,7 @@ public class ServiceDiscoveryHandler extends AbstractHandler {
 			sdrsp.setCellName(getCell().getCellName());
 			sdrsp.setCellNetworkName(getCell().getCellNetworkName());
 			sdrsp.setCellServicePort(
-					(int) getCell().getDna().getService(sdr.getServiceName()).getParameterValue("ServiceListenerPort"));
+					(int) getCell().getDna().getService(sdr.getServiceName()).getParameterValue("ServiceServletPort"));
 		} else {
 			getLogger().debug("ServiceDiscoveryHandler.doPost() Service (" + sdr.getServiceName()
 			+ ") is NOT running!");
