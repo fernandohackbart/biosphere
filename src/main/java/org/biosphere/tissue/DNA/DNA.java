@@ -104,8 +104,8 @@ public class DNA {
 		return cellAdded;
 	}
 
-	public void addCell(TissueAddCellPayload tacp,org.biosphere.tissue.Cell localCell){
-		org.biosphere.tissue.DNA.Cell cell = getCellInstance(tacp.getCell().getName(), tacp.getCell().getPublicKey(), tacp.getCell().getInterfaces(), tacp.getCell().getTissuePort());	
+	public void addCell(TissueAddCellPayload tacp, org.biosphere.tissue.Cell localCell) {
+		org.biosphere.tissue.DNA.Cell cell = getCellInstance(tacp.getCell().getName(), tacp.getCell().getPublicKey(), tacp.getCell().getInterfaces(), tacp.getCell().getTissuePort());
 		if (!containsCell(cell.getName())) {
 			logger.info("DNA.addCell(TissueAddCellPayload) Cell " + cell.getName() + " being appended to the DNA!");
 			tissue.getCells().add(cell);
@@ -124,7 +124,7 @@ public class DNA {
 			TissueExceptionHandler.handleGenericException(e, "DNA.addCell(TissueAddCellPayload)", "IOException:");
 		}
 	}
-	
+
 	public boolean removeCell(String cellName, String cellCertificate, String cellNetworkName, int cellTissuePort, Chain chain) throws BlockException, JsonProcessingException {
 		boolean cellRemoved = false;
 		Cell cell = getCellInstance(cellName, cellCertificate, cellNetworkName, cellTissuePort);
@@ -259,7 +259,14 @@ public class DNA {
 	}
 
 	public boolean enableService(TissueEnableServicePayload tesp, org.biosphere.tissue.Cell localCell) throws JsonProcessingException, BlockException {
+		String operation = "(en/dis)able";
 		try {
+			if (tesp.isEnableService()) {
+				operation = "enable";
+			} else {
+				operation = "disable";
+			}
+
 			if (!tesp.isEnableService()) {
 				if (ServiceManager.isRunning(tesp.getServiceName())) {
 					ServiceManager.stop(tesp.getServiceName(), localCell);
@@ -267,12 +274,19 @@ public class DNA {
 			}
 			getService(tesp.getServiceName()).setEnabled(tesp.isEnableService());
 		} catch (CellException e) {
-			ChainExceptionHandler.handleGenericException(e, "DNA.disableService()", "Failed to (en/dis)able service " + tesp.getServiceName() + " (Exception).");
+			ChainExceptionHandler.handleGenericException(e, "DNA.disableService()", "Failed to " + operation + " service " + tesp.getServiceName() + " (Exception).");
 		}
 		return true;
 	}
 
 	public ServiceEnableResponse enableService(ServiceEnableRequest ser, org.biosphere.tissue.Cell localCell) throws JsonProcessingException, BlockException {
+
+		String operation = "(en/dis)able";
+		if (ser.isEnableService()) {
+			operation = "enable";
+		} else {
+			operation = "disable";
+		}
 
 		TissueEnableServicePayload tesp = new TissueEnableServicePayload();
 		tesp.setEnableService(ser.isEnableService());
@@ -292,21 +306,21 @@ public class DNA {
 		seresp.setOperationPerformed(false);
 
 		if (baresp.isAccepted()) {
-			logger.info("DNA.enableService() Service (en/dis)able (" + ser.getServiceName() + ") accepted in the Tissue with block " + baresp.getBlockID());
+			logger.info("DNA.enableService() Service " + operation + " (" + ser.getServiceName() + ") accepted in the Tissue with block " + baresp.getBlockID());
 			getService(ser.getServiceName()).setEnabled(ser.isEnableService());
 			if (!ser.isEnableService()) {
 				if (ServiceManager.isRunning(ser.getServiceName())) {
 					try {
 						ServiceManager.stop(ser.getServiceName(), localCell);
 					} catch (CellException e) {
-						ChainExceptionHandler.handleGenericException(e, "DNA.disableService()", "Failed to (en/dis)able service " + ser.getServiceName() + " (Exception).");
+						ChainExceptionHandler.handleGenericException(e, "DNA.disableService()", "Failed to " + operation + " service " + ser.getServiceName() + " (Exception).");
 					}
 				}
 			}
-			enableService(tesp,localCell);
+			enableService(tesp, localCell);
 			seresp.setOperationPerformed(true);
 		} else {
-			logger.warn("DNA.disableService() Service " + ser.getServiceName() + " (en/dis)able block (" + baresp.getBlockID() + ") not accepted, ignoring request!");
+			logger.warn("DNA.disableService() Service " + ser.getServiceName() + " " + operation + " block (" + baresp.getBlockID() + ") not accepted, ignoring request!");
 		}
 		return seresp;
 	}
