@@ -80,7 +80,7 @@ public class DNA {
 
 	public boolean addCell(String cellName, String cellpublickey, String cellNetworkName, int cellTissuePort, String adopterCellName, org.biosphere.tissue.Cell localCell) throws BlockException, JsonProcessingException {
 		boolean cellAdded = false;
-		logger.info("DNA.addCell() Notifying tissue over chain for cell (" + cellName + ")");
+		logger.info("DNA.addCell(parameters) Notifying tissue over chain for cell (" + cellName + ")");
 		Cell cell = getCellInstance(cellName, cellpublickey, cellNetworkName, cellTissuePort);
 		TissueAddCellPayload tacp = new TissueAddCellPayload();
 		tacp.setAdopterCellName(adopterCellName);
@@ -94,40 +94,37 @@ public class DNA {
 		// TODO check why the new cell is being notified
 		BlockAddResponse baresp = localCell.getChain().addBlock(bar);
 		if (baresp.isAccepted()) {
-			logger.info("DNA.addCell() Cell (" + cellName + ") accepted in the Tissue with block " + baresp.getBlockID());
-			logger.info("DNA.addCell() Adding cell (" + cellName + ") to the local DNA!");
-			appendCell(cell, localCell);
+			logger.info("DNA.addCell(parameters) Cell (" + cellName + ") accepted in the Tissue with block " + baresp.getBlockID());
+			logger.info("DNA.addCell(parameters) Adding cell (" + cellName + ") to the local DNA!");
+			addCell(tacp, localCell);
 			cellAdded = true;
 		} else {
-			logger.warn("DNA.addCell() Tissue not accepted cell " + cellName + " block (" + baresp.getBlockID() + ")");
+			logger.warn("DNA.addCell(parameters) Tissue not accepted cell " + cellName + " block (" + baresp.getBlockID() + ")");
 		}
 		return cellAdded;
 	}
 
-	public void appendCell (TissueAddCellPayload tacp,org.biosphere.tissue.Cell localCell){
-		appendCell(getCellInstance(tacp.getCell().getName(), tacp.getCell().getPublicKey(), tacp.getCell().getInterfaces(), tacp.getCell().getTissuePort()),localCell);		
-	}
-	
-	public void appendCell(org.biosphere.tissue.DNA.Cell cell, org.biosphere.tissue.Cell localCell) {
+	public void addCell(TissueAddCellPayload tacp,org.biosphere.tissue.Cell localCell){
+		org.biosphere.tissue.DNA.Cell cell = getCellInstance(tacp.getCell().getName(), tacp.getCell().getPublicKey(), tacp.getCell().getInterfaces(), tacp.getCell().getTissuePort());	
 		if (!containsCell(cell.getName())) {
-			logger.info("DNA.appendCell() Cell " + cell.getName() + " being appended to the DNA!");
+			logger.info("DNA.addCell(TissueAddCellPayload) Cell " + cell.getName() + " being appended to the DNA!");
 			tissue.getCells().add(cell);
 
 		} else {
-			logger.warn("DNA.appendCell() Cell " + cell.getName() + " already present in the DNA!");
+			logger.warn("DNA.addCell(TissueAddCellPayload) Cell " + cell.getName() + " already present in the DNA!");
 		}
-		logger.info("DNA.appendCell() Adding cell (" + cell.getName() + ") public key to the keystore!");
+		logger.info("DNA.addCell(TissueAddCellPayload) Adding cell (" + cell.getName() + ") public key to the keystore!");
 		try {
 			CellManager.addCellTrustKeystore(cell.getName(), cell.getPublicKey(), localCell);
 		} catch (CertificateEncodingException | KeyStoreException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellTissueWelcomeHandler.doPost()", "CertificateEncodingException/KeyStoreException:");
+			TissueExceptionHandler.handleGenericException(e, "DNA.addCell(TissueAddCellPayload)", "CertificateEncodingException/KeyStoreException:");
 		} catch (CertificateException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellTissueWelcomeHandler.doPost()", "CertificateException:");
+			TissueExceptionHandler.handleGenericException(e, "DNA.addCell(TissueAddCellPayload)", "CertificateException:");
 		} catch (IOException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellTissueWelcomeHandler.doPost()", "IOException:");
+			TissueExceptionHandler.handleGenericException(e, "DNA.addCell(TissueAddCellPayload)", "IOException:");
 		}
 	}
-
+	
 	public boolean removeCell(String cellName, String cellCertificate, String cellNetworkName, int cellTissuePort, Chain chain) throws BlockException, JsonProcessingException {
 		boolean cellRemoved = false;
 		Cell cell = getCellInstance(cellName, cellCertificate, cellNetworkName, cellTissuePort);

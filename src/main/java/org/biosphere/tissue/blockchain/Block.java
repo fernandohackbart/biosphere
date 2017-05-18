@@ -508,7 +508,7 @@ public class Block {
 				case TissueManager.TissueCellAddOperation:
 					TissueAddCellPayload tacp = mapper.readValue(Base64.decode(payload), TissueAddCellPayload.class);
 					logger.trace("Block.executePayload() Executing payload of block (" + getBlockID() + ") " + TissueManager.TissueCellAddOperation + " (" + tacp.getCell().getName() + ")");
-					cell.getDna().appendCell(tacp, cell);
+					cell.getDna().addCell(tacp, cell);
 					break;
 				case TissueManager.TissueCellRemoveOperation:
 					TissueRemoveCellPayload trcp = mapper.readValue(Base64.decode(payload), TissueRemoveCellPayload.class);
