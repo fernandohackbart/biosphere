@@ -22,6 +22,8 @@ import org.biosphere.tissue.protocol.CellInterface;
 import org.biosphere.tissue.protocol.ServiceEnableRequest;
 import org.biosphere.tissue.protocol.ServiceEnableResponse;
 import org.biosphere.tissue.protocol.TissueAddCellPayload;
+import org.biosphere.tissue.protocol.TissueEnableServicePayload;
+import org.biosphere.tissue.protocol.TissueOperationPayload;
 import org.biosphere.tissue.protocol.TissueRemoveCellPayload;
 import org.biosphere.tissue.services.ServiceManager;
 import org.biosphere.tissue.tissue.TissueManager;
@@ -102,6 +104,10 @@ public class DNA {
 		return cellAdded;
 	}
 
+	public void appendCell (TissueAddCellPayload tacp,org.biosphere.tissue.Cell localCell){
+		appendCell(getCellInstance(tacp.getCell().getName(), tacp.getCell().getPublicKey(), tacp.getCell().getInterfaces(), tacp.getCell().getTissuePort()),localCell);		
+	}
+	
 	public void appendCell(org.biosphere.tissue.DNA.Cell cell, org.biosphere.tissue.Cell localCell) {
 		if (!containsCell(cell.getName())) {
 			logger.info("DNA.appendCell() Cell " + cell.getName() + " being appended to the DNA!");
@@ -140,7 +146,11 @@ public class DNA {
 		if (baresp.isAccepted()) {
 			logger.info("DNA.removeCell() Cell (" + cell.getName() + ") removed from the Tissue with block " + baresp.getBlockID());
 			logger.info("DNA.removeCell() Removing cell (" + cell.getName() + ") from the local DNA!");
-			deleteCell(cell);
+			TissueRemoveCellPayload tacp = new TissueRemoveCellPayload();
+			tacp.setOperation(TissueManager.TissueCellRemoveOperation);
+			tacp.setRequesterCellName(cell.getName());
+			tacp.setToRemoveCell(cell);
+			deleteCell(tacp);
 			cellRemoved = true;
 		} else {
 			logger.warn("DNA.removeCell() Tissue not accepted cell " + cell.getName() + " removal, block (" + baresp.getBlockID() + ")");
@@ -148,7 +158,8 @@ public class DNA {
 		return cellRemoved;
 	}
 
-	public void deleteCell(Cell cell) {
+	public void deleteCell(TissueRemoveCellPayload tacp) {
+		Cell cell = tacp.getToRemoveCell();
 		if (containsCell(cell.getName())) {
 			logger.info("DNA.deleteCell() Cell " + cell.getName() + " being removed from the DNA!");
 			tissue.getCells().remove(cell);
@@ -250,58 +261,55 @@ public class DNA {
 		return mapper.writeValueAsString(tissue);
 	}
 
-	public ServiceEnableResponse enableService(ServiceEnableRequest ser, org.biosphere.tissue.Cell localCell) throws JsonProcessingException, BlockException {
-		ObjectMapper mapper = new ObjectMapper();
-		BlockAddRequest bar = new BlockAddRequest();
-		bar.setEnsureAcceptance(true);
-		bar.setTitle(TissueManager.TissueServiceEnableOperation + "-" + ser.getServiceName());
-		bar.setPayload(Base64.toBase64String(mapper.writeValueAsString(ser).getBytes()));
-		BlockAddResponse baresp = localCell.getChain().addBlock(bar);
-
-		ServiceEnableResponse seresp = new ServiceEnableResponse();
-		seresp.setServiceName(ser.getServiceName());
-		seresp.setEnableService(ser.isEnableService());
-		seresp.setRequestID(ser.getRequestID());
-		seresp.setOperationPerformed(false);
-
-		if (baresp.isAccepted()) {
-			logger.info("DNA.enableService() Service enable (" + ser.getServiceName() + ") accepted in the Tissue with block " + baresp.getBlockID());
-			getService(ser.getServiceName()).setEnabled(ser.isEnableService());
-			seresp.setOperationPerformed(true);
-		} else {
-			logger.warn("DNA.enableService() Service " + ser.getServiceName() + " enable block (" + baresp.getBlockID() + ") not accepted, ignoring request!");
-		}
-
-		return seresp;
-	}
-
-	public ServiceEnableResponse disableService(ServiceEnableRequest ser, org.biosphere.tissue.Cell localCell) throws JsonProcessingException, BlockException {
-		ObjectMapper mapper = new ObjectMapper();
-		BlockAddRequest bar = new BlockAddRequest();
-		bar.setEnsureAcceptance(true);
-		bar.setTitle(TissueManager.TissueServiceEnableOperation + "-" + ser.getServiceName());
-		bar.setPayload(Base64.toBase64String(mapper.writeValueAsString(ser).getBytes()));
-		BlockAddResponse baresp = localCell.getChain().addBlock(bar);
-
-		ServiceEnableResponse seresp = new ServiceEnableResponse();
-		seresp.setServiceName(ser.getServiceName());
-		seresp.setEnableService(ser.isEnableService());
-		seresp.setRequestID(ser.getRequestID());
-		seresp.setOperationPerformed(false);
-		if (baresp.isAccepted()) {
-			logger.info("DNA.enableService() Service enable (" + ser.getServiceName() + ") accepted in the Tissue with block " + baresp.getBlockID());
-			getService(ser.getServiceName()).setEnabled(ser.isEnableService());
-			if (ServiceManager.isRunning(ser.getServiceName())) {
-				try {
-					ServiceManager.stop(ser.getServiceName(), localCell);
-				} catch (CellException e) {
-					ChainExceptionHandler.handleGenericException(e, "DNA.disableService()", "Failed to disable service " + ser.getServiceName() + " (Exception).");
+	public boolean enableService(TissueEnableServicePayload tesp, org.biosphere.tissue.Cell localCell) throws JsonProcessingException, BlockException {
+		try {
+			if (!tesp.isEnableService()) {
+				if (ServiceManager.isRunning(tesp.getServiceName())) {
+					ServiceManager.stop(tesp.getServiceName(), localCell);
 				}
 			}
+			getService(tesp.getServiceName()).setEnabled(tesp.isEnableService());
+		} catch (CellException e) {
+			ChainExceptionHandler.handleGenericException(e, "DNA.disableService()", "Failed to (en/dis)able service " + tesp.getServiceName() + " (Exception).");
+		}
+		return true;
+	}
+
+	public ServiceEnableResponse enableService(ServiceEnableRequest ser, org.biosphere.tissue.Cell localCell) throws JsonProcessingException, BlockException {
+
+		TissueEnableServicePayload tesp = new TissueEnableServicePayload();
+		tesp.setEnableService(ser.isEnableService());
+		tesp.setServiceName(ser.getServiceName());
+		tesp.setOperation(TissueManager.TissueServiceEnableOperation);
+
+		BlockAddRequest bar = new BlockAddRequest();
+		bar.setEnsureAcceptance(true);
+		bar.setTitle(TissueManager.TissueServiceEnableOperation + "-" + tesp.getServiceName());
+		bar.setPayload((TissueOperationPayload) tesp);
+		BlockAddResponse baresp = localCell.getChain().addBlock(bar);
+
+		ServiceEnableResponse seresp = new ServiceEnableResponse();
+		seresp.setServiceName(ser.getServiceName());
+		seresp.setEnableService(ser.isEnableService());
+		seresp.setRequestID(ser.getRequestID());
+		seresp.setOperationPerformed(false);
+
+		if (baresp.isAccepted()) {
+			logger.info("DNA.enableService() Service (en/dis)able (" + ser.getServiceName() + ") accepted in the Tissue with block " + baresp.getBlockID());
 			getService(ser.getServiceName()).setEnabled(ser.isEnableService());
+			if (!ser.isEnableService()) {
+				if (ServiceManager.isRunning(ser.getServiceName())) {
+					try {
+						ServiceManager.stop(ser.getServiceName(), localCell);
+					} catch (CellException e) {
+						ChainExceptionHandler.handleGenericException(e, "DNA.disableService()", "Failed to (en/dis)able service " + ser.getServiceName() + " (Exception).");
+					}
+				}
+			}
+			enableService(tesp,localCell);
 			seresp.setOperationPerformed(true);
 		} else {
-			logger.warn("DNA.disableService() Service " + ser.getServiceName() + " disable block (" + baresp.getBlockID() + ") not accepted, ignoring request!");
+			logger.warn("DNA.disableService() Service " + ser.getServiceName() + " (en/dis)able block (" + baresp.getBlockID() + ") not accepted, ignoring request!");
 		}
 		return seresp;
 	}

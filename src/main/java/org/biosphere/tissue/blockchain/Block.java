@@ -18,8 +18,8 @@ import java.util.UUID;
 
 import org.biosphere.tissue.Cell;
 import org.biosphere.tissue.protocol.FlatBlock;
-import org.biosphere.tissue.protocol.ServiceEnableRequest;
 import org.biosphere.tissue.protocol.TissueAddCellPayload;
+import org.biosphere.tissue.protocol.TissueEnableServicePayload;
 import org.biosphere.tissue.protocol.TissueOperationPayload;
 import org.biosphere.tissue.protocol.TissueRemoveCellPayload;
 import org.biosphere.tissue.tissue.TissueManager;
@@ -508,21 +508,17 @@ public class Block {
 				case TissueManager.TissueCellAddOperation:
 					TissueAddCellPayload tacp = mapper.readValue(Base64.decode(payload), TissueAddCellPayload.class);
 					logger.trace("Block.executePayload() Executing payload of block (" + getBlockID() + ") " + TissueManager.TissueCellAddOperation + " (" + tacp.getCell().getName() + ")");
-					cell.getDna().appendCell(cell.getDna().getCellInstance(tacp.getCell().getName(), tacp.getCell().getPublicKey(), tacp.getCell().getInterfaces(), tacp.getCell().getTissuePort()), cell);
+					cell.getDna().appendCell(tacp, cell);
 					break;
 				case TissueManager.TissueCellRemoveOperation:
 					TissueRemoveCellPayload trcp = mapper.readValue(Base64.decode(payload), TissueRemoveCellPayload.class);
 					logger.trace("Block.executePayload() Executing payload of block (" + getBlockID() + ") " + TissueManager.TissueCellRemoveOperation + " (" + trcp.getToRemoveCell().getName() + ")");
-					cell.getDna().deleteCell(trcp.getToRemoveCell());
+					cell.getDna().deleteCell(trcp);
 					break;
 				case TissueManager.TissueServiceEnableOperation:
-					ServiceEnableRequest ser = mapper.readValue(Base64.decode(payload), ServiceEnableRequest.class);
-					logger.trace("Block.executePayload() Executing payload of block (" + getBlockID() + ") " + TissueManager.TissueServiceEnableOperation + " service (" + ser.getServiceName() + ") enable (" + ser.isEnableService() + ")");
-					if (ser.isEnableService()) {
-						cell.getDna().enableService(ser, cell);
-					} else {
-						cell.getDna().disableService(ser, cell);
-					}
+					TissueEnableServicePayload tesp = mapper.readValue(Base64.decode(payload), TissueEnableServicePayload.class);
+					logger.trace("Block.executePayload() Executing payload of block (" + getBlockID() + ") " + TissueManager.TissueServiceEnableOperation + " service (" + tesp.getServiceName() + ") enable (" + tesp.isEnableService() + ")");
+					cell.getDna().enableService(tesp, cell);
 					break;
 				}
 			}

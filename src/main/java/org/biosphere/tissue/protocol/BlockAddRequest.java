@@ -1,6 +1,10 @@
 package org.biosphere.tissue.protocol;
 
+import org.bouncycastle.util.encoders.Base64;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class BlockAddRequest extends AbstractProtocol{
 	
@@ -45,5 +49,10 @@ public class BlockAddRequest extends AbstractProtocol{
 	@JsonProperty("ensureAcceptance")
 	public final void setEnsureAcceptance(boolean ensureAcceptance) {
 		this.ensureAcceptance = ensureAcceptance;
+	}
+	
+	public void setPayload(TissueOperationPayload payload) throws JsonProcessingException{
+		ObjectMapper mapper = new ObjectMapper();
+		setPayload(Base64.toBase64String(mapper.writeValueAsString(payload).getBytes()));
 	}
 }

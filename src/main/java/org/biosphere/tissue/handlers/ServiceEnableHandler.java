@@ -34,13 +34,7 @@ public class ServiceEnableHandler extends AbstractHandler {
 					+ ser.isEnableService() + ")!");
 			
 			try{
-				if (ser.isEnableService()) {
-					sersp=getCell().getDna().enableService(ser,getCell());
-				}
-				else
-				{
-					sersp=getCell().getDna().disableService(ser,getCell());
-				}				
+				sersp=getCell().getDna().enableService(ser,getCell());
 			} catch(BlockException e){
 				TissueExceptionHandler.handleGenericException(e, "ServiceEnableHandler.doPost()",
 						"BlockException:");

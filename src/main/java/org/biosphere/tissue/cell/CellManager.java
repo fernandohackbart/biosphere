@@ -184,6 +184,16 @@ public class CellManager {
 		serviceDiscoverContexts.add("/org/biosphere/cell/service/discover");
 		serviceDiscoverSHD.setContexts(serviceDiscoverContexts);
 		cellTissueListenerHandlers.add(serviceDiscoverSHD);
+		
+		ServletHandlerDefinition serviceEnableSHD = new ServletHandlerDefinition();
+		serviceEnableSHD.setClassName("org.biosphere.tissue.handlers.ServiceEnableHandler");
+		serviceEnableSHD.setContentType("application/json");
+		serviceEnableSHD.setContentEncoding("utf-8");
+		ArrayList<String> serviceEnableContexts = new ArrayList<String>();
+		serviceEnableContexts.add("/org/biosphere/cell/service/enable");
+		serviceEnableContexts.add("/org/biosphere/cell/service/disable");
+		serviceEnableSHD.setContexts(serviceEnableContexts);
+		cellTissueListenerHandlers.add(serviceEnableSHD);
 
 		ServletHandlerDefinition serviceStopSHD = new ServletHandlerDefinition();
 		serviceStopSHD.setClassName("org.biosphere.tissue.handlers.ServiceThreadStopHandler");
