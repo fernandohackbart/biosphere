@@ -67,7 +67,18 @@ public final class ServiceManager {
 		}
 		return isRunning;
 	}
-
+	
+	public static boolean isServiceDefined(String serviceName,Cell cell){
+		boolean isDefined=false;
+		for (Service service : cell.getDna().getServices()) {
+			if(service.getName().equals(serviceName)){
+				isDefined=true;
+				break;
+			}
+		}
+		return isDefined;
+	}
+	
 	public static synchronized boolean isInstantiated(String serviceName) {
 		// TODO check if the service definition exists
 		boolean isInstantiated = false;
@@ -537,6 +548,10 @@ public final class ServiceManager {
 					"Exception in service " + serviceInstance.getName());
 		}
 		return HTTPPort;
+	}
+	
+	public static synchronized void stop(String serviceName,Cell cell) throws CellException {
+		stop(cell.getDna().getService(serviceName).getType(),serviceName);
 	}
 
 	public static synchronized void stop(String serviceType, String serviceName) throws CellException {

@@ -27,6 +27,7 @@ public class TissueManager {
 		super();
 	}
 
+	public final static String tissueVersion = "1.0";
 	public final static int defaultTissuePort = 1040;
 	public final static String announcePort = "1030";
 	public final static String announceAddress = "230.0.0.1";
@@ -61,6 +62,11 @@ public class TissueManager {
 	public final static int jettyResponseHeaderSize=8192;
 	public final static boolean jettySendServerVersion=true;
 	public final static boolean jettySendDateHeader=false;
+	public final static long serviceDiscoveryTimeout = 3000L;
+	public final static long serviceDiscoveryInterval = 500L;
+	public final static String defaultContentType = "application/json";
+	public final static String defaultContentEncoding = "utf-8";
+
 	// public final static String jettLogOutputValue =
 	// "org.eclipse.jetty.util.log.StdErrLog";
 	private static boolean onWelcomeProcess = false;
@@ -71,10 +77,8 @@ public class TissueManager {
 	
 	public final static String TissueCellAddOperation = "CellAdd";
 	public final static String TissueCellRemoveOperation = "CellRemove";
-	public final static long serviceDiscoveryTimeout = 3000L;
-	public final static long serviceDiscoveryInterval = 500L;
-	public final static String defaultContentType = "application/json";
-	public final static String defaultContentEncoding = "utf-8";
+	public final static String TissueServiceEnableOperation = "ServiceEnable";
+	
 
 	public final static void createTissue(Cell cell) throws CellException {
 		Logger logger = LoggerFactory.getLogger(TissueManager.class);

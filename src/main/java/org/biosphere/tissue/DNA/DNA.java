@@ -12,13 +12,18 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.biosphere.tissue.blockchain.BlockException;
 import org.biosphere.tissue.blockchain.Chain;
+import org.biosphere.tissue.blockchain.ChainExceptionHandler;
 import org.biosphere.tissue.cell.CellManager;
+import org.biosphere.tissue.exceptions.CellException;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.protocol.BlockAddRequest;
 import org.biosphere.tissue.protocol.BlockAddResponse;
 import org.biosphere.tissue.protocol.CellInterface;
+import org.biosphere.tissue.protocol.ServiceEnableRequest;
+import org.biosphere.tissue.protocol.ServiceEnableResponse;
 import org.biosphere.tissue.protocol.TissueAddCellPayload;
 import org.biosphere.tissue.protocol.TissueRemoveCellPayload;
+import org.biosphere.tissue.services.ServiceManager;
 import org.biosphere.tissue.tissue.TissueManager;
 import org.biosphere.tissue.utils.RequestUtils;
 import org.bouncycastle.util.encoders.Base64;
@@ -37,7 +42,7 @@ public class DNA {
 		super();
 		logger = LoggerFactory.getLogger(DNA.class);
 		tissue = new Tissue();
-		tissue.setDnaVersion("1.0");
+		tissue.setDnaVersion(TissueManager.tissueVersion);
 		tissue.setName(TissueManager.generateTissueName());
 		tissue.setDefaultListenerPort(TissueManager.defaultTissuePort);
 		tissue.setDefaultMulticastPort(TissueManager.announcePort);
@@ -48,7 +53,7 @@ public class DNA {
 		super();
 		logger = LoggerFactory.getLogger(DNA.class);
 		this.tissue = tissue;
-		//TODO ensure each added cell have its public key in the keystore
+		// TODO ensure each added cell have its public key in the keystore
 	}
 
 	public String getTissueName() {
@@ -67,13 +72,13 @@ public class DNA {
 				break;
 			}
 		}
-		logger.trace("DNACore.contains() Cell ("+cellName+") present = "+cellPresent+" in the DNA!");
+		logger.trace("DNACore.contains() Cell (" + cellName + ") present = " + cellPresent + " in the DNA!");
 		return cellPresent;
 	}
 
-	public boolean addCell(String cellName, String cellpublickey, String cellNetworkName, int cellTissuePort,String adopterCellName,org.biosphere.tissue.Cell localCell) throws BlockException, JsonProcessingException {
-		boolean cellAdded=false;
-		logger.info("DNA.addCell() Notifying tissue over chain for cell (" + cellName+")");
+	public boolean addCell(String cellName, String cellpublickey, String cellNetworkName, int cellTissuePort, String adopterCellName, org.biosphere.tissue.Cell localCell) throws BlockException, JsonProcessingException {
+		boolean cellAdded = false;
+		logger.info("DNA.addCell() Notifying tissue over chain for cell (" + cellName + ")");
 		Cell cell = getCellInstance(cellName, cellpublickey, cellNetworkName, cellTissuePort);
 		TissueAddCellPayload tacp = new TissueAddCellPayload();
 		tacp.setAdopterCellName(adopterCellName);
@@ -82,51 +87,45 @@ public class DNA {
 		ObjectMapper mapper = new ObjectMapper();
 		BlockAddRequest bar = new BlockAddRequest();
 		bar.setEnsureAcceptance(true);
-		bar.setTitle(TissueManager.TissueCellAddOperation+"-"+cellName);
+		bar.setTitle(TissueManager.TissueCellAddOperation + "-" + cellName);
 		bar.setPayload(Base64.toBase64String(mapper.writeValueAsString(tacp).getBytes()));
-		//TODO check why the new cell is being notified 
+		// TODO check why the new cell is being notified
 		BlockAddResponse baresp = localCell.getChain().addBlock(bar);
-		if (baresp.isAccepted())
-		{
-			logger.info("DNA.addCell() Cell (" + cellName+ ") accepted in the Tissue with block "+baresp.getBlockID());
-			logger.info("DNA.addCell() Adding cell (" + cellName+ ") to the local DNA!");
-			appendCell(cell,localCell);	
-			cellAdded=true;
-		}
-		else
-		{
-			logger.warn("DNA.addCell() Tissue not accepted cell " + cellName + " block ("+baresp.getBlockID()+")");
+		if (baresp.isAccepted()) {
+			logger.info("DNA.addCell() Cell (" + cellName + ") accepted in the Tissue with block " + baresp.getBlockID());
+			logger.info("DNA.addCell() Adding cell (" + cellName + ") to the local DNA!");
+			appendCell(cell, localCell);
+			cellAdded = true;
+		} else {
+			logger.warn("DNA.addCell() Tissue not accepted cell " + cellName + " block (" + baresp.getBlockID() + ")");
 		}
 		return cellAdded;
 	}
 
-	public void appendCell(org.biosphere.tissue.DNA.Cell cell,org.biosphere.tissue.Cell localCell) {
+	public void appendCell(org.biosphere.tissue.DNA.Cell cell, org.biosphere.tissue.Cell localCell) {
 		if (!containsCell(cell.getName())) {
-			logger.info("DNA.appendCell() Cell " + cell.getName() + " being appended to the DNA!");	
+			logger.info("DNA.appendCell() Cell " + cell.getName() + " being appended to the DNA!");
 			tissue.getCells().add(cell);
-			
+
 		} else {
 			logger.warn("DNA.appendCell() Cell " + cell.getName() + " already present in the DNA!");
 		}
 		logger.info("DNA.appendCell() Adding cell (" + cell.getName() + ") public key to the keystore!");
 		try {
-			CellManager.addCellTrustKeystore(cell.getName(), cell.getPublicKey(),localCell);
+			CellManager.addCellTrustKeystore(cell.getName(), cell.getPublicKey(), localCell);
 		} catch (CertificateEncodingException | KeyStoreException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellTissueWelcomeHandler.doPost()",
-					"CertificateEncodingException/KeyStoreException:");
+			TissueExceptionHandler.handleGenericException(e, "CellTissueWelcomeHandler.doPost()", "CertificateEncodingException/KeyStoreException:");
 		} catch (CertificateException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellTissueWelcomeHandler.doPost()",
-					"CertificateException:");
+			TissueExceptionHandler.handleGenericException(e, "CellTissueWelcomeHandler.doPost()", "CertificateException:");
 		} catch (IOException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellTissueWelcomeHandler.doPost()",
-					"IOException:");
+			TissueExceptionHandler.handleGenericException(e, "CellTissueWelcomeHandler.doPost()", "IOException:");
 		}
 	}
 
-	public boolean removeCell(String cellName, String cellCertificate, String cellNetworkName, int cellTissuePort,Chain chain) throws BlockException, JsonProcessingException{
-		boolean cellRemoved=false;
+	public boolean removeCell(String cellName, String cellCertificate, String cellNetworkName, int cellTissuePort, Chain chain) throws BlockException, JsonProcessingException {
+		boolean cellRemoved = false;
 		Cell cell = getCellInstance(cellName, cellCertificate, cellNetworkName, cellTissuePort);
-		logger.info("DNA.removeCell() Notifying tissue over chain for cell (" + cell.getName() +") removal.");
+		logger.info("DNA.removeCell() Notifying tissue over chain for cell (" + cell.getName() + ") removal.");
 		TissueRemoveCellPayload trcp = new TissueRemoveCellPayload();
 		trcp.setRequesterCellName(cell.getName());
 		trcp.setToRemoveCell(cell);
@@ -134,25 +133,22 @@ public class DNA {
 		ObjectMapper mapper = new ObjectMapper();
 		BlockAddRequest bar = new BlockAddRequest();
 		bar.setEnsureAcceptance(true);
-		bar.setTitle(TissueManager.TissueCellRemoveOperation+"-"+cell.getName());
+		bar.setTitle(TissueManager.TissueCellRemoveOperation + "-" + cell.getName());
 		bar.setPayload(Base64.toBase64String(mapper.writeValueAsString(trcp).getBytes()));
-		//TODO check why the new cell is being notified 
+		// TODO check why the new cell is being notified
 		BlockAddResponse baresp = chain.addBlock(bar);
-		if (baresp.isAccepted())
-		{
-			logger.info("DNA.removeCell() Cell (" + cell.getName() + ") removed from the Tissue with block "+baresp.getBlockID());
+		if (baresp.isAccepted()) {
+			logger.info("DNA.removeCell() Cell (" + cell.getName() + ") removed from the Tissue with block " + baresp.getBlockID());
 			logger.info("DNA.removeCell() Removing cell (" + cell.getName() + ") from the local DNA!");
-			deleteCell(cell);	
-			cellRemoved=true;
-		}
-		else
-		{
-			logger.warn("DNA.removeCell() Tissue not accepted cell " + cell.getName() + " removal, block ("+baresp.getBlockID()+")");
+			deleteCell(cell);
+			cellRemoved = true;
+		} else {
+			logger.warn("DNA.removeCell() Tissue not accepted cell " + cell.getName() + " removal, block (" + baresp.getBlockID() + ")");
 		}
 		return cellRemoved;
 	}
-	
-	public void deleteCell(Cell cell){
+
+	public void deleteCell(Cell cell) {
 		if (containsCell(cell.getName())) {
 			logger.info("DNA.deleteCell() Cell " + cell.getName() + " being removed from the DNA!");
 			tissue.getCells().remove(cell);
@@ -160,7 +156,7 @@ public class DNA {
 			logger.warn("DNA.deleteCell() Cell " + cell.getName() + " not present in the DNA!");
 		}
 	}
-	
+
 	public Cell getCellInstance(String cellName, String cellpublickey, ArrayList<CellNetworkInterface> interfaces, int cellTissuePort) {
 		Cell cell = new Cell();
 		cell.setName(cellName);
@@ -169,7 +165,7 @@ public class DNA {
 		cell.setInterfaces(interfaces);
 		return cell;
 	}
-	
+
 	public Cell getCellInstance(String cellName, String cellpublickey, String cellNetworkName, int cellTissuePort) {
 		Cell cell = new Cell();
 		cell.setName(cellName);
@@ -228,7 +224,7 @@ public class DNA {
 		Service service = null;
 		for (Service serviceInList : tissue.getServices()) {
 			if (serviceInList.getName().equals(serviceName)) {
-				service=serviceInList;
+				service = serviceInList;
 				break;
 			}
 		}
@@ -252,5 +248,61 @@ public class DNA {
 	public String toJSON() throws JsonProcessingException {
 		ObjectMapper mapper = new ObjectMapper();
 		return mapper.writeValueAsString(tissue);
+	}
+
+	public ServiceEnableResponse enableService(ServiceEnableRequest ser, org.biosphere.tissue.Cell localCell) throws JsonProcessingException, BlockException {
+		ObjectMapper mapper = new ObjectMapper();
+		BlockAddRequest bar = new BlockAddRequest();
+		bar.setEnsureAcceptance(true);
+		bar.setTitle(TissueManager.TissueServiceEnableOperation + "-" + ser.getServiceName());
+		bar.setPayload(Base64.toBase64String(mapper.writeValueAsString(ser).getBytes()));
+		BlockAddResponse baresp = localCell.getChain().addBlock(bar);
+
+		ServiceEnableResponse seresp = new ServiceEnableResponse();
+		seresp.setServiceName(ser.getServiceName());
+		seresp.setEnableService(ser.isEnableService());
+		seresp.setRequestID(ser.getRequestID());
+		seresp.setOperationPerformed(false);
+
+		if (baresp.isAccepted()) {
+			logger.info("DNA.enableService() Service enable (" + ser.getServiceName() + ") accepted in the Tissue with block " + baresp.getBlockID());
+			getService(ser.getServiceName()).setEnabled(ser.isEnableService());
+			seresp.setOperationPerformed(true);
+		} else {
+			logger.warn("DNA.enableService() Service " + ser.getServiceName() + " enable block (" + baresp.getBlockID() + ") not accepted, ignoring request!");
+		}
+
+		return seresp;
+	}
+
+	public ServiceEnableResponse disableService(ServiceEnableRequest ser, org.biosphere.tissue.Cell localCell) throws JsonProcessingException, BlockException {
+		ObjectMapper mapper = new ObjectMapper();
+		BlockAddRequest bar = new BlockAddRequest();
+		bar.setEnsureAcceptance(true);
+		bar.setTitle(TissueManager.TissueServiceEnableOperation + "-" + ser.getServiceName());
+		bar.setPayload(Base64.toBase64String(mapper.writeValueAsString(ser).getBytes()));
+		BlockAddResponse baresp = localCell.getChain().addBlock(bar);
+
+		ServiceEnableResponse seresp = new ServiceEnableResponse();
+		seresp.setServiceName(ser.getServiceName());
+		seresp.setEnableService(ser.isEnableService());
+		seresp.setRequestID(ser.getRequestID());
+		seresp.setOperationPerformed(false);
+		if (baresp.isAccepted()) {
+			logger.info("DNA.enableService() Service enable (" + ser.getServiceName() + ") accepted in the Tissue with block " + baresp.getBlockID());
+			getService(ser.getServiceName()).setEnabled(ser.isEnableService());
+			if (ServiceManager.isRunning(ser.getServiceName())) {
+				try {
+					ServiceManager.stop(ser.getServiceName(), localCell);
+				} catch (CellException e) {
+					ChainExceptionHandler.handleGenericException(e, "DNA.disableService()", "Failed to disable service " + ser.getServiceName() + " (Exception).");
+				}
+			}
+			getService(ser.getServiceName()).setEnabled(ser.isEnableService());
+			seresp.setOperationPerformed(true);
+		} else {
+			logger.warn("DNA.disableService() Service " + ser.getServiceName() + " disable block (" + baresp.getBlockID() + ") not accepted, ignoring request!");
+		}
+		return seresp;
 	}
 }
