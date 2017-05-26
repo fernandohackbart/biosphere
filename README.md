@@ -6,3 +6,5 @@ Biosphere is a project to provide a platform for distributes applications, is ba
 This implementation assume the distributed to be a tissue composed cells, all cells share a DNA that defines the behaviour of the tissue. To ensure the integrity of the DNA the blockchain technology is used, all changes in the DNA are registered in a public ledger that is shared amongst all cells.
 
 The project is implemented in Java and defines the tissue protocol that enables other languages implementations.
+
+Check out our wiki for more information https://github.com/fernandohackbart/Biosphere/wiki
