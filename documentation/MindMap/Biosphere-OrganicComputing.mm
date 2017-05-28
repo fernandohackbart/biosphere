@@ -1,7 +1,7 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
-<node CREATED="1495179988127" ID="ID_1976856660" MODIFIED="1495801520658" TEXT="Biosphere">
-<font BOLD="true" NAME="SansSerif" SIZE="12"/>
+<node CREATED="1495179988127" ID="ID_1976856660" MODIFIED="1495979489610" TEXT="Biosphere">
+<font NAME="SansSerif" SIZE="12"/>
 <node CREATED="1495738021857" ID="ID_1745796869" MODIFIED="1495802103274" POSITION="right" TEXT="Autonomic Computing">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1495180006340" ID="ID_422569983" MODIFIED="1495801520659" TEXT="Monitor">
