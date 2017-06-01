@@ -1,0 +1,215 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#"
+     xml:base="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#enables -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#enables">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Capability"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Component"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#isAbleTo -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#isAbleTo">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.w3.org/2002/07/owl#topObjectProperty -->
+
+    <rdf:Description rdf:about="http://www.w3.org/2002/07/owl#topObjectProperty">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Component"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Capability"/>
+    </rdf:Description>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Action -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Action"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Adaptive_action -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Adaptive_action">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Action"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Capability -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Capability"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Collected_metric -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Collected_metric">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Metric"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Comfort_zone -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Comfort_zone"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Comfort_zone_limit -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Comfort_zone_limit">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Comfort_zone"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Component -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Component"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Corrective_action -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Corrective_action">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Action"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Event -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Event"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Goal -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Goal"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Listen_event -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Listen_event">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Event"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Metric -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Metric"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Resource -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Resource"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Subscribed_event -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Subscribed_event">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Event"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Symptom -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Symptom"/>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Work_Unit -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Work_Unit"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#Acceptance -->
+
+    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#Acceptance">
+        <rdf:type rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Comfort_zone"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#Dead -->
+
+    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#Dead">
+        <rdf:type rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Comfort_zone"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#Survival -->
+
+    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#Survival">
+        <rdf:type rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Comfort_zone"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#Target -->
+
+    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#Target">
+        <rdf:type rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Comfort_zone"/>
+    </owl:NamedIndividual>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.2.8.20170104-2310) https://github.com/owlcs/owlapi -->
+
