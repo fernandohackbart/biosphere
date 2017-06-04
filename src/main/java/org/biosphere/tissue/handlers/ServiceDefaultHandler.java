@@ -1,6 +1,7 @@
 package org.biosphere.tissue.handlers;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -13,10 +14,15 @@ import org.eclipse.jetty.server.Request;
 
 public class ServiceDefaultHandler extends AbstractDefaultHandler {
 
+	public ServiceDefaultHandler() {
+		super();
+	}
+	
 	@Override
 	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
 			throws IOException, ServletException {
 
+		String notHandledRequestID = UUID.randomUUID().toString();
 		String partnerCell = (String) (request.getRemoteHost() + ":" + request.getRemotePort());
 		getLogger().debug("ServiceDiscoveryHandler.handle() Not handled request (" + request.getContextPath()
 				+ ") from: " + partnerCell);
@@ -26,7 +32,7 @@ public class ServiceDefaultHandler extends AbstractDefaultHandler {
 					+ ") handled by service (" + serviceName + ") found in DNA");
 			if (ServiceManager.isEnabled(getCell(), serviceName)) {
 				getLogger().debug("ServiceDiscoveryHandler.handle() Service (" + serviceName + ") is enabled in DNA");
-				ServiceDiscoveryResponse sdr = ServiceManager.discoverService(serviceName,getCell(),getService());
+				ServiceDiscoveryResponse sdr = ServiceManager.discoverService(serviceName,getCell(),getService(),notHandledRequestID);
 				if (sdr.isRunning()) {
 					getLogger().debug("ServiceDiscoveryHandler.handle() Redirecting to remote cell ("+sdr.getCellName()+") ("+sdr.getCellNetworkName()+":"+sdr.getCellServicePort()+") for service (" + serviceName + ") !");
 					redirectToCell(request.getContextPath(),sdr,response);
@@ -38,7 +44,7 @@ public class ServiceDefaultHandler extends AbstractDefaultHandler {
 					sdrLocal.setCellName(getCell().getCellName());
 					sdrLocal.setCellServicePort((int)getCell().getDna().getService(serviceName).getParameterValue("ServiceListenerPort"));
 					getLogger().debug("ServiceDiscoveryHandler.handle() Redirecting to local cell ("+sdrLocal.getCellName()+") ("+sdrLocal.getCellNetworkName()+":"+sdrLocal.getCellServicePort()+") for service (" + serviceName + ") !");
-					redirectToCell(request.getContextPath(),sdr,response);
+					redirectToCell(request.getContextPath(),sdrLocal,response);
 				}
 			} else {
 				getLogger().debug("ServiceDiscoveryHandler.handle() Service (" + serviceName

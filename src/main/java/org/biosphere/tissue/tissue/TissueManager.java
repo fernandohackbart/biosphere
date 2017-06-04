@@ -78,8 +78,18 @@ public class TissueManager {
 	public final static String TissueCellAddOperation = "CellAdd";
 	public final static String TissueCellRemoveOperation = "CellRemove";
 	public final static String TissueServiceEnableOperation = "ServiceEnable";
+	public final static String TissueServicePortParameter = "ServicePort";
+	public final static String TissueServiceDiscoverClass= "org.biosphere.tissue.handlers.ServiceDiscoveryHandler";
+	public final static String TissueServiceDiscoverURI = "/org/biosphere/cell/service/discover";
+	public final static String TissueWelcomeClass = "org.biosphere.tissue.handlers.CellTissueWelcomeHandler";
+	public final static String TissueWelcomeURI = "/org/biosphere/tissue/welcome";
+	public final static String TissueJoinClass = "org.biosphere.tissue.handlers.CellTissueJoinHandler";
+	public final static String TissueJoinURI = "/org/biosphere/tissue/join";
+	public final static String TissueChainAddBlockClass = "org.biosphere.tissue.handlers.ChainAddBlockHandler";
+	public final static String TissueChainAddBlockURI = "/org/biosphere/cell/chain/add/block";
+	public final static String TissueChainAppendBlockClass = "org.biosphere.tissue.handlers.ChainAppendBlockHandler";
+	public final static String TissueChainAppendBlockURI = "/org/biosphere/cell/chain/append/block";		
 	
-
 	public final static void createTissue(Cell cell) throws CellException {
 		Logger logger = LoggerFactory.getLogger(TissueManager.class);
 		logger.info("TissueManager.createTissue() Creating tissue!");

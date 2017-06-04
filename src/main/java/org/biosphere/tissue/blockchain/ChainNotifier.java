@@ -13,6 +13,7 @@ import javax.net.ssl.HttpsURLConnection;
 import org.biosphere.tissue.exceptions.TissueExceptionHandler;
 import org.biosphere.tissue.protocol.BlockAppendRequest;
 import org.biosphere.tissue.protocol.BlockAppendResponse;
+import org.biosphere.tissue.tissue.TissueManager;
 import org.biosphere.tissue.utils.RequestUtils;
 
 import org.slf4j.Logger;
@@ -48,7 +49,7 @@ public class ChainNotifier implements Runnable {
 	@Override
 	public void run() {
 		try {
-			String peerURL = "https://" + getHostname() + ":" + getPort() + "/org/biosphere/cell/chain/append/block";
+			String peerURL = "https://" + getHostname() + ":" + getPort() + TissueManager.TissueChainAppendBlockURI;
 			logger.debug("ChainNotifier.run() Notifying " + peerURL +" block ("+ getBlock().getBlockID()+") TITLE("+getBlock().getTitle()+")");
 			logger.trace("ChainNotifier.run() Block votes in the flat block: " + getBlock().getFlatBlock().getAcceptanceVotes().size());
 			
@@ -73,14 +74,21 @@ public class ChainNotifier implements Runnable {
 			connNotification.setUseCaches(false);
 			DataOutputStream wrNotification = new DataOutputStream(connNotification.getOutputStream());
 			wrNotification.write(requestNotification.getBytes());
-			connNotification.connect();
-			String responsePayload = RequestUtils.getRequestAsString(connNotification.getInputStream());
-			connNotification.disconnect();
 			
-			BlockAppendResponse fbr = mapper.readValue(responsePayload.getBytes(),BlockAppendResponse.class);
-			logger.debug("ChainNotifier.run() Notification response: cell (" + fbr.getCellName()+ ") = " + fbr.isAccepted());
-			setRemoteAccepted(fbr.isAccepted());
-			getBlock().addVote(new Vote(getRemoteCellName(), isRemoteAccepted()));
+			String responsePayload ="ERROR";
+			try{
+				connNotification.connect();
+				responsePayload = RequestUtils.getRequestAsString(connNotification.getInputStream());	
+				connNotification.disconnect();
+				BlockAppendResponse fbr = mapper.readValue(responsePayload.getBytes(),BlockAppendResponse.class);
+				logger.debug("ChainNotifier.run() Notification response: cell (" + fbr.getCellName()+ ") = " + fbr.isAccepted());
+				setRemoteAccepted(fbr.isAccepted());
+				getBlock().addVote(new Vote(getRemoteCellName(), isRemoteAccepted()));
+			}
+			catch (IOException e)
+			{
+				logger.debug("ChainNotifier.run() Notification response: IOException (" + e.getLocalizedMessage()+ ")");
+			}
 		} catch (MalformedURLException e) {
 			TissueExceptionHandler.handleGenericException(e, "ChainNotifier.run()", "Failed to notify tissue.");
 		} catch (IOException e) {

@@ -7,7 +7,7 @@ public class ServiceDiscoveryResponse extends AbstractProtocol{
     //TODO add cell load maeasures to help choose the lease loaded cell
 	
 	@JsonProperty("isRunning")
-	boolean isRunning;
+	boolean isRunning=false;
 	
 	@JsonProperty("cellName")
 	String cellName;

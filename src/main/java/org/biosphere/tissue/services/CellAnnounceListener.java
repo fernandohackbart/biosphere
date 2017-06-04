@@ -114,9 +114,9 @@ public class CellAnnounceListener extends THREADService {
 			twr.setCellCertificate(cell.getCellCertificate());
 			String requestWelcome = mapper.writeValueAsString(twr);
 			URL urlWelcome = new URL(
-					"https://" + tjb.getCellNetworkName() + ":" + tjb.getTissuePort() + "/org/biosphere/tissue/welcome");
+					"https://" + tjb.getCellNetworkName() + ":" + tjb.getTissuePort() + TissueManager.TissueWelcomeURI);
 			logger.debug("CellAnnounceListener.adoptCell() Request ("+twr.getRequestID()+") contacting: " + urlWelcome.getProtocol() + "://"
-					+ urlWelcome.getHost() + ":" + urlWelcome.getPort() + "/org/biosphere/tissue/welcome");
+					+ urlWelcome.getHost() + ":" + urlWelcome.getPort() + TissueManager.TissueWelcomeURI);
 			HttpsURLConnection connWelcome = (HttpsURLConnection) urlWelcome.openConnection();
 			connWelcome.setRequestMethod("POST");
 			connWelcome.setDoOutput(true);
@@ -145,8 +145,8 @@ public class CellAnnounceListener extends THREADService {
 					tjreq.setDna(Base64.toBase64String(getCell().getDna().toJSON().getBytes()));
 					tjreq.setChain(Base64.toBase64String(getCell().getChain().toJSON().getBytes()));
 					String requestJoin = mapper.writeValueAsString(tjreq);
-					URL urlJoin = new URL("https://" + tjb.getCellNetworkName() + ":" + tjb.getTissuePort() + "/org/biosphere/tissue/join");
-					logger.debug("CellAnnounceListener.adoptCell() Request ("+tjreq.getRequestID()+") contacting: https://" + tjb.getCellNetworkName() + ":" + tjb.getTissuePort() + "/org/biosphere/tissue/join");
+					URL urlJoin = new URL("https://" + tjb.getCellNetworkName() + ":" + tjb.getTissuePort() + TissueManager.TissueJoinURI);
+					logger.debug("CellAnnounceListener.adoptCell() Request ("+tjreq.getRequestID()+") contacting: https://" + tjb.getCellNetworkName() + ":" + tjb.getTissuePort() + TissueManager.TissueJoinURI);
 					HttpsURLConnection connJoin = (HttpsURLConnection) urlJoin.openConnection();
 					connJoin.setRequestMethod("POST");
 					connJoin.setDoOutput(true);
