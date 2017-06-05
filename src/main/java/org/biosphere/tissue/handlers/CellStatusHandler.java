@@ -14,7 +14,8 @@ public class CellStatusHandler extends AbstractHandler {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		
+		String partnerCell = request.getRemoteHost() + ":" + request.getRemotePort();
+		getLogger().debug("CellStatusHandler.doPost() Request from: " + partnerCell);
 		ObjectMapper mapper = new ObjectMapper();
 		CellStatusResponse csr = new CellStatusResponse();
 		csr.setTissueName(getCell().getDna().getTissueName());
