@@ -246,7 +246,7 @@ public final class ServiceManager {
 			CellInterface cellInterface = cellIFIterator.next();
 			if (!cellInterface.getCellName().equals(cell.getCellName())) {
 				logger.debug("ServiceManager.requestDiscovery("+notHandledRequestID+") Requesting service (" + sdr.getServiceName() + ") discovery to cell (" + cellInterface.getCellName() + ") at " + cellInterface.getCellNetworkName() + ":" + cellInterface.getPort());
-				ServiceDiscoverer sd = new ServiceDiscoverer(cellInterface, sdr,notHandledRequestID);
+				ServiceDiscoverer sd = new ServiceDiscoverer(cellInterface, sdr,notHandledRequestID,cellInterface.getCellName(),cell);
 				Thread thread = new Thread(sd);
 				thread.setName("ServiceDiscoverer-Service(" + sdr.getServiceName() + ")-Cell(" + cellInterface.getCellName() + ")-notHandledRequestID("+notHandledRequestID+")");
 				thread.start();

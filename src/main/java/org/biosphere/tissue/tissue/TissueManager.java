@@ -58,28 +58,27 @@ public class TissueManager {
 	public final static String jettyLogOutputValue = "org.eclipse.jetty.util.log.Slf4jLog";
 	public final static int jettyMaxThreadPoolSize = 50;
 	public final static int jettyOutputBufferSize = 32768;
-	public final static int jettyRequestHeaderSize=8192;
-	public final static int jettyResponseHeaderSize=8192;
-	public final static boolean jettySendServerVersion=true;
-	public final static boolean jettySendDateHeader=false;
+	public final static int jettyRequestHeaderSize = 8192;
+	public final static int jettyResponseHeaderSize = 8192;
+	public final static boolean jettySendServerVersion = true;
+	public final static boolean jettySendDateHeader = false;
 	public final static long serviceDiscoveryTimeout = 3000L;
 	public final static long serviceDiscoveryInterval = 500L;
 	public final static String defaultContentType = "application/json";
 	public final static String defaultContentEncoding = "utf-8";
 
-	// public final static String jettLogOutputValue =
-	// "org.eclipse.jetty.util.log.StdErrLog";
+	// public final static String jettLogOutputValue = "org.eclipse.jetty.util.log.StdErrLog";
 	private static boolean onWelcomeProcess = false;
 	public final static long acceptanceTimeout = 5500L;
 	public final static long acceptanceInterval = 1000L;
 	public final static String ThreadServiceClass = "org.biosphere.tissue.services.THREADService";
 	public final static String ServletServiceClass = "org.eclipse.jetty.server.Server";
-	
+
 	public final static String TissueCellAddOperation = "CellAdd";
 	public final static String TissueCellRemoveOperation = "CellRemove";
 	public final static String TissueServiceEnableOperation = "ServiceEnable";
 	public final static String TissueServicePortParameter = "ServicePort";
-	public final static String TissueServiceDiscoverClass= "org.biosphere.tissue.handlers.ServiceDiscoveryHandler";
+	public final static String TissueServiceDiscoverClass = "org.biosphere.tissue.handlers.ServiceDiscoveryHandler";
 	public final static String TissueServiceDiscoverURI = "/org/biosphere/cell/service/discover";
 	public final static String TissueWelcomeClass = "org.biosphere.tissue.handlers.CellTissueWelcomeHandler";
 	public final static String TissueWelcomeURI = "/org/biosphere/tissue/welcome";
@@ -88,8 +87,8 @@ public class TissueManager {
 	public final static String TissueChainAddBlockClass = "org.biosphere.tissue.handlers.ChainAddBlockHandler";
 	public final static String TissueChainAddBlockURI = "/org/biosphere/cell/chain/add/block";
 	public final static String TissueChainAppendBlockClass = "org.biosphere.tissue.handlers.ChainAppendBlockHandler";
-	public final static String TissueChainAppendBlockURI = "/org/biosphere/cell/chain/append/block";		
-	
+	public final static String TissueChainAppendBlockURI = "/org/biosphere/cell/chain/append/block";
+
 	public final static void createTissue(Cell cell) throws CellException {
 		Logger logger = LoggerFactory.getLogger(TissueManager.class);
 		logger.info("TissueManager.createTissue() Creating tissue!");
@@ -98,15 +97,12 @@ public class TissueManager {
 		try {
 			cell.setChain(new Chain(cell.getCellName(), cell));
 		} catch (BlockException e) {
-			TissueExceptionHandler.handleUnrecoverableGenericException(e, "TissueManager.createTissue()",
-					"Failed to set chain");
+			TissueExceptionHandler.handleUnrecoverableGenericException(e, "TissueManager.createTissue()", "Failed to set chain");
 		}
 		try {
-			dna.addCell(cell.getCellName(), cell.getCellCertificate(), cell.getCellNetworkName(), cell.getTissuePort(),
-					cell.getCellName(), cell);
+			dna.addCell(cell.getCellName(), cell.getCellCertificate(), cell.getCellNetworkName(), cell.getTissuePort(), cell.getCellName(), cell);
 		} catch (JsonProcessingException | BlockException e) {
-			TissueExceptionHandler.handleUnrecoverableGenericException(e, "TissueManager.createTissue()",
-					"Failed to set chain");
+			TissueExceptionHandler.handleUnrecoverableGenericException(e, "TissueManager.createTissue()", "Failed to set chain");
 		}
 		cell.setTissueMember(true);
 	}
@@ -129,44 +125,35 @@ public class TissueManager {
 						ObjectMapper mapper = new ObjectMapper();
 						String tissueJoinString = mapper.writeValueAsString(tj);
 						byte[] buf = (tissueJoinString).getBytes();
-						logger.trace("TissueManager.joinTissue() TissueJoinString as byteArray size " + buf.length
-								+ " bytes");
-						logger.trace("TissueManager.joinTissue() Request ID (" + tj.getRequestID()+")");
+						logger.trace("TissueManager.joinTissue() TissueJoinString as byteArray size " + buf.length + " bytes");
+						logger.trace("TissueManager.joinTissue() Request ID (" + tj.getRequestID() + ")");
 						socket = new DatagramSocket();
 						DatagramPacket packet = new DatagramPacket(buf, buf.length);
 						packet.setAddress(InetAddress.getByName(announceAddress));
 						packet.setPort(Integer.parseInt(announcePort));
-						logger.info("TissueManager.joinTissue() Announcing: (" + tj.getCellName() + ") "
-								+ tj.getCellNetworkName() + ":" + tj.getTissuePort());
+						logger.info("TissueManager.joinTissue() Announcing: (" + tj.getCellName() + ") " + tj.getCellNetworkName() + ":" + tj.getTissuePort());
 						socket.send(packet);
 					} catch (IOException e) {
-						TissueExceptionHandler.handleGenericException(e, "TissueManager.joinTissue()",
-								"Failed to open socket to joind the tissue.");
+						TissueExceptionHandler.handleGenericException(e, "TissueManager.joinTissue()", "Failed to open socket to joind the tissue.");
 						cell.setTissueMember(false);
 					}
-				}
-				else
-				{
+				} else {
 					logger.debug("TissueManager.joinTissue() Skipping new request as the TissueManager.isOnWelcomeProcess()=true!");
 				}
 
 				if ((tryCount == joinMaxRetries) && (!cell.isTissueMember())) {
-					logger.warn("TissueManager.joinTissue() No tissue found to join after " + tryCount
-							+ " attempts, creating a new tissue!");
+					logger.warn("TissueManager.joinTissue() No tissue found to join after " + tryCount + " attempts, creating a new tissue!");
 					TissueManager.createTissue(cell);
 				}
-				logger.warn("TissueManager.joinTissue() Going to sleep for "+joinPollInternval+" miliseconds!");
+				logger.warn("TissueManager.joinTissue() Going to sleep for " + joinPollInternval + " miliseconds!");
 				Thread.sleep(Long.parseLong(joinPollInternval));
 				tryCount++;
-				logger.trace("TissueManager.joinTissue() Try count = "+tryCount);
+				logger.trace("TissueManager.joinTissue() Try count = " + tryCount);
 
-				
 			} catch (InterruptedException e) {
-				TissueExceptionHandler.handleGenericException(e, "TissueManager.joinTissue()",
-						"Failed to open socket to joind the tissue.");
+				TissueExceptionHandler.handleGenericException(e, "TissueManager.joinTissue()", "Failed to open socket to joind the tissue.");
 			} catch (CellException e) {
-				TissueExceptionHandler.handleUnrecoverableGenericException(e, "TissueManager.joinTissue()",
-						"CellException happened.");
+				TissueExceptionHandler.handleUnrecoverableGenericException(e, "TissueManager.joinTissue()", "CellException happened.");
 			}
 		}
 		logger.trace("TissueManager.joinTissue() Exiting!");

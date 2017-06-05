@@ -49,7 +49,7 @@ public class Cell {
 	public boolean isTissueMember() {
 		return tissueMember;
 	}
-	
+
 	public final DNA getDna() {
 		return dna;
 	}
@@ -82,20 +82,18 @@ public class Cell {
 			this.setCellCertificate(CellManager.getCellCertificateFromKeystore(this));
 			CellManager.startTissueListenerService(this);
 			TissueManager.joinTissue(this);
-		} catch (CertificateException | IOException | InvalidKeySpecException | KeyStoreException
-				| NoSuchAlgorithmException | OperatorCreationException | CellException e) {
+		} catch (CertificateException | IOException | InvalidKeySpecException | KeyStoreException | NoSuchAlgorithmException | OperatorCreationException | CellException e) {
 			TissueExceptionHandler.handleGenericException(e, "Cell.start()", "Failed to start, exiting.");
 			CellManager.stopCell(this);
 		}
 		CellManager.loadServicesDNA(this);
 		CellManager.startServicesDNA(this);
 		logger.info("Cell.start() ####################################################################################");
-		logger.info("Cell.start() Cell " + getCellName() + " is running!  Tissue listener at:" + getCellNetworkName()
-		+ ":" + getTissuePort());
-		logger.info("Cell.start() Tissue name: "+getDna().getTissueName());
-		logger.info("Cell.start() Tissue size: "+getDna().getTissueSize());
+		logger.info("Cell.start() Cell " + getCellName() + " is running!  Tissue listener at:" + getCellNetworkName() + ":" + getTissuePort());
+		logger.info("Cell.start() Tissue name: " + getDna().getTissueName());
+		logger.info("Cell.start() Tissue size: " + getDna().getTissueSize());
 		for (org.biosphere.tissue.DNA.Cell cell : getDna().getCells()) {
-			logger.info("Cell.start()     Tissue member: ("+ cell.getName() + ") "+cellNetworkName+":"+cell.getTissuePort());
+			logger.info("Cell.start()     Tissue member: (" + cell.getName() + ") " + cellNetworkName + ":" + cell.getTissuePort());
 		}
 		logger.info("Cell.start() ####################################################################################");
 	}

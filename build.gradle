@@ -11,6 +11,9 @@ apply plugin: 'java-library'
 apply plugin: 'application'
 apply plugin: 'maven-publish'
 
+group = 'org.biosphere.tissue'
+version = '1.0'
+
 mainClassName = "org.biosphere.tissue.Cell"
 applicationDefaultJvmArgs = ["-Dorg.slf4j.simpleLogger.defaultLogLevel=trace",
                              "-Dorg.slf4j.simpleLogger.log.org.eclipse=error",

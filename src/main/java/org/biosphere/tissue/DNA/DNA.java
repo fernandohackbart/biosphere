@@ -324,4 +324,14 @@ public class DNA {
 		}
 		return seresp;
 	}
+	
+	public void incrementContactFailures(String cellName)
+	{
+		for (Cell cell : tissue.getCells()) {
+			if (cell.getName().equals(cellName)) {
+				cell.setContactFailures(cell.getContactFailures()+1);
+				break;
+			}
+		}
+	}
 }

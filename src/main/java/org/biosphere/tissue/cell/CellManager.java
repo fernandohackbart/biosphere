@@ -92,8 +92,7 @@ public class CellManager {
 			cellName = networkName;
 			logger.info("CellManager.generateCellName() Cell network name: " + cellName);
 		} catch (UnknownHostException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellManager.gatCellNetworkName()",
-					"Failed to generate Cell name due to UnknowHost Exception!");
+			TissueExceptionHandler.handleGenericException(e, "CellManager.gatCellNetworkName()", "Failed to generate Cell name due to UnknowHost Exception!");
 		}
 		return cellName;
 	}
@@ -101,7 +100,7 @@ public class CellManager {
 	public final static void stopCell(Cell thisCell) {
 		try {
 			try {
-				thisCell.getDna().removeCell(thisCell.getCellName(), thisCell.getCellCertificate(), thisCell.getCellNetworkName(), thisCell.getTissuePort(),thisCell.getChain());
+				thisCell.getDna().removeCell(thisCell.getCellName(), thisCell.getCellCertificate(), thisCell.getCellNetworkName(), thisCell.getTissuePort(), thisCell.getChain());
 			} catch (JsonProcessingException | BlockException e) {
 				TissueExceptionHandler.handleGenericException(e, "CellManager.stopCell()", "Failed to notify the DNA.");
 			}
@@ -118,6 +117,7 @@ public class CellManager {
 		sdCellMonitor.setVersion("0.1");
 		sdCellMonitor.setDaemon(false);
 		sdCellMonitor.setEnabled(true);
+		sdCellMonitor.setCoreService(true);
 		sdCellMonitor.setClassName("org.biosphere.tissue.services.CellMonitor");
 		sdCellMonitor.addParameter("Interval", TissueManager.monitorInterval);
 		return sdCellMonitor;
@@ -129,6 +129,7 @@ public class CellManager {
 		sdCellAnnounceListener.setType(TissueManager.ThreadServiceClass);
 		sdCellAnnounceListener.setVersion("0.1");
 		sdCellAnnounceListener.setEnabled(true);
+		sdCellAnnounceListener.setCoreService(true);
 		sdCellAnnounceListener.setClassName("org.biosphere.tissue.services.CellAnnounceListener");
 		sdCellAnnounceListener.addParameter("AnnouncePort", TissueManager.announcePort);
 		sdCellAnnounceListener.addParameter("AnnounceAddress", TissueManager.announceAddress);
@@ -141,6 +142,7 @@ public class CellManager {
 		sdCellACS.setType(TissueManager.ThreadServiceClass);
 		sdCellACS.setVersion("0.1");
 		sdCellACS.setEnabled(true);
+		sdCellACS.setCoreService(true);
 		sdCellACS.setClassName("org.biosphere.tissue.services.CellAdministrationConsole");
 		sdCellACS.addParameter("ListenPort", TissueManager.announcePort);
 		return sdCellACS;
@@ -175,7 +177,7 @@ public class CellManager {
 		serviceDiscoverContexts.add(TissueManager.TissueServiceDiscoverURI);
 		serviceDiscoverSHD.setContexts(serviceDiscoverContexts);
 		cellTissueListenerHandlers.add(serviceDiscoverSHD);
-		
+
 		ServletHandlerDefinition chainAddBlockSHD = new ServletHandlerDefinition();
 		chainAddBlockSHD.setClassName(TissueManager.TissueChainAddBlockClass);
 		chainAddBlockSHD.setContentType("application/json");
@@ -193,7 +195,7 @@ public class CellManager {
 		chainAppendBlockContexts.add(TissueManager.TissueChainAppendBlockURI);
 		chainAppendBlockSHD.setContexts(chainAppendBlockContexts);
 		cellTissueListenerHandlers.add(chainAppendBlockSHD);
-		
+
 		ServletHandlerDefinition cellStopSHD = new ServletHandlerDefinition();
 		cellStopSHD.setClassName("org.biosphere.tissue.handlers.CellStopHandler");
 		cellStopSHD.setContentType("text/html");
@@ -202,7 +204,7 @@ public class CellManager {
 		cellStopContexts.add("/org/biosphere/cell/stop");
 		cellStopSHD.setContexts(cellStopContexts);
 		cellTissueListenerHandlers.add(cellStopSHD);
-		
+
 		ServletHandlerDefinition serviceEnableSHD = new ServletHandlerDefinition();
 		serviceEnableSHD.setClassName("org.biosphere.tissue.handlers.ServiceEnableHandler");
 		serviceEnableSHD.setContentType("application/json");
@@ -255,9 +257,10 @@ public class CellManager {
 		sdCellTissueListener.setType(TissueManager.ServletServiceClass);
 		sdCellTissueListener.setVersion("0.1");
 		sdCellTissueListener.setEnabled(true);
+		sdCellTissueListener.setCoreService(true);
 		sdCellTissueListener.setClassName("org.eclipse.jetty.server.Server");
 		sdCellTissueListener.addParameter("Handlers", cellTissueListenerHandlers);
-		sdCellTissueListener.addParameter("DefaultHandler","org.biosphere.tissue.handlers.CellDefaultHandler");
+		sdCellTissueListener.addParameter("DefaultHandler", "org.biosphere.tissue.handlers.CellDefaultHandler");
 		sdCellTissueListener.addParameter("DefaultHTTPPort", TissueManager.defaultTissuePort);
 		return sdCellTissueListener;
 	}
@@ -267,27 +270,9 @@ public class CellManager {
 		// from there when starting the service
 
 		ArrayList<ServletHandlerDefinition> cellServiceListenerHandlers = new ArrayList<ServletHandlerDefinition>();
+
 		ServletHandlerDefinition cellServiceListenerSHD = new ServletHandlerDefinition();
-
-		ServletHandlerDefinition cellServiceNotFoundSHD = new ServletHandlerDefinition();
-		cellServiceNotFoundSHD.setClassName("org.biosphere.tissue.handlers.ServiceNotFoundHandler");
-		cellServiceNotFoundSHD.setContentType("text/html");
-		cellServiceNotFoundSHD.setContentEncoding("utf-8");
-		ArrayList<String> cellServiceNotFoundContexts = new ArrayList<String>();
-		cellServiceNotFoundContexts.add("/org/biosphere/cell/service/notfound");
-		cellServiceNotFoundSHD.setContexts(cellServiceNotFoundContexts);
-		//cellServiceListenerHandlers.add(cellServiceNotFoundSHD);		
-		
-		ServletHandlerDefinition cellHTTPContextAddSHD = new ServletHandlerDefinition();
-		cellHTTPContextAddSHD.setClassName("org.biosphere.tissue.handlers.ServiceAddContextHandler");
-		cellHTTPContextAddSHD.setContentType("text/plain");
-		cellHTTPContextAddSHD.setContentEncoding("utf-8");
-		ArrayList<String> cellHTTPContextAddContexts = new ArrayList<String>();
-		cellHTTPContextAddContexts.add("/org/biosphere/cell/service/context/add");
-		cellHTTPContextAddSHD.setContexts(cellHTTPContextAddContexts);
-		cellServiceListenerHandlers.add(cellHTTPContextAddSHD);
-
-		cellServiceListenerSHD.setClassName("org.biosphere.tissue.handlers.ServiceInstantiationHandler");
+		cellServiceListenerSHD.setClassName("org.biosphere.tissue.handlers.ServiceSampleHandler");
 		cellServiceListenerSHD.setContentType("text/plain");
 		cellServiceListenerSHD.setContentEncoding("utf-8");
 		ArrayList<String> chainParseChainContexts = new ArrayList<String>();
@@ -300,11 +285,11 @@ public class CellManager {
 		sdCellTissueListener.setType(TissueManager.ServletServiceClass);
 		sdCellTissueListener.setVersion("0.1");
 		sdCellTissueListener.setEnabled(true);
+		sdCellTissueListener.setCoreService(false);
 		sdCellTissueListener.setClassName("org.eclipse.jetty.server.Server");
 		sdCellTissueListener.addParameter("Handlers", cellServiceListenerHandlers);
-		sdCellTissueListener.addParameter("DefaultHandler","org.biosphere.tissue.handlers.ServiceDefaultHandler");
-		sdCellTissueListener.addParameter("DefaultHTTPPort",
-				TissueManager.defaultTissuePort + TissueManager.portJumpFactor);
+		sdCellTissueListener.addParameter("DefaultHandler", "org.biosphere.tissue.handlers.ServiceDefaultHandler");
+		sdCellTissueListener.addParameter("DefaultHTTPPort", TissueManager.defaultTissuePort + TissueManager.portJumpFactor);
 		return sdCellTissueListener;
 	}
 
@@ -333,7 +318,8 @@ public class CellManager {
 		} catch (IOException e) {
 			TissueExceptionHandler.handleGenericException(e, "CellManager.loadServicesDNA()", e.getLocalizedMessage());
 		}
-		// logger.debug("CellManager.addServicesDNA()","Adding CellACS definition to DNA");
+		// logger.debug("CellManager.addServicesDNA()","Adding CellACS
+		// definition to DNA");
 		// cell.getDna().addService(getCellACSDefinition());
 		logger.debug("CellManager.addServicesDNA() Adding CellServiceListener definition to DNA");
 		try {
@@ -348,8 +334,12 @@ public class CellManager {
 		logger = LoggerFactory.getLogger(CellManager.class);
 		ArrayList<Service> sds = cell.getDna().getServices();
 		for (Service sd : sds) {
-			logger.info("CellManager.startServicesDNA() Starting " + sd.getName() + " from DNA");
-			ServiceManager.start(sd.getName(), cell);
+			if (sd.isCoreService()) {
+				logger.info("CellManager.startServicesDNA() Starting " + sd.getName() + " from DNA");
+				ServiceManager.start(sd.getName(), cell);
+			} else {
+				logger.debug("CellManager.startServicesDNA() Service " + sd.getName() + " is not core, skipping!");
+			}
 		}
 	}
 
@@ -358,8 +348,7 @@ public class CellManager {
 		return new BigInteger(130, random).toString(32);
 	}
 
-	public static final KeyStore generateCellKeystore(Cell cell) throws NoSuchAlgorithmException,
-			InvalidKeySpecException, OperatorCreationException, IOException, CertificateException, KeyStoreException {
+	public static final KeyStore generateCellKeystore(Cell cell) throws NoSuchAlgorithmException, InvalidKeySpecException, OperatorCreationException, IOException, CertificateException, KeyStoreException {
 		KeystoreManager kg = new KeystoreManager();
 		KeyStore ks = kg.getKeyStore(cell.getCellName(), cell.getCellNetworkName(), cell.getCellKeystorePWD());
 		return ks;
@@ -377,14 +366,11 @@ public class CellManager {
 			sc.init(null, trustAllCerts, new java.security.SecureRandom());
 			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 		} catch (NoSuchAlgorithmException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellManager.setDefaultSSLSocketFactory()",
-					"NoSuchAlgorithmException:");
+			TissueExceptionHandler.handleGenericException(e, "CellManager.setDefaultSSLSocketFactory()", "NoSuchAlgorithmException:");
 		} catch (KeyStoreException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellManager.setDefaultSSLSocketFactory()",
-					"KeyStoreException:");
+			TissueExceptionHandler.handleGenericException(e, "CellManager.setDefaultSSLSocketFactory()", "KeyStoreException:");
 		} catch (KeyManagementException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellManager.setDefaultSSLSocketFactory()",
-					"KeyManagementException:");
+			TissueExceptionHandler.handleGenericException(e, "CellManager.setDefaultSSLSocketFactory()", "KeyManagementException:");
 		}
 	}
 
@@ -399,16 +385,13 @@ public class CellManager {
 			sc.init(null, trustAllCerts, new java.security.SecureRandom());
 			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 		} catch (NoSuchAlgorithmException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellManager.setRelaxedSSLSocketFactory()",
-					"NoSuchAlgorithmException:");
+			TissueExceptionHandler.handleGenericException(e, "CellManager.setRelaxedSSLSocketFactory()", "NoSuchAlgorithmException:");
 		} catch (KeyManagementException e) {
-			TissueExceptionHandler.handleGenericException(e, "CellManager.setRelaxedSSLSocketFactory()",
-					"KeyManagementException:");
+			TissueExceptionHandler.handleGenericException(e, "CellManager.setRelaxedSSLSocketFactory()", "KeyManagementException:");
 		}
 	}
 
-	public static final String getCellCertificateFromKeystore(Cell cell)
-			throws KeyStoreException, CertificateEncodingException, IOException {
+	public static final String getCellCertificateFromKeystore(Cell cell) throws KeyStoreException, CertificateEncodingException, IOException {
 		Logger logger;
 		logger = LoggerFactory.getLogger(CellManager.class);
 		KeyStore ks = cell.getCellKeystore();
@@ -424,13 +407,12 @@ public class CellManager {
 		return pemEncodedCert;
 	}
 
-	public static final synchronized void addCellTrustKeystore(String cellName, String certPem, Cell cell)
-			throws KeyStoreException, CertificateEncodingException, IOException, CertificateException {
+	public static final synchronized void addCellTrustKeystore(String cellName, String certPem, Cell cell) throws KeyStoreException, CertificateEncodingException, IOException, CertificateException {
 		Logger logger;
 		logger = LoggerFactory.getLogger(CellManager.class);
 		KeyStore ks = cell.getCellKeystore();
-		if(ks.getCertificate(cellName)==null){
-			logger.info("CellManager.addCellTrustKeystore() Adding certificate with alias: (" + cellName+")");
+		if (ks.getCertificate(cellName) == null) {
+			logger.info("CellManager.addCellTrustKeystore() Adding certificate with alias: (" + cellName + ")");
 			logger.trace("CellManager.addCellTrustKeystore() Certificate:\n" + certPem);
 			PemReader pr = new PemReader(new StringReader(certPem));
 			PemObject pem = pr.readPemObject();
@@ -439,8 +421,7 @@ public class CellManager {
 			Certificate cert = cf.generateCertificate(new ByteArrayInputStream(pem.getContent()));
 			ks.setCertificateEntry(cellName, cert);
 			CellManager.setDefaultSSLSocketFactory(cell);
-		}
-		else{
+		} else {
 			logger.trace("CellManager.addCellTrustKeystore() certificate with alias: (" + cellName + ") already exists!");
 		}
 	}

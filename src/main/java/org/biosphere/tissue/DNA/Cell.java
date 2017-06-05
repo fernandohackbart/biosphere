@@ -19,6 +19,10 @@ public class Cell {
 	int tissuePort;
 	@JsonProperty("interfaces")
 	ArrayList<CellNetworkInterface> interfaces;
+	@JsonProperty("contactFailures")
+	int contactFailures=0;
+	
+	
 	@JsonProperty("name")
 	public final String getName() {
 		return name;
@@ -50,5 +54,13 @@ public class Cell {
 	@JsonProperty("interfaces")
 	public final void setInterfaces(ArrayList<CellNetworkInterface> interfaces) {
 		this.interfaces = interfaces;
+	}
+	@JsonProperty("contactFailures")
+	public final int getContactFailures() {
+		return contactFailures;
+	}
+	@JsonProperty("contactFailures")
+	public final void setContactFailures(int contactFailures) {
+		this.contactFailures = contactFailures;
 	}
 }

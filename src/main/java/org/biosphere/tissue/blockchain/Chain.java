@@ -339,7 +339,7 @@ public class Chain {
 					logger.debug("Chain.requestVotes() Cell (" + cellInterface.getCellName() + ") elegible for notification ");
 					if (!block.cellVoted(cellInterface.getCellName())) {
 						logger.debug("Chain.requestVotes() Notifying cell (" + cellInterface.getCellName() + ") " + cellInterface.getCellNetworkName() + ":" + cellInterface.getPort());
-						ChainNotifier cnc = new ChainNotifier(cellInterface.getCellNetworkName(), cellInterface.getPort(), block, cellInterface.getCellName(), getCell().getCellName(), accepted, ensureAcceptance);
+						ChainNotifier cnc = new ChainNotifier(cellInterface.getCellNetworkName(), cellInterface.getPort(), block, cellInterface.getCellName(), accepted, ensureAcceptance,getCell());
 						Thread thread = new Thread(cnc);
 						thread.setName("ChainNotifyCell-Block(" + block.getBlockID() + ")-Cell(" + cellInterface.getCellName() + ")");
 						thread.start();

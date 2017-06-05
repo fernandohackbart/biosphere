@@ -27,7 +27,10 @@ public class Service {
 	private String className;
 	@JsonProperty("parameters")
 	private ArrayList<ServiceParameter> parameters;
-
+	@JsonProperty("coreService")
+	private boolean coreService;
+	
+	
 	@JsonProperty("name")
 	public final String getName() {
 		return name;
@@ -96,6 +99,15 @@ public class Service {
 	@JsonProperty("enabled")
 	public final void setEnabled(boolean enabled) {
 		this.enabled = enabled;
+	}
+	
+	@JsonProperty("coreService")
+	public final boolean isCoreService() {
+		return coreService;
+	}
+	@JsonProperty("coreService")
+	public final void setCoreService(boolean coreService) {
+		this.coreService = coreService;
 	}
 	
     @JsonIgnore
