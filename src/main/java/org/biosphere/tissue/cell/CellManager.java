@@ -196,6 +196,25 @@ public class CellManager {
 		chainAppendBlockSHD.setContexts(chainAppendBlockContexts);
 		cellTissueListenerHandlers.add(chainAppendBlockSHD);
 
+		ServletHandlerDefinition cellStatusSHD = new ServletHandlerDefinition();
+		cellStatusSHD.setClassName(TissueManager.CellStatusClass);
+		cellStatusSHD.setContentType("application/json");
+		cellStatusSHD.setContentEncoding("utf-8");
+		ArrayList<String> cellStatusContexts = new ArrayList<String>();
+		cellStatusContexts.add(TissueManager.CellStatusURI);
+		cellStatusSHD.setContexts(cellStatusContexts);
+		cellTissueListenerHandlers.add(cellStatusSHD);
+
+		ServletHandlerDefinition serviceEnableSHD = new ServletHandlerDefinition();
+		serviceEnableSHD.setClassName(TissueManager.ServiceEnableClass);
+		serviceEnableSHD.setContentType("application/json");
+		serviceEnableSHD.setContentEncoding("utf-8");
+		ArrayList<String> serviceEnableContexts = new ArrayList<String>();
+		serviceEnableContexts.add(TissueManager.ServiceEnableURI);
+		serviceEnableContexts.add(TissueManager.ServiceDisableURI);
+		serviceEnableSHD.setContexts(serviceEnableContexts);
+		cellTissueListenerHandlers.add(serviceEnableSHD);
+
 		ServletHandlerDefinition cellStopSHD = new ServletHandlerDefinition();
 		cellStopSHD.setClassName("org.biosphere.tissue.handlers.CellStopHandler");
 		cellStopSHD.setContentType("text/html");
@@ -204,16 +223,6 @@ public class CellManager {
 		cellStopContexts.add("/org/biosphere/cell/stop");
 		cellStopSHD.setContexts(cellStopContexts);
 		cellTissueListenerHandlers.add(cellStopSHD);
-
-		ServletHandlerDefinition serviceEnableSHD = new ServletHandlerDefinition();
-		serviceEnableSHD.setClassName("org.biosphere.tissue.handlers.ServiceEnableHandler");
-		serviceEnableSHD.setContentType("application/json");
-		serviceEnableSHD.setContentEncoding("utf-8");
-		ArrayList<String> serviceEnableContexts = new ArrayList<String>();
-		serviceEnableContexts.add("/org/biosphere/cell/service/enable");
-		serviceEnableContexts.add("/org/biosphere/cell/service/disable");
-		serviceEnableSHD.setContexts(serviceEnableContexts);
-		cellTissueListenerHandlers.add(serviceEnableSHD);
 
 		ServletHandlerDefinition serviceStopSHD = new ServletHandlerDefinition();
 		serviceStopSHD.setClassName("org.biosphere.tissue.handlers.ServiceThreadStopHandler");
@@ -233,23 +242,18 @@ public class CellManager {
 		httpServiceStopSHD.setContexts(httpServiceStopContexts);
 		cellTissueListenerHandlers.add(httpServiceStopSHD);
 
-		ServletHandlerDefinition cellStatusSHD = new ServletHandlerDefinition();
-		cellStatusSHD.setClassName("org.biosphere.tissue.handlers.CellStatusHandler");
-		cellStatusSHD.setContentType("text/plain");
-		cellStatusSHD.setContentEncoding("utf-8");
-		ArrayList<String> cellStatusContexts = new ArrayList<String>();
-		cellStatusContexts.add("/org/biosphere/cell/status");
-		cellStatusSHD.setContexts(cellStatusContexts);
-		cellTissueListenerHandlers.add(cellStatusSHD);
-
-		ServletHandlerDefinition chainGetImageChainSHD = new ServletHandlerDefinition();
-		chainGetImageChainSHD.setClassName("org.biosphere.tissue.handlers.ChainGetImageChainHandler");
-		chainGetImageChainSHD.setContentType("image/png");
-		chainGetImageChainSHD.setContentEncoding("utf-8");
-		ArrayList<String> chainGetImageChainContexts = new ArrayList<String>();
-		chainGetImageChainContexts.add("/org/biosphere/cell/chain/get/chainimage");
-		chainGetImageChainSHD.setContexts(chainGetImageChainContexts);
-		cellTissueListenerHandlers.add(chainGetImageChainSHD);
+		/*
+		 * ServletHandlerDefinition chainGetImageChainSHD = new
+		 * ServletHandlerDefinition(); chainGetImageChainSHD.setClassName(
+		 * "org.biosphere.tissue.handlers.ChainGetImageChainHandler");
+		 * chainGetImageChainSHD.setContentType("image/png");
+		 * chainGetImageChainSHD.setContentEncoding("utf-8"); ArrayList<String>
+		 * chainGetImageChainContexts = new ArrayList<String>();
+		 * chainGetImageChainContexts.add(
+		 * "/org/biosphere/cell/chain/get/chainimage");
+		 * chainGetImageChainSHD.setContexts(chainGetImageChainContexts);
+		 * cellTissueListenerHandlers.add(chainGetImageChainSHD);
+		 */
 		// #################################################################################################
 
 		Service sdCellTissueListener = new Service();
