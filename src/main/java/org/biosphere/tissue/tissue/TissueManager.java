@@ -93,8 +93,8 @@ public class TissueManager {
 	public final static String ServiceEnableClass = "org.biosphere.tissue.handlers.ServiceEnableHandler";
 	public final static String ServiceEnableURI = "/org/biosphere/cell/service/enable";
 	public final static String ServiceDisableURI = "/org/biosphere/cell/service/disable";
-
-
+	public final static String TissueStatusClass = "org.biosphere.tissue.handlers.TissueStatusHandler";
+	public final static String TissueStatusURI = "/org/biosphere/tissue/status";
 
 	public final static void createTissue(Cell cell) throws CellException {
 		Logger logger = LoggerFactory.getLogger(TissueManager.class);
