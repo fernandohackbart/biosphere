@@ -1,7 +1,7 @@
 package org.biosphere.tissue.services;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.ArrayList;
+import org.biosphere.tissue.protocol.ServiceStatusItem;
 
 public class CellMonitor extends THREADService {
 	public CellMonitor() {
@@ -14,12 +14,9 @@ public class CellMonitor extends THREADService {
 		while (keepRunnig) {
 			logger.info("CellMonitor.run() ##########################################################");
 			logger.info("CellMonitor.run() Monitor check ");
-			Hashtable<String, String> statusTable = new Hashtable<String, String>();
-			statusTable = ServiceManager.getStatus();
-			Enumeration<String> serviceList = statusTable.keys();
-			while (serviceList.hasMoreElements()) {
-				String serviceName = serviceList.nextElement();
-				logger.info("CellMonitor.run() Service: " + serviceName + " Status: " + statusTable.get(serviceName));
+			ArrayList<ServiceStatusItem> statusList = (ArrayList<ServiceStatusItem>) ServiceManager.getStatus();
+			for (ServiceStatusItem ssi : statusList) {
+				logger.info("CellMonitor.run() Service: " + ssi.getServiceName() + " Status: " + ssi.getServiceStatus());
 			}
 			logger.info("CellMonitor.run() ##########################################################");
 			try {

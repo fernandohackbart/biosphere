@@ -23,6 +23,7 @@ import org.biosphere.tissue.handlers.ServiceNotFoundHandler;
 import org.biosphere.tissue.protocol.CellInterface;
 import org.biosphere.tissue.protocol.ServiceDiscoveryRequest;
 import org.biosphere.tissue.protocol.ServiceDiscoveryResponse;
+import org.biosphere.tissue.protocol.ServiceStatusItem;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -143,64 +144,66 @@ public final class ServiceManager {
 		return serviceName;
 	}
 
-	public static ServiceDiscoveryResponse discoverService(String serviceName, Cell cell, Service localService,String notHandledRequestID) {
+	public static ServiceDiscoveryResponse discoverService(String serviceName, Cell cell, Service localService, String notHandledRequestID) {
 		Logger logger = LoggerFactory.getLogger(ServiceManager.class);
 		ServiceDiscoveryRequest sdr = new ServiceDiscoveryRequest();
 		sdr.setServiceName(serviceName);
 		createDiscoveryResponse(sdr.getRequestID());
-		ServiceDiscoveryResponse sdresp=null;
+		ServiceDiscoveryResponse sdresp = null;
 		try {
 
 			// TODO if the service is running in another server in the same Cell
 			// there is no need to contact remote cells, just get the port for
 			// the other service for redirect
 			if (!localService.getName().equals(sdr.getServiceName())) {
-				logger.debug("ServiceManager.discoverService("+notHandledRequestID+") serviceName (" + sdr.getServiceName() + ") is not the service that received the request (" + localService.getName() + "), checking to serve locally the request!");
+				logger.debug(
+						"ServiceManager.discoverService(" + notHandledRequestID + ") serviceName (" + sdr.getServiceName() + ") is not the service that received the request (" + localService.getName() + "), checking to serve locally the request!");
 
 				// TODO check if the service is enabled and running locally
 				if (ServiceManager.isRunning(sdr.getServiceName())) {
-					logger.debug("ServiceManager.discoverService("+notHandledRequestID+") serviceName (" + sdr.getServiceName() + "), running locally!");
+					logger.debug("ServiceManager.discoverService(" + notHandledRequestID + ") serviceName (" + sdr.getServiceName() + "), running locally!");
 					sdresp = new ServiceDiscoveryResponse();
 					sdresp.setRequestID(sdr.getRequestID());
 					sdresp.setCellName(cell.getCellName());
 					sdresp.setCellNetworkName(cell.getCellNetworkName());
 					sdresp.setRunning(true);
 					sdresp.setCellServicePort((int) cell.getDna().getService(sdr.getServiceName()).getParameterValue("ServiceServletPort"));
-				}else {
-					logger.debug("ServiceManager.discoverService("+notHandledRequestID+") serviceName (" + sdr.getServiceName() + "), NOT running locally!");
+				} else {
+					logger.debug("ServiceManager.discoverService(" + notHandledRequestID + ") serviceName (" + sdr.getServiceName() + "), NOT running locally!");
 				}
 			}
 			if (sdresp == null) {
-				logger.debug("ServiceManager.discoverService("+notHandledRequestID+") requesting discovery requestID (" + sdr.getRequestID() + ")");
-				requestDiscovery(sdr, cell,notHandledRequestID);
-				logger.debug("ServiceManager.discoverService("+notHandledRequestID+") waiting for discovery responses on requestID (" + sdr.getRequestID() + ") service (" + sdr.getServiceName() + ")");
+				logger.debug("ServiceManager.discoverService(" + notHandledRequestID + ") requesting discovery requestID (" + sdr.getRequestID() + ")");
+				requestDiscovery(sdr, cell, notHandledRequestID);
+				logger.debug("ServiceManager.discoverService(" + notHandledRequestID + ") waiting for discovery responses on requestID (" + sdr.getRequestID() + ") service (" + sdr.getServiceName() + ")");
 				boolean keepWaiting = true;
 				long timeout = System.currentTimeMillis() + TissueManager.serviceDiscoveryTimeout;
-				logger.trace("ServiceManager.discoverService("+notHandledRequestID+") will wait until " + new Date(timeout) + " for discovery responses on requestID (" + sdr.getRequestID() + ") service (" + sdr.getServiceName() + ")");
+				logger.trace("ServiceManager.discoverService(" + notHandledRequestID + ") will wait until " + new Date(timeout) + " for discovery responses on requestID (" + sdr.getRequestID() + ") service (" + sdr.getServiceName() + ")");
 				while (keepWaiting) {
 					if (!cellServiceDiscoveries.isEmpty()) {
 						ArrayList<ServiceDiscoveryResponse> responses = cellServiceDiscoveries.get(sdr.getRequestID());
-						//TODO check for the best cell (bigger comfort index)
-						if (responses.size()>0){
+						// TODO check for the best cell (bigger comfort index)
+						if (responses.size() > 0) {
 							sdresp = responses.get(0);
-							logger.debug("ServiceManager.discoverService("+notHandledRequestID+") Best response received for requestID (" + sdr.getRequestID() + ") service (" + sdr.getServiceName() + ") is from cell (" + sdresp.getCellName() + ") service listener ("
-									+ sdresp.getCellNetworkName() + ":" + sdresp.getCellServicePort() + ")!");
+							logger.debug("ServiceManager.discoverService(" + notHandledRequestID + ") Best response received for requestID (" + sdr.getRequestID() + ") service (" + sdr.getServiceName() + ") is from cell (" + sdresp.getCellName()
+									+ ") service listener (" + sdresp.getCellNetworkName() + ":" + sdresp.getCellServicePort() + ")!");
 							removeDiscoveryResponse(sdr.getRequestID());
-							keepWaiting = false;							
-						}else{
-							logger.debug("ServiceManager.discoverService("+notHandledRequestID+") No responses available for requestID (" + sdr.getRequestID() + ") service (" + sdr.getServiceName() + ")");
+							keepWaiting = false;
+						} else {
+							logger.debug("ServiceManager.discoverService(" + notHandledRequestID + ") No responses available for requestID (" + sdr.getRequestID() + ") service (" + sdr.getServiceName() + ")");
 						}
 					}
 					if (System.currentTimeMillis() > timeout) {
-						logger.warn("ServiceManager.discoverService("+notHandledRequestID+") Timeout waiting for discovery responses on requestID (" + sdr.getRequestID() + ") service (" + sdr.getServiceName() + ")");
+						logger.warn("ServiceManager.discoverService(" + notHandledRequestID + ") Timeout waiting for discovery responses on requestID (" + sdr.getRequestID() + ") service (" + sdr.getServiceName() + ")");
 						keepWaiting = false;
 					}
 					if (keepWaiting) {
-						logger.trace("ServiceManager.discoverService("+notHandledRequestID+") Waiting for discovery responses on requestID (" + sdr.getRequestID() + ") service (" + sdr.getServiceName() + ") for more " + TissueManager.serviceDiscoveryInterval + " seconds");
+						logger.trace("ServiceManager.discoverService(" + notHandledRequestID + ") Waiting for discovery responses on requestID (" + sdr.getRequestID() + ") service (" + sdr.getServiceName() + ") for more "
+								+ TissueManager.serviceDiscoveryInterval + " seconds");
 						Thread.sleep(TissueManager.serviceDiscoveryInterval);
 					}
 				}
-				if(sdresp==null){
+				if (sdresp == null) {
 					sdresp = new ServiceDiscoveryResponse();
 					sdresp.setRequestID(sdr.getRequestID());
 					sdresp.setCellName(cell.getCellName());
@@ -238,39 +241,51 @@ public final class ServiceManager {
 		}
 	}
 
-	private static void requestDiscovery(ServiceDiscoveryRequest sdr, Cell cell,String notHandledRequestID) {
+	private static void requestDiscovery(ServiceDiscoveryRequest sdr, Cell cell, String notHandledRequestID) {
 		Logger logger = LoggerFactory.getLogger(ServiceManager.class);
 		List<CellInterface> cellIFs = cell.getDna().getTissueCellsInterfaces();
 		Iterator<CellInterface> cellIFIterator = cellIFs.iterator();
 		while (cellIFIterator.hasNext()) {
 			CellInterface cellInterface = cellIFIterator.next();
 			if (!cellInterface.getCellName().equals(cell.getCellName())) {
-				logger.debug("ServiceManager.requestDiscovery("+notHandledRequestID+") Requesting service (" + sdr.getServiceName() + ") discovery to cell (" + cellInterface.getCellName() + ") at " + cellInterface.getCellNetworkName() + ":" + cellInterface.getPort());
-				ServiceDiscoverer sd = new ServiceDiscoverer(cellInterface, sdr,notHandledRequestID,cellInterface.getCellName(),cell);
+				logger.debug("ServiceManager.requestDiscovery(" + notHandledRequestID + ") Requesting service (" + sdr.getServiceName() + ") discovery to cell (" + cellInterface.getCellName() + ") at " + cellInterface.getCellNetworkName() + ":"
+						+ cellInterface.getPort());
+				ServiceDiscoverer sd = new ServiceDiscoverer(cellInterface, sdr, notHandledRequestID, cellInterface.getCellName(), cell);
 				Thread thread = new Thread(sd);
-				thread.setName("ServiceDiscoverer-Service(" + sdr.getServiceName() + ")-Cell(" + cellInterface.getCellName() + ")-notHandledRequestID("+notHandledRequestID+")");
+				thread.setName("ServiceDiscoverer-Service(" + sdr.getServiceName() + ")-Cell(" + cellInterface.getCellName() + ")-notHandledRequestID(" + notHandledRequestID + ")");
 				thread.start();
 			}
 		}
 	}
 
-	public static Hashtable<String, String> getStatus() {
-		Hashtable<String, String> statusTable = new Hashtable<String, String>();
+	public static List<ServiceStatusItem> getStatus() {
+		List<ServiceStatusItem> statusList = new ArrayList<ServiceStatusItem>();
+
 		Enumeration<String> serviceList = cellServiceInstances.keys();
 		while (serviceList.hasMoreElements()) {
+			ServiceStatusItem ssi = new ServiceStatusItem();
 			String serviceName = (String) serviceList.nextElement();
 			String serviceType = cellServiceInstances.get(serviceName).getType();
+			ssi.setServiceName(serviceName);
+			ssi.setServiceType(serviceType);
+			ssi.setServiceClass(cellServiceInstances.get(serviceName).getClassName());
 			switch (serviceType) {
 			case TissueManager.ThreadServiceClass:
-				statusTable.put(serviceName, "THREAD name:" + cellServiceInstances.get(serviceName).getThreadService().toString() + " state:" + cellServiceInstances.get(serviceName).getThreadService().getState().toString() + " daemon:"
-						+ cellServiceInstances.get(serviceName).getThreadService().isDaemon());
+				ssi.setServiceStatus(cellServiceInstances.get(serviceName).getThreadService().getState().toString());
+				ssi.setServiceThreadName(cellServiceInstances.get(serviceName).getThreadService().toString());
+				ssi.setServiceThreadDaemon(cellServiceInstances.get(serviceName).getThreadService().isDaemon());
+				ssi.setServiceThreadState(cellServiceInstances.get(serviceName).getThreadService().getState().toString());
 				break;
 			case TissueManager.ServletServiceClass:
-				statusTable.put(serviceName, cellServiceInstances.get(serviceName).getJettyServer().getState());
+				ssi.setServiceStatus(cellServiceInstances.get(serviceName).getJettyServer().getState());
+				ssi.setServiceThreadState(cellServiceInstances.get(serviceName).getJettyServer().getState());
+				//ssi.setServiceThreadName(cellServiceInstances.get(serviceName).getJettyServer().getServer().getThreadPool().);
+				//TODO add URIs
 				break;
 			}
+			statusList.add(ssi);
 		}
-		return statusTable;
+		return statusList;
 	}
 
 	public static StringBuffer getServletStatus(String serviceName) {
@@ -443,7 +458,8 @@ public final class ServiceManager {
 							if (!service.getName().equals(CellManager.getCellTissueServletListenerDefinition().getName())) {
 								cell.getDna().getService(service.getName()).addParameter(TissueManager.TissueServicePortParameter, HTTPPort);
 							} else {
-								logger.warn("ServiceManager.startService()" + service.getType() + " service " + service.getName() + " not not creating "+TissueManager.TissueServicePortParameter+" parameter, service discovery may fail to find the redirect port!");
+								logger.warn("ServiceManager.startService()" + service.getType() + " service " + service.getName() + " not not creating " + TissueManager.TissueServicePortParameter
+										+ " parameter, service discovery may fail to find the redirect port!");
 							}
 
 						}
