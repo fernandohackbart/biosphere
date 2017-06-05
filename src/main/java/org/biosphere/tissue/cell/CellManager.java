@@ -204,6 +204,15 @@ public class CellManager {
 		cellStatusContexts.add(TissueManager.CellStatusURI);
 		cellStatusSHD.setContexts(cellStatusContexts);
 		cellTissueListenerHandlers.add(cellStatusSHD);
+		
+		ServletHandlerDefinition serviceStatusSHD = new ServletHandlerDefinition();
+		serviceStatusSHD.setClassName(TissueManager.ServiceStatusClass);
+		serviceStatusSHD.setContentType("application/json");
+		serviceStatusSHD.setContentEncoding("utf-8");
+		ArrayList<String> serviceStatusContexts = new ArrayList<String>();
+		serviceStatusContexts.add(TissueManager.ServiceStatusURI);
+		serviceStatusSHD.setContexts(serviceStatusContexts);
+		cellTissueListenerHandlers.add(serviceStatusSHD);
 
 		ServletHandlerDefinition tissueStatusSHD = new ServletHandlerDefinition();
 		tissueStatusSHD.setClassName(TissueManager.TissueStatusClass);

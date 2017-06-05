@@ -90,11 +90,14 @@ public class TissueManager {
 	public final static String TissueChainAppendBlockURI = "/org/biosphere/cell/chain/append/block";
 	public final static String CellStatusClass = "org.biosphere.tissue.handlers.CellStatusHandler";
 	public final static String CellStatusURI = "/org/biosphere/cell/status";
+	public final static String ServiceStatusClass = "org.biosphere.tissue.handlers.ServiceStatusHandler";
+	public final static String ServiceStatusURI = "/org/biosphere/service/status";
+	public final static String TissueStatusClass = "org.biosphere.tissue.handlers.TissueStatusHandler";
+	public final static String TissueStatusURI = "/org/biosphere/tissue/status";
+
 	public final static String ServiceEnableClass = "org.biosphere.tissue.handlers.ServiceEnableHandler";
 	public final static String ServiceEnableURI = "/org/biosphere/cell/service/enable";
 	public final static String ServiceDisableURI = "/org/biosphere/cell/service/disable";
-	public final static String TissueStatusClass = "org.biosphere.tissue.handlers.TissueStatusHandler";
-	public final static String TissueStatusURI = "/org/biosphere/tissue/status";
 
 	public final static void createTissue(Cell cell) throws CellException {
 		Logger logger = LoggerFactory.getLogger(TissueManager.class);
