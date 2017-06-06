@@ -6,7 +6,9 @@
      xmlns:xml="http://www.w3.org/XML/1998/namespace"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
-    <owl:Ontology rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior"/>
+    <owl:Ontology rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior">
+        <rdfs:comment xml:lang="en">This ontology represents the knowledge base for one autonomic system awareness and decisioon support.</rdfs:comment>
+    </owl:Ontology>
     
 
 
@@ -37,7 +39,7 @@
     <owl:ObjectProperty rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:assessedBy">
         <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
         <owl:inverseOf rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:assesses"/>
-        <rdfs:domain rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Goal"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Resource"/>
         <rdfs:range rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Metric"/>
     </owl:ObjectProperty>
     
@@ -48,7 +50,7 @@
     <owl:ObjectProperty rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:assesses">
         <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
         <rdfs:domain rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Metric"/>
-        <rdfs:range rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Goal"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Resource"/>
     </owl:ObjectProperty>
     
 
@@ -231,9 +233,7 @@
 
     <!-- http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Comfort_zone_limit -->
 
-    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Comfort_zone_limit">
-        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Comfort_zone"/>
-    </owl:Class>
+    <owl:Class rdf:about="http://www.semanticweb.org/biosphere/ontologies/2017/5/TissueAutonomicBehavior#biosphere:Comfort_zone_limit"/>
     
 
 
