@@ -1,5 +1,6 @@
 bin/
 build/
-.gradle/
+.gradle
 *.bin
 *.lock
+.idea
