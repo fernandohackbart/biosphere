@@ -1,0 +1,128 @@
+################################################################################################################################################################################################
+# Vagrant
+#
+# https://www.vagrantup.com/docs/virtualbox/boxes.html
+# https://blog.engineyard.com/2014/building-a-vagrant-box
+
+mkdir -p /cygdrive/c/Biosphere/config
+cd /cygdrive/c/Biosphere/config
+vagrant plugin install vagrant-hostmanager
+git clone https://github.com/dcos/dcos-vagrant
+cd dcos-vagrant
+cp VagrantConfig-1m-1a-1p.yaml VagrantConfig.yaml
+vagrant up
+
+cd /cygdrive/c/Biosphere/config/dcos-vagrant
+vagrant suspend
+
+cd /cygdrive/c/Biosphere/config/dcos-vagrant
+vagrant resume
+
+cd /cygdrive/c/Biosphere/config/dcos-vagrant
+vagrant destroy -f a1 m1 p1 boot 
+
+################################################################################################################################################################################################
+# DC/OS Client OpenID token
+#
+
+http://m1.dcos
+
+################################################################################################################################################################################################
+# DC/OS Client Windows
+#
+# https://github.com/dcos/dcos-vagrant/blob/master/README.md
+	
+#Fix the /etc/hosts 
+192.168.65.111  a1.dcos
+192.168.65.50   boot.dcos
+192.168.65.90   m1.dcos
+192.168.65.60   p1.dcos
+192.168.65.60   spring.acme.org oinker.acme.org
+
+mkdir -p /cygdrive/c/Biosphere/config/dcos-client
+cd /cygdrive/c/Biosphere/config/dcos-client
+curl https://downloads.dcos.io/binaries/cli/windows/x86-64/dcos-1.9/dcos.exe -o dcos.exe
+chmod +x /cygdrive/c/Biosphere/config/dcos-client/dcos.exe
+export PATH=$PATH:/cygdrive/c/Biosphere/config/dcos-client
+
+dcos config set core.dcos_url http://m1.dcos
+dcos auth login
+dcos
+
+################################################################################################################################################################################################
+# DC/OS Client Centos 7 
+
+#Fix the /etc/hosts 
+192.168.65.111  a1.dcos
+192.168.65.50   boot.dcos
+192.168.65.90   m1.dcos
+192.168.65.60   p1.dcos
+192.168.65.60   spring.acme.org oinker.acme.org
+		
+curl https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.9/dcos -o dcos
+mv dcos /usr/local/bin
+chmod +x /usr/local/bin/dcos
+
+dcos config set core.dcos_url http://m1.dcos
+dcos auth login
+dcos	
+
+################################################################################################################################################################################################
+#Docker app to the DC/OS instance
+#
+# https://dcos.io/docs/1.7/usage/tutorials/docker-app/
+
+export BIOSPHERE_DCOS=/cygdrive/c/Biosphere/config/dcos-service
+export PATH=$PATH:/cygdrive/c/Biosphere/config/dcos-client
+
+mkdir -p ${BIOSPHERE_DCOS}
+
+################################################################################################################################################################################################
+cat > ${BIOSPHERE_DCOS}/biosphere-1.0.0.json <<EOF
+{
+    "id": "biosphere-1.0.0",
+    "container": {
+    "type": "DOCKER",
+    "docker": {
+          "image": "biosphere/biosphere:1.0.0",
+          "network": "BRIDGE",
+          "portMappings": [
+            { "hostPort": 1040, "containerPort": 1040, "protocol": "tcp"},
+            { "hostPort": 1060, "containerPort": 1060, "protocol": "tcp"}
+          ]
+        }
+    },
+    "acceptedResourceRoles": ["slave_public"],
+    "instances": 1,
+    "cpus": 0.1,
+    "mem": 90
+}
+EOF
+
+cd /cygdrive/c/Biosphere/config/dcos-service
+
+cat ${BIOSPHERE_DCOS}/biosphere-1.0.0.json
+dcos marathon app add biosphere-1.0.0.json
+dcos marathon app list
+dcos marathon app stop /biosphere-1.0.0
+dcos marathon app remove /biosphere-1.0.0
+dcos task
+
+################################################################################################################################################################################################
+# Test the cell
+curl -k -l https://192.168.65.60:1040/org/biosphere/cell/service/disable
+
+curl -k -l https://192.168.65.60:1040/org/biosphere/cell/service/enable
+
+curl -k -l https://192.168.65.60:1040/test
+  
+################################################################################################################################################################################################
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+################################################################################################################################################################################################
+ConductR (licensed product from Lightbend)
+
+mkdir -p /cygdrive/c/Biosphere/config/centos7
+cd /cygdrive/c/Biosphere/config/centos7
+vagrant init centos/7
+vagrant up --provider virtualbox
+################################################################################################################################################################################################

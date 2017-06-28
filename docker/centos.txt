@@ -1,0 +1,203 @@
+	
+################################################################################################################################################################################################
+# Install Centos7
+
+create user docker
+yum groupinstall 'KDE' 'X Window System'
+systemctl set-default graphical.target
+
+# Text interface
+systemctl set-default multi-user.target
+
+sysctl -w net.ipv4.ip_forward=1
+sysctl net.ipv4.ip_forward
+
+################################################################################################################################################################################################
+# Login to the Centos7
+ssh docker@192.168.65.250
+ 
+################################################################################################################################################################################################
+# Install Centos7 VBox additions
+
+yum update
+reboot
+yum install kernel-devel
+yum install gcc*
+yum install epel-release
+yum install dkms
+reboot
+#Mount VirtualBox additions media
+cd /run/media/docker/VBOXADDITIONS_5.1.22_115126
+./VBoxLinuxAdditions.run
+reboot
+
+################################################################################################################################################################################################
+# Docker in the Centos7	
+# https://www.tecmint.com/install-docker-and-learn-containers-in-centos-rhel-7-6/
+
+yum install docker
+yum install epel-release
+
+systemctl start docker 
+systemctl status docker
+systemctl enable docker
+
+docker run hello-world
+
+docker rmi docker.io/hello-world -f
+
+################################################################################################################################################################################################
+# Prepare docker container
+# 
+# https://hub.docker.com/_/centos/
+# https://store.docker.com/images/centos
+# https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/#entrypoint
+# https://docs.docker.com/engine/reference/builder/
+
+export BIOSPHERE_DOCKER=/home/docker/Biosphere/docker-images/Biosphere/dockerfiles/1.0.0
+
+mkdir -p ${BIOSPHERE_DOCKER}
+
+cat > ${BIOSPHERE_DOCKER}/Dockerfile <<EOF
+FROM centos:7
+MAINTAINER Fernando Hackbart<fhackbart@gmail.com>
+EXPOSE 1040
+EXPOSE 1060
+
+RUN yum install -y tar gzip java-1.8.0-openjdk.x86_64 java-1.8.0-openjdk-devel.x86_64 git \
+    yum clean all
+	
+RUN mkdir -p /u01 && \     
+    chmod a+xr /u01 && \ 
+    groupadd biosphere && \
+    useradd -d /home/biosphere -g biosphere -s /bin/bash biosphere && \   
+    chown biosphere:biosphere -R /u01 && \     
+    echo biosphere:biosphere | chpasswd
+
+USER biosphere
+
+ENV JAVA_HOME /usr/lib/jvm/java
+
+
+###############
+# Clone gradle from github
+###############
+RUN cd /u01 && \
+	git clone https://github.com/gradle/gradle.git
+
+###############
+# This sould be replaced by gradle.build with the references to all the artifacts
+###############
+RUN cd /u01 && \
+	git clone https://github.com/fernandohackbart/Biosphere.git
+
+RUN touch /home/biosphere/.bash_profile && \
+    echo "export JAVA_HOME=/usr/lib/jvm/java" >> /home/biosphere/.bash_profile && \
+	echo "export PATH=$PATH:/u01/gradle" >> /home/biosphere/.bash_profile
+
+RUN mkdir -p /home/biosphere/bin && \
+    touch /home/biosphere/bin/start_biosphere && \
+    echo "export JAVA_HOME=/usr/lib/jvm/java" >> /home/biosphere/bin/start_biosphere && \
+	echo "export PATH=$PATH:/u01/gradle" >> /home/biosphere/bin/start_biosphere && \
+	echo "cd /u01/Biosphere" >> /home/biosphere/bin/start_biosphere && \
+	echo "gradlew run" >> /home/biosphere/bin/start_biosphere && \
+	chmod 755 /home/biosphere/bin/start_biosphere
+
+RUN /home/biosphere/bin/start_biosphere
+
+ENTRYPOINT /home/biosphere/bin/start_biosphere
+	
+EOF
+
+docker build -f ${BIOSPHERE_DOCKER}/Dockerfile -t biosphere/biosphere:1.0.0 ${BIOSPHERE_DOCKER}
+
+docker images
+
+docker rmi biosphere/biosphere:1.0.0 -f
+
+docker run -t -i biosphere/biosphere:1.0.0 /bin/bash
+
+docker info
+
+################################################################################################################################################################################################
+# New version with the Gradle already downloaded
+
+export BIOSPHERE_DOCKER=/home/docker/Biosphere/docker-images/Biosphere/dockerfiles/1.0.1
+
+mkdir -p ${BIOSPHERE_DOCKER}
+
+cat > ${BIOSPHERE_DOCKER}/Dockerfile <<EOF
+FROM biosphere/biosphere:1.0.0
+MAINTAINER Fernando Hackbart<fhackbart@gmail.com>
+EXPOSE 1040
+EXPOSE 1060
+
+USER biosphere
+
+ENV JAVA_HOME /usr/lib/jvm/java
+ENV PATH $PATH:/u01/gradle
+
+RUN cd /u01/Biosphere && \
+	gradlew build
+
+ENTRYPOINT /home/biosphere/bin/start_biosphere
+	
+EOF
+
+docker build -f ${BIOSPHERE_DOCKER}/Dockerfile -t biosphere/biosphere:1.0.1 ${BIOSPHERE_DOCKER}
+
+docker images
+docker ps
+
+docker run -t -i biosphere/biosphere:1.0.1
+
+docker info
+
+################################################################################################################################################################################################
+# New version with the Gradle already downloaded
+
+export BIOSPHERE_DOCKER=/home/docker/Biosphere/docker-images/Biosphere/dockerfiles/1.0.2
+
+mkdir -p ${BIOSPHERE_DOCKER}
+
+cat > ${BIOSPHERE_DOCKER}/Dockerfile <<EOF
+FROM biosphere/biosphere:1.0.1
+MAINTAINER Fernando Hackbart<fhackbart@gmail.com>
+EXPOSE 1040
+EXPOSE 1060
+
+USER biosphere
+
+RUN mkdir -p /home/biosphere/bin && \
+    mkdir -p /home/biosphere/log && \
+    touch /home/biosphere/bin/start_biosphere && \
+    echo "export JAVA_HOME=/usr/lib/jvm/java" >> /home/biosphere/bin/start_biosphere && \
+	echo "export PATH=$PATH:/u01/gradle" >> /home/biosphere/bin/start_biosphere && \
+	echo "cd /u01/Biosphere" >> /home/biosphere/bin/start_biosphere && \
+	echo "gradlew run" >> /home/biosphere/bin/start_biosphere && \
+	chmod 755 /home/biosphere/bin/start_biosphere
+
+#ENTRYPOINT ["/usr/bin/nohup","/home/biosphere/bin/start_biosphere",">/home/biosphere/log/biosphere.out","2>&1","&"]
+	
+EOF
+
+docker build -f ${BIOSPHERE_DOCKER}/Dockerfile -t biosphere/biosphere:1.0.2 ${BIOSPHERE_DOCKER}
+
+docker images
+docker ps
+
+docker run -i biosphere/biosphere:1.0.2
+
+docker info
+
+################################################################################################################################################################################################
+#Push the container to the Docker store
+#
+# http://store.docker.com
+# http://hub.docker.com
+
+docker login
+
+
+docker push biosphere/biosphere:1.0.2
+
