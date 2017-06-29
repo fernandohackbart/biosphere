@@ -7,4 +7,4 @@ This implementation assume the distributed to be a tissue composed cells, all ce
 
 The project is implemented in Java and defines the tissue protocol that enables other languages implementations.
 
-Check out our wiki for more information https://github.com/fernandohackbart/Biosphere/wiki
+Check out our wiki for more information in the [wiki](https://github.com/fernandohackbart/Biosphere/wiki)
