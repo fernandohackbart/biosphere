@@ -1,0 +1,6 @@
+
+# Grant access to Docker to the user by sudo
+cat "fernando        ALL=(ALL)       NOPASSWD:/usr/bin/docker" >> /etc/sudoers
+
+#Create an alias to fake the command 
+alias docker="sudo /usr/bin/docker"
