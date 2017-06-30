@@ -12,7 +12,7 @@ apply plugin: 'application'
 apply plugin: 'maven-publish'
 
 group = 'org.biosphere.tissue'
-version = '1.0'
+version = '1.0.1'
 
 mainClassName = "org.biosphere.tissue.Cell"
 applicationDefaultJvmArgs = ["-Dorg.slf4j.simpleLogger.defaultLogLevel=trace",
@@ -59,4 +59,42 @@ jar {
   }
 
 }
+
+//##############################################################################################
+// Docker support on Gradle build
+apply plugin: 'docker'
+
+buildscript {
+    repositories { mavenLocal(); jcenter() }
+    dependencies {
+        classpath 'se.transmode.gradle:gradle-docker:1.2'
+    }
+}
+
+group = "biosphere"
+
+docker {
+    baseImage "biosphere/biosphere:base"
+    maintainer 'Fernando Hackbart<fhackbart@gmail.com>'
+}
+
+task docker(type: Docker) {
+    applicationName = "biosphere"
+//    dockerfile {
+//        tagVersion = "1.0.1"
+//        exposePort = 1040
+//        exposePort = 1060
+//        user = 'biosphere'
+//        run '"mkdir -p /u01/biosphere/stage'
+//        add {
+//            from 'docker-files/Biosphere-1.0.tar'
+//            into '/u01/biosphere/stage/'
+//        }
+//        run 'cd /u01/biosphere ; tar xf /u01/biosphere/stage/Biosphere-1.0.tar'
+//        entryPoint '/u01/biosphere/Biosphere-1.0/bin/Biosphere'
+//    }
+    dryRun = true
+}
+
+
 
