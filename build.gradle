@@ -60,42 +60,46 @@ jar {
 
 }
 
-//##############################################################################################
-// Docker support on Gradle build
 
-apply plugin: 'docker'
+// http://container-solutions.com/how-to-build-docker-images-with-gradle/
+/*
+apply plugin: 'com.bmuschko.docker-remote-api'
 
 buildscript {
-    repositories { mavenLocal(); jcenter() }
+    repositories {
+        jcenter()
+    }
     dependencies {
-        classpath 'se.transmode.gradle:gradle-docker:1.2'
+        classpath 'com.bmuschko:gradle-docker-plugin:2.2'
     }
 }
 
-group = "biosphere"
 
-docker {
-    baseImage "biosphere/biosphere:base"
-    maintainer 'Fernando Hackbart<fhackbart@gmail.com>'
+task copyJar(type: Copy) {
+    dependsOn   'jar'
+    from        "build/libs/elasticsearch-mesos-scheduler-${project.version}.jar"
+    into        'build/docker'
+    rename { String fileName ->
+        fileName.replace("-${project.version}", "")
+    }
 }
 
-//task docker(type: Docker) {
-//    applicationName = "biosphere"
-//    dockerfile {
-//        tagVersion = "1.0.1"
-//        exposePort = 1040
-//        exposePort = 1060
-//        user = 'biosphere'
-//        run '"mkdir -p /u01/biosphere/stage'
-//        add {
-//            from 'docker-files/Biosphere-1.0.tar'
-//            into '/u01/biosphere/stage/'
-//        }
-//        run 'cd /u01/biosphere ; tar xf /u01/biosphere/stage/Biosphere-1.0.tar'
-//        entryPoint '/u01/biosphere/Biosphere-1.0/bin/Biosphere'
-//    }
-//    dryRun = true
-//}
+task buildDockerImage(type: DockerBuildImage) {
+    dependsOn   copyJar
+    if (System.env.DOCKER_HOST) {
+        url = "$System.env.DOCKER_HOST".replace("tcp","https")
+        if (System.env.DOCKER_CERT_PATH) {
+            certPath = new File(System.env.DOCKER_CERT_PATH)
 
+        }
+    }
+    else {
+        url = 'unix:///var/run/docker.sock'
+    }
+    inputDir = file('.')
+    tag = 'mesos/elasticsearch-scheduler'
+}
 
-
+build.dependsOn buildDockerImage
+build.dependsOn copyJar
+*/
