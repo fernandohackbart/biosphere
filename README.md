@@ -1,4 +1,7 @@
 # Biosphere
+
+[![Build Status](https://travis-ci.org/fernandohackbart/biosphere.svg?branch=master)](https://travis-ci.org/fernandohackbart/biosphere)
+
 Distributed platform for services based on autonomic computing, organic computing and blockchain technologies.
 
 Biosphere is a project to provide a platform for distributes applications, is based on the concept of organic computing where each element is autonomous follows the directive of the colectivity. 
